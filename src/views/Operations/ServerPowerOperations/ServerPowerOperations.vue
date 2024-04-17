@@ -246,6 +246,7 @@ export default {
         this.bmc.health === 'OK'
       ) {
         this.$store.dispatch('controls/serverPowerOn');
+        this.infoToast(this.$t('pageServerPowerOperations.userRefresh'));
       } else {
         this.errorToast(
           this.$t('pageServerPowerOperations.toast.errorPowerOn')
@@ -273,12 +274,14 @@ export default {
             .msgBoxConfirm(modalMessage, modalOptions)
             .then((confirmed) => {
               if (confirmed) this.$store.dispatch('controls/serverSoftReboot');
+              this.infoToast(this.$t('pageServerPowerOperations.userRefresh'));
             });
         } else if (this.form.rebootOption === 'immediate') {
           this.$bvModal
             .msgBoxConfirm(modalMessage, modalOptions)
             .then((confirmed) => {
               if (confirmed) this.$store.dispatch('controls/serverHardReboot');
+              this.infoToast(this.$t('pageServerPowerOperations.userRefresh'));
             });
         }
       });
@@ -303,6 +306,7 @@ export default {
           .msgBoxConfirm(modalMessage, modalOptions)
           .then((confirmed) => {
             if (confirmed) this.$store.dispatch('controls/serverSoftPowerOff');
+            this.infoToast(this.$t('pageServerPowerOperations.userRefresh'));
           });
       }
       if (this.form.shutdownOption === 'immediate') {
@@ -310,6 +314,7 @@ export default {
           .msgBoxConfirm(modalMessage, modalOptions)
           .then((confirmed) => {
             if (confirmed) this.$store.dispatch('controls/serverHardPowerOff');
+            this.infoToast(this.$t('pageServerPowerOperations.userRefresh'));
           });
       }
     },

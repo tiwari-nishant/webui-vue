@@ -1281,6 +1281,7 @@
     "serverStatus": "Server status",
     "shutDown": "Shut down",
     "shutdownServer": "Shutdown server",
+    "userRefresh": "Reload the browser page to get the updated content.",
     "biosSettings": {
       "aixLinux": "AIX/LINUX partition boot mode",
       "currentOperatingMode": "Current operating mode %{currOptMode}",
