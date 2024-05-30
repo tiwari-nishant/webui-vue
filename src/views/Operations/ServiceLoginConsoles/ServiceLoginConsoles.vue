@@ -99,6 +99,7 @@ export default {
   },
   mounted() {
     this.openTerminal();
+    this.$root.$emit('loading-bar-status', true);
   },
   beforeDestroy() {
     this.ws.close();
