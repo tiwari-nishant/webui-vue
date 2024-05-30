@@ -1,5 +1,5 @@
 <template>
-  <div v-if="modelType !== '--'">
+  <div v-if="modelType !== '--' || loadingCompleted">
     <div class="nav-container" :class="{ open: isNavigationOpen }">
       <nav ref="nav" :aria-label="$t('appNavigation.primaryNavigation')">
         <b-nav vertical class="mb-4">
@@ -67,6 +67,7 @@ export default {
   data() {
     return {
       isNavigationOpen: false,
+      loadingCompleted: false,
     };
   },
   computed: {
@@ -86,6 +87,9 @@ export default {
     },
   },
   mounted() {
+    this.$root.$on('loading-bar-status', (value) => {
+      this.loadingCompleted = value;
+    });
     this.checkForUserData(),
       this.$root.$on('toggle-navigation', () => this.toggleIsOpen());
   },
