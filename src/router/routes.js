@@ -8,6 +8,7 @@ import VirtualMedia from '@/views/Operations/VirtualMedia/VirtualMedia.vue';
 import Kvm from '@/views/Operations/Kvm';
 import PageNotFound from '@/views/PageNotFound/PageNotFound.vue';
 import KeyClear from '@/views/Operations/KeyClear/KeyClear.vue';
+import RebootBmc from '@/views/Operations/RebootBmc';
 const roles = {
   administrator: 'Administrator',
   operator: 'Operator',
@@ -64,6 +65,14 @@ export const routes = [
         component: KeyClear,
         meta: {
           title: i18n.global.t('appPageTitle.policies'),
+        },
+      },
+      {
+        path: '/operations/reboot-bmc',
+        name: 'reboot-bmc',
+        component: RebootBmc,
+        meta: {
+          title: i18n.global.t('appPageTitle.rebootBmc'),
         },
       },
       {
