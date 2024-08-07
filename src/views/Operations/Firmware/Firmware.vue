@@ -22,9 +22,17 @@
     </b-row>
 
     <!-- Update firmware-->
-    <page-section
-      :section-title="$t('pageFirmware.sectionTitleUpdateFirmware')"
-    >
+    <page-section :section-title="$t('pageFirmware.sectionTitleUpdateFirmware')"
+      ><b-row>
+        <b-col sm="14" md="10" xl="6">
+          <alert :show="showAlert" variant="info" class="mb-5">
+            <p class="mb-0 p1">{{ $t('global.toast.minMifMessage') }}:</p>
+            <p class="font-weight-bold p2">
+              {{ lowestSupportedFirmwareVersion }}
+            </p>
+          </alert>
+        </b-col>
+      </b-row>
       <b-row>
         <b-col class="mb-4" sm="8" md="6" xl="4">
           <!-- Update form -->
@@ -50,6 +58,7 @@ import FormUpdate from './FirmwareFormUpdate';
 import HostCards from './FirmwareCardsHost';
 import PageSection from '@/components/Global/PageSection';
 import PageTitle from '@/components/Global/PageTitle';
+import Alert from '@/components/Global/Alert';
 
 import LoadingBarMixin, { loading } from '@/components/Mixins/LoadingBarMixin';
 
@@ -63,6 +72,7 @@ export default {
     HostCards,
     PageSection,
     PageTitle,
+    Alert,
   },
   mixins: [LoadingBarMixin],
   beforeRouteLeave(to, from, next) {
@@ -74,6 +84,8 @@ export default {
       loading,
       isServerPowerOffRequired:
         process.env.VUE_APP_SERVER_OFF_REQUIRED === 'true',
+      lowestSupportedFirmwareVersion: '',
+      showAlert: false,
     };
   },
   computed: {
@@ -99,6 +111,18 @@ export default {
       this.$store.dispatch('licenses/getLicenses'),
       this.$store.dispatch('firmware/getFirmwareInformation'),
       this.$store.dispatch('firmware/getFirmwareBootSide'),
+      this.$store
+        .dispatch('firmware/getLowestSupportedFirmwareVersion')
+        .then(() => {
+          this.lowestSupportedFirmwareVersion = this.$store.getters[
+            'firmware/lowestSupportedFirmwareVersion'
+          ];
+        }),
+      this.$store
+        .dispatch('firmware/getLowestSupportedFirmwareVersion')
+        .then(() => {
+          this.showAlert = this.$store.getters['firmware/showAlert'];
+        }),
     ]).finally(() => this.endLoader());
   },
   methods: {
@@ -108,3 +132,12 @@ export default {
   },
 };
 </script>
+<style scoped>
+.p1 {
+  display: inline-block;
+}
+.p2 {
+  margin-left: 5px;
+  display: inline-block;
+}
+</style>
