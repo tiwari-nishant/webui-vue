@@ -9,11 +9,11 @@ const FirmwareStore = {
     bmcActiveFirmwareId: null,
     hostActiveFirmwareId: null,
     applyTime: null,
-    tftpAvailable: false,
     firmwareBootSide: null,
+    lowestSupportedFirmwareVersion: '',
+    showAlert: false,
   },
   getters: {
-    isTftpUploadAvailable: (state) => state.tftpAvailable,
     isSingleFileUploadEnabled: (state) => state.hostFirmware.length === 0,
     activeBmcFirmware: (state) => {
       return state.bmcFirmware.find(
@@ -36,6 +36,9 @@ const FirmwareStore = {
       );
     },
     firmwareBootSide: (state) => state.firmwareBootSide,
+    lowestSupportedFirmwareVersion: (state) =>
+      state.lowestSupportedFirmwareVersion,
+    showAlert: (state) => state.showAlert,
   },
   mutations: {
     setActiveBmcFirmwareId: (state, id) => (state.bmcActiveFirmwareId = id),
@@ -45,12 +48,36 @@ const FirmwareStore = {
     setBmcFirmware: (state, firmware) => (state.bmcFirmware = firmware),
     setHostFirmware: (state, firmware) => (state.hostFirmware = firmware),
     setApplyTime: (state, applyTime) => (state.applyTime = applyTime),
-    setTftpUploadAvailable: (state, tftpAvailable) =>
-      (state.tftpAvailable = tftpAvailable),
     setFirmwareBootSide: (state, firmwareBootSide) =>
       (state.firmwareBootSide = firmwareBootSide),
+    setLowestSupportedFirmwareVersion: (
+      state,
+      lowestSupportedFirmwareVersion
+    ) =>
+      (state.lowestSupportedFirmwareVersion = lowestSupportedFirmwareVersion),
+    setShowAlert: (state, showAlert) => (state.showAlert = showAlert),
   },
   actions: {
+    async getLowestSupportedFirmwareVersion({ commit, state }) {
+      await api.get('/redfish/v1/Managers/bmc').then((response) =>
+        api
+          .get(response.data.Links.ActiveSoftwareImage['@odata.id'])
+          .then((response) => {
+            let lowestSupportedFirmware;
+            if (Object.keys(response.data).includes('LowestSupportedVersion')) {
+              state.showAlert = true;
+              lowestSupportedFirmware = response.data.LowestSupportedVersion;
+            } else {
+              state.showAlert = false;
+            }
+            commit(
+              'setLowestSupportedFirmwareVersion',
+              lowestSupportedFirmware
+            );
+          })
+      );
+      return this.lowestSupportedFirmwareVersion;
+    },
     async getFirmwareInformation({ dispatch }) {
       dispatch('getActiveHostFirmware');
       dispatch('getActiveBmcFirmware');
@@ -124,15 +151,7 @@ const FirmwareStore = {
         .then(({ data }) => {
           const applyTime =
             data.HttpPushUriOptions.HttpPushUriApplyTime.ApplyTime;
-          const allowableActions =
-            data?.Actions?.['#UpdateService.SimpleUpdate']?.[
-              'TransferProtocol@Redfish.AllowableValues'
-            ];
-
           commit('setApplyTime', applyTime);
-          if (allowableActions?.includes('TFTP')) {
-            commit('setTftpUploadAvailable', true);
-          }
         })
         .catch((error) => console.log(error));
     },
@@ -162,26 +181,6 @@ const FirmwareStore = {
         .catch((error) => {
           console.log(error);
           throw new Error(i18n.t('pageFirmware.toast.errorUploadFirmware'));
-        });
-    },
-    async uploadFirmwareTFTP({ state, dispatch }, fileAddress) {
-      const data = {
-        TransferProtocol: 'TFTP',
-        ImageURI: fileAddress,
-      };
-      if (state.applyTime !== 'Immediate') {
-        // ApplyTime must be set to Immediate before making
-        // request to update firmware
-        await dispatch('setApplyTimeImmediate');
-      }
-      return await api
-        .post(
-          '/redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate',
-          data
-        )
-        .catch((error) => {
-          console.log(error);
-          throw new Error(i18n.t('pageFirmware.toast.errorUpdateFirmware'));
         });
     },
     async switchBmcFirmwareAndReboot({ getters }) {
