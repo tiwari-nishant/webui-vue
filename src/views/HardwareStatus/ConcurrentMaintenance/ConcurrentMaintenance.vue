@@ -1,12 +1,12 @@
 <template>
-  <b-container fluid="xl">
-    <b-row>
-      <b-col md="8" xl="8">
+  <BContainer fluid="xl">
+    <BRow>
+      <BCol md="8" xl="8">
         <page-title :title="$t('appPageTitle.concurrentMaintenance')" />
-      </b-col>
-    </b-row>
-    <b-row>
-      <b-col md="8" xl="6">
+      </BCol>
+    </BRow>
+    <BRow>
+      <BCol md="8" xl="6">
         <alert variant="info" class="mb-4">
           <div class="font-weight-bold">
             {{ $t('pageConcurrentMaintenance.alert.title') }}
@@ -15,10 +15,10 @@
             {{ $t('pageConcurrentMaintenance.alert.message') }}
           </div>
         </alert>
-      </b-col>
-    </b-row>
-    <b-row>
-      <b-col md="8" class="d-flex align-items-center justify-content-between">
+      </BCol>
+    </BRow>
+    <BRow>
+      <BCol md="8" class="d-flex align-items-center justify-content-between">
         <dl class="mr-3">
           <dt>
             {{ $t('pageConcurrentMaintenance.tod') }}
@@ -39,10 +39,10 @@
             <p v-else>--</p>
           </dd>
         </dl>
-      </b-col>
-    </b-row>
-    <b-row>
-      <b-col md="8" class="d-flex align-items-center justify-content-between">
+      </BCol>
+    </BRow>
+    <BRow>
+      <BCol md="8" class="d-flex align-items-center justify-content-between">
         <dl class="mr-3">
           <dt>
             {{ $t('pageConcurrentMaintenance.controlPanel') }}
@@ -63,10 +63,10 @@
             <p v-else>--</p>
           </dd>
         </dl>
-      </b-col>
-    </b-row>
-    <b-row>
-      <b-col md="8" class="d-flex align-items-center justify-content-between">
+      </BCol>
+    </BRow>
+    <BRow>
+      <BCol md="8" class="d-flex align-items-center justify-content-between">
         <dl class="mr-3">
           <dt>
             {{ $t('pageConcurrentMaintenance.controlPanelDisp') }}
@@ -87,14 +87,13 @@
             <p v-else>--</p>
           </dd>
         </dl>
-      </b-col>
-    </b-row>
-  </b-container>
+      </BCol>
+    </BRow>
+  </BContainer>
 </template>
 
 <script setup>
 import { computed, onBeforeMount } from 'vue';
-import { BCol, BContainer, BRow } from 'bootstrap-vue-next';
 import useToast from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import { ConcurrentMaintenanceStore } from '@/store';
@@ -143,7 +142,6 @@ onBeforeMount(() => {
 });
 
 function changeReadyToRemoveState(state) {
-  console.log('todoDisp', state);
   concurrentMaintenanceStore
     .saveReadyToRemoveState(state)
     .then((message) => successToast(message))
@@ -158,7 +156,6 @@ function changeControlPanelState(state) {
 }
 
 function changeControlPanelDispState(state) {
-  console.log('statedisp', state);
   concurrentMaintenanceStore
     .saveReadyToRemoveControlPanelDisp(state)
     .then((message) => successToast(message))

@@ -13,6 +13,7 @@ import FactoryResetStore from './modules/Operations/FactoryResetStore';
 import ResourceMemoryStore from './modules/ResourceManagement/ResourceMemoryStore';
 import PowerPolicyStore from './modules/Settings/PowerPolicyStore';
 import ConcurrentMaintenanceStore from './modules/HardwareStatus/ConcurrentMaintenanceStore';
+import IBMiServiceFunctionsStore from './modules/Logs/IBMiServiceFunctionsStore';
 
 // ... (export use other stores)
 export {
@@ -30,4 +31,5 @@ export {
   ResourceMemoryStore,
   PowerPolicyStore,
   ConcurrentMaintenanceStore,
+  IBMiServiceFunctionsStore,
 };

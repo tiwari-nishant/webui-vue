@@ -2,7 +2,7 @@ import api from '@/store/api';
 import i18n from '@/i18n';
 import { defineStore } from 'pinia';
 
-export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
+export const ConcurrentMaintenanceStore = defineStore('concurrentMaintenance', {
   state: () => ({
     readyToRemove: null,
     todObject: {},
@@ -32,10 +32,7 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
                 'P0-C0-E0',
               )
             ) {
-              // commit('setTodObject', entry);
-              console.log('entry', entry);
               this.todObject = entry;
-              // commit('setReadyToRemove', entry.Oem.OpenBMC.ReadyToRemove);
               this.readyToRemove = entry.Oem.OpenBMC.ReadyToRemove;
             }
           }),
@@ -51,12 +48,7 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
               Object.hasOwn(entry?.Oem?.OpenBMC || {}, 'ReadyToRemove') &&
               entry?.Location?.PartLocation?.ServiceLabel?.endsWith?.('D0')
             ) {
-              // commit('setControlPanel', entry);
               this.controlPanel = entry;
-              // commit(
-              //   'setReadyToRemoveControlPanel',
-              //   entry.Oem.OpenBMC.ReadyToRemove
-              // );
               this.readyToRemoveControlPanel = entry.Oem.OpenBMC.ReadyToRemove;
             }
           }),
@@ -72,12 +64,7 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
               Object.hasOwn(entry?.Oem?.OpenBMC || {}, 'ReadyToRemove') &&
               entry?.Location?.PartLocation?.ServiceLabel?.endsWith?.('D1')
             ) {
-              // commit('setControlPanelDisp', entry);
               this.controlPanelDisp = entry;
-              // commit(
-              //   'setReadyToRemoveControlPanelDisp',
-              //   entry.Oem.OpenBMC.ReadyToRemove,
-              // );
               this.readyToRemoveControlPanelDisp =
                 entry.Oem.OpenBMC.ReadyToRemove;
             }
@@ -86,10 +73,7 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
         .catch((error) => console.log(error));
     },
     async saveReadyToRemoveState(updatedReadyToRemove) {
-      // commit('setReadyToRemove', updatedReadyToRemove);
       this.ReadyToRemove = updatedReadyToRemove;
-      console.log('updatedReadyToRemove', updatedReadyToRemove);
-      console.log('this.todObject', this.todObject);
       return await api
         .patch('/redfish/v1/Chassis/chassis/Assembly', {
           Assemblies: [
@@ -104,7 +88,6 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
           ],
         })
         .then(() => {
-          console.log('Here');
           return i18n.global.t(
             'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
             {
@@ -113,9 +96,8 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
           );
         })
         .catch((error) => {
-          console.log('Here for error');
           console.log(error);
-          // commit('setReadyToRemove', !updatedReadyToRemove);
+          this.readyToRemove = !updatedReadyToRemove;
           throw new Error(
             i18n.global.t(
               'pageConcurrentMaintenance.toast.errorSaveReadyToRemove',
@@ -127,10 +109,7 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
         });
     },
     async saveReadyToRemoveControlPanel(updatedControlPanel) {
-      // commit('setReadyToRemoveControlPanel', updatedControlPanel);
-      console.log('rrrrr', this.readyToRemoveControlPanel);
       this.readyToRemoveControlPanel = updatedControlPanel;
-      console.log('afterrrrrr', this.readyToRemoveControlPanel);
       return await api
         .patch('/redfish/v1/Chassis/chassis/Assembly', {
           Assemblies: [
@@ -154,7 +133,6 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
         })
         .catch((error) => {
           console.log(error);
-          // commit('setReadyToRemoveControlPanel', !updatedControlPanel);
           this.readyToRemoveControlPanel = !updatedControlPanel;
           throw new Error(
             i18n.global.t(
@@ -167,9 +145,7 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
         });
     },
     async saveReadyToRemoveControlPanelDisp(updatedControlPanelDisp) {
-      // commit('setReadyToRemoveControlPanelDisp', updatedControlPanelDisp);
       this.readyToRemoveControlPanelDisp = updatedControlPanelDisp;
-
       return await api
         .patch('/redfish/v1/Chassis/chassis/Assembly', {
           Assemblies: [
@@ -193,8 +169,7 @@ export const ConcurrentMaintenanceStore = defineStore('ConcurrentMaintenance', {
         })
         .catch((error) => {
           console.log(error);
-          // commit('setReadyToRemoveControlPanelDisp', !updatedControlPanelDisp);
-          this;
+          this.readyToRemoveControlPanelDisp = !updatedControlPanelDisp;
           throw new Error(
             i18n.global.t(
               'pageConcurrentMaintenance.toast.errorSaveReadyToRemove',

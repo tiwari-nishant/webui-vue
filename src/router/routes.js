@@ -16,6 +16,8 @@ import Memory from '@/views/ResourceManagement/Memory';
 import Power from '@/views/ResourceManagement/Power';
 import PowerRestorePolicy from '@/views/Settings/PowerRestorePolicy';
 import ConcurrentMaintenance from '../views/HardwareStatus/ConcurrentMaintenance/ConcurrentMaintenance.vue';
+import IBMiServiceFunctions from '@/views/Logs/IBMiServiceFunctions';
+
 const roles = {
   administrator: 'Administrator',
   operator: 'Operator',
@@ -72,6 +74,14 @@ export const routes = [
         component: ConcurrentMaintenance,
         meta: {
           title: i18n.global.t('appPageTitle.concurrentMaintenance'),
+        },
+      },
+      {
+        path: '/logs/ibmi-service-functions',
+        name: 'ibmiServiceFunctions',
+        component: IBMiServiceFunctions,
+        meta: {
+          title: i18n.global.t('appPageTitle.ibmiServiceFunctions'),
         },
       },
       {
