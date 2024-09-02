@@ -6,9 +6,13 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import Overview from '@/views/Overview/Overview.vue';
 import VirtualMedia from '@/views/Operations/VirtualMedia/VirtualMedia.vue';
 import Kvm from '@/views/Operations/Kvm';
+import Policies from '@/views/SecurityAndAccess/Policies';
+import Sensors from '@/views/HardwareStatus/Sensors';
 import PageNotFound from '@/views/PageNotFound/PageNotFound.vue';
 import KeyClear from '@/views/Operations/KeyClear/KeyClear.vue';
 import RebootBmc from '@/views/Operations/RebootBmc';
+import Power from '@/views/ResourceManagement/Power';
+import PowerRestorePolicy from '@/views/Settings/PowerRestorePolicy';
 const roles = {
   administrator: 'Administrator',
   operator: 'Operator',
@@ -52,6 +56,14 @@ export const routes = [
         },
       },
       {
+        path: '/hardware-status/sensors',
+        name: 'sensors',
+        component: Sensors,
+        meta: {
+          title: i18n.global.t('appPageTitle.sensors'),
+        },
+      },
+      {
         path: '/operations/kvm',
         name: 'kvm',
         component: Kvm,
@@ -60,19 +72,36 @@ export const routes = [
         },
       },
       {
-        path: '/operations/key-clear',
-        name: 'key-clear',
-        component: KeyClear,
+        path: '/security-and-access/policies',
+        name: 'policies',
+        component: Policies,
         meta: {
           title: i18n.global.t('appPageTitle.policies'),
         },
       },
+      { path: '/operations/key-clear', name: 'key-clear', component: KeyClear },
       {
         path: '/operations/reboot-bmc',
         name: 'reboot-bmc',
         component: RebootBmc,
         meta: {
           title: i18n.global.t('appPageTitle.rebootBmc'),
+        },
+      },
+      {
+        path: '/resource-management/power',
+        name: 'power',
+        component: Power,
+        meta: {
+          title: i18n.global.t('appPageTitle.power'),
+        },
+      },
+      {
+        path: '/settings/power-restore-policy',
+        name: 'power-restore-policy',
+        component: PowerRestorePolicy,
+        meta: {
+          title: i18n.global.t('appPageTitle.powerRestorePolicy'),
         },
       },
       {
