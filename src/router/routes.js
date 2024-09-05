@@ -11,6 +11,8 @@ import Sensors from '@/views/HardwareStatus/Sensors';
 import PageNotFound from '@/views/PageNotFound/PageNotFound.vue';
 import KeyClear from '@/views/Operations/KeyClear/KeyClear.vue';
 import RebootBmc from '@/views/Operations/RebootBmc';
+import FactoryReset from '@/views/Operations/FactoryReset';
+import Memory from '@/views/ResourceManagement/Memory';
 import Power from '@/views/ResourceManagement/Power';
 import PowerRestorePolicy from '@/views/Settings/PowerRestorePolicy';
 const roles = {
@@ -88,6 +90,23 @@ export const routes = [
           title: i18n.global.t('appPageTitle.rebootBmc'),
         },
       },
+
+      {
+        path: '/operations/factory-reset',
+        name: 'factory-reset',
+        component: FactoryReset,
+        meta: {
+          title: i18n.global.t('appPageTitle.factoryReset'),
+        },
+      },
+      {
+        path: '/settings/power-restore-policy',
+        name: 'power-restore-policy',
+        component: PowerRestorePolicy,
+        meta: {
+          title: i18n.global.t('appPageTitle.powerRestorePolicy'),
+        },
+      },
       {
         path: '/resource-management/power',
         name: 'power',
@@ -97,11 +116,11 @@ export const routes = [
         },
       },
       {
-        path: '/settings/power-restore-policy',
-        name: 'power-restore-policy',
-        component: PowerRestorePolicy,
+        path: '/resource-management/memory',
+        name: 'memory',
+        component: Memory,
         meta: {
-          title: i18n.global.t('appPageTitle.powerRestorePolicy'),
+          title: i18n.global.t('appPageTitle.memory'),
         },
       },
       {
