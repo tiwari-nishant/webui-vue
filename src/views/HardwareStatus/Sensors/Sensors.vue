@@ -1,6 +1,7 @@
 <template>
   <BContainer fluid="xl">
     <page-title :title="$t('appPageTitle.sensors')" />
+    <div style="width:117%">
     <BRow class="align-items-end">
       <BCol sm="6" md="5" xl="4" class="searchStyle">
         <search
@@ -20,6 +21,7 @@
         <table-filter :filters="tableFilters" @filter-change="onFilterChange" />
       </BCol>
     </BRow>
+  </div>
     <BRow>
       <BCol xl="12">
         <table-toolbar
@@ -91,6 +93,7 @@
       </BCol>
     </BRow>
     <!-- Table pagination -->
+    <div style="width:116%">
     <BRow>
       <BCol sm="6">
         <BFormGroup
@@ -117,6 +120,7 @@
         />
       </BCol>
     </BRow>
+  </div>
   </BContainer>
 </template>
 

@@ -1,17 +1,18 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
+import { defineStore } from 'pinia';
 
-const FanStore = {
+export const FanStore = defineStore('fanStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     fans: [],
-  },
+  }),
   getters: {
-    fans: (state) => state.fans,
+    fansGetter: (state) => state.fans,
   },
-  mutations: {
-    setFanInfo: (state, data) => {
-      state.fans = data.map((fan) => {
+  actions: {
+    setFanInfo(data) {
+      this.fans = data.map((fan) => {
         const {
           LocationIndicatorActive,
           Location,
@@ -38,10 +39,8 @@ const FanStore = {
         };
       });
     },
-  },
-  actions: {
-    async getAllFans({ commit }, requestBody) {
-      commit('setFanInfo', []);
+    async getAllFans(requestBody) {
+      this.setFanInfo([]);
       return await api
         .get(`${requestBody.uri}`)
         .then((response) =>
@@ -54,11 +53,11 @@ const FanStore = {
         .then((fanIds) => api.all(fanIds.map((fan) => api.get(fan))))
         .then((fans) => {
           const fansData = fans.map((fans) => fans.data);
-          commit('setFanInfo', fansData);
+          this.setFanInfo(fansData);
         })
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue(_, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         LocationIndicatorActive: led.identifyLed,
@@ -67,25 +66,29 @@ const FanStore = {
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
           console.log(error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default FanStore;

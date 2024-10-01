@@ -30,5 +30,6 @@ defineProps({
   svg {
     vertical-align: baseline;
   }
+  overflow: visible;
 }
 </style>

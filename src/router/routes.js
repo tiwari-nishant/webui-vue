@@ -1,4 +1,5 @@
 //TODO: Work Requird -->
+
 import i18n from '@/i18n';
 import LoginLayout from '@/layouts/LoginLayout.vue';
 import LoginPage from '@/views/Login/Login.vue';
@@ -21,6 +22,7 @@ import IBMiServiceFunctions from '@/views/Logs/IBMiServiceFunctions';
 import Notices from '@/views/Notices/Notices.vue';
 import Sessions from '@/views/SecurityAndAccess/Sessions';
 import Firmware from '@/views/Operations/Firmware';
+import Inventory from '../views/HardwareStatus/Inventory/Inventory.vue';
 
 const roles = {
   administrator: 'Administrator',
@@ -78,6 +80,14 @@ export const routes = [
         component: ConcurrentMaintenance,
         meta: {
           title: i18n.global.t('appPageTitle.concurrentMaintenance'),
+        }
+      },
+      {
+        path: '/hardware-status/inventory',
+        name: 'inventory',
+        component: Inventory,
+        meta: {
+          title: i18n.global.t('appPageTitle.inventory'),
         },
       },
       {

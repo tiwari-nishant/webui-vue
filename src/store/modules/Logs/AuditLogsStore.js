@@ -29,7 +29,9 @@ export const AuditLogsStore = defineStore('auditLogs', {
               additionalDataUri: Oem.IBM.AdditionalDataFullAuditLogURI,
             };
           });
+
           this.allAuditLogs = auditLogs;
+          console.log('audit logs3', this.allAuditLogs);
         })
         .catch((error) => {
           console.log(error);

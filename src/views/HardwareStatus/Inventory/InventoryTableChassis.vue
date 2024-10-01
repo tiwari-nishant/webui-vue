@@ -3,9 +3,10 @@
     <b-table
       responsive="md"
       hover
+      show-empty
+      sticky-header="75vh"
       :items="chassis"
       :fields="fields"
-      show-empty
       :empty-text="$t('global.table.emptyMessage')"
       :busy="isBusy"
     >
@@ -15,17 +16,18 @@
           variant="link"
           data-test-id="hardwareStatus-button-expandChassis"
           :title="expandRowLabel"
-          class="btn-icon-only"
-          @click="toggleRowDetails(row)"
+          :class="
+            row.item.toggleDetails ? 'rotateSvg btn-icon-only' : 'btn-icon-only'
+          "
+          @click="toggleRow(row)"
         >
           <icon-chevron />
-          <span class="sr-only">{{ expandRowLabel }}</span>
         </b-button>
       </template>
 
       <!-- Health -->
       <template #cell(health)="{ value }">
-        <status-icon :status="statusIcon(value)" />
+        <status-icon :status="statusIconValue(value)" />
         {{
           value === 'OK'
             ? $t('global.status.ok')
@@ -65,7 +67,10 @@
                                   ? $t('global.status.updating')
                                   : row.item.statusState
         }}
-        <info-tooltip :title="getStatusTooltip(row.item.statusState)" />
+        <info-tooltip
+          :title="getStatusTooltip(row.item.statusState)"
+          style="overflow: visible !important"
+        />
       </template>
       <!-- Toggle identify LED -->
       <template #cell(identifyLed)="row">
@@ -85,7 +90,7 @@
       </template>
       <template #row-details="{ item }">
         <b-container fluid>
-          <b-row>
+          <b-row style="margin-left: 50px;">
             <b-col class="mt-2" sm="6" xl="6">
               <dl>
                 <!-- Name -->
@@ -107,121 +112,120 @@
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
+<script setup>
+import PageSection from '@/components/Global/PageSection.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import StatusIcon from '@/components/Global/StatusIcon';
-import InfoTooltip from '@/components/Global/InfoTooltip';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
+import { reactive, ref, computed, onBeforeMount } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { ChassisStore } from '../../../store';
+import eventBus from '@/eventBus';
+import useToast from '@/components/Composables/useToastComposable';
 
-import TableRowExpandMixin, {
-  expandRowLabel,
-} from '@/components/Mixins/TableRowExpandMixin';
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
+const { successToast, errorToast } = useToast();
+const { t } = useI18n();
+const isBusy = ref(true);
+const { dataFormatter, statusIconValue } = useDataFormatterGlobal();
+const { expandRowLabel, toggleRow } = useTableRowExpandComposable();
+const chassisStore = ChassisStore();
 
-export default {
-  components: { IconChevron, PageSection, StatusIcon, InfoTooltip },
-  mixins: [BVToastMixin, TableRowExpandMixin, DataFormatterMixin],
-  data() {
-    return {
-      isBusy: true,
-      fields: [
-        {
-          key: 'expandRow',
-          label: '',
-          tdClass: 'table-row-expand',
-        },
-        {
-          key: 'id',
-          label: this.$t('pageInventory.table.id'),
-          formatter: this.dataFormatter,
-        },
-        {
-          key: 'health',
-          label: this.$t('pageInventory.table.health'),
-          formatter: this.dataFormatter,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'status',
-          label: this.$t('pageUserManagement.table.status'),
-          formatter: this.dataFormatter,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'locationNumber',
-          label: this.$t('pageInventory.table.locationNumber'),
-          formatter: this.dataFormatter,
-        },
-        {
-          key: 'identifyLed',
-          label: this.$t('pageInventory.table.identifyLed'),
-          formatter: this.dataFormatter,
-        },
-      ],
-      expandRowLabel: expandRowLabel,
-    };
+const fields = reactive([
+  {
+    key: 'expandRow',
+    label: '',
+    tdClass: 'table-row-expand',
   },
-  computed: {
-    chassis() {
-      return this.$store.getters['chassis/chassis'];
-    },
+  {
+    key: 'id',
+    label: t('pageInventory.table.id'),
+    formatter: dataFormatter,
   },
-  created() {
-    this.$store.dispatch('chassis/getChassisInfo').finally(() => {
-      // Emit initial data fetch complete to parent component
-      this.$root.$emit('hardware-status-chassis-complete');
-      this.isBusy = false;
-    });
+  {
+    key: 'health',
+    label: t('pageInventory.table.health'),
+    formatter: dataFormatter,
+    tdClass: 'text-nowrap',
   },
-  methods: {
-    toggleIdentifyLedValue(row) {
-      this.$store
-        .dispatch('chassis/updateIdentifyLedValue', {
-          uri: row.uri,
-          identifyLed: row.identifyLed,
-        })
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    // TO DO: Remove this method when the LocationIndicatorActive is added from backend.
-    hasIdentifyLed(identifyLed) {
-      return typeof identifyLed === 'boolean';
-    },
-    getStatusTooltip(status) {
-      switch (status) {
-        case 'Enabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.enabled');
-        case 'Absent':
-          return this.$t('pageInventory.enumDescriptionIndicator.absent');
-        case 'Deferring':
-          return this.$t('pageInventory.enumDescriptionIndicator.deferring');
-        case 'Disabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.disabled');
-        case 'InTest':
-          return this.$t('pageInventory.enumDescriptionIndicator.inTest');
-        case 'Qualified':
-          return this.$t('pageInventory.enumDescriptionIndicator.qualified');
-        case 'Quiesced':
-          return this.$t('pageInventory.enumDescriptionIndicator.quiesced');
-        case 'StandbyOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.standbyOffline',
-          );
-        case 'StandbySpare':
-          return this.$t('pageInventory.enumDescriptionIndicator.standbySpare');
-        case 'Starting':
-          return this.$t('pageInventory.enumDescriptionIndicator.starting');
-        case 'UnavailableOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.unavailableOffline',
-          );
-        case 'Updating':
-          return this.$t('pageInventory.enumDescriptionIndicator.updating');
-        default:
-          return '';
-      }
-    },
+  {
+    key: 'status',
+    label: t('pageUserManagement.table.status'),
+    formatter: dataFormatter,
+    tdClass: 'text-nowrap',
   },
-};
+  {
+    key: 'locationNumber',
+    label: t('pageInventory.table.locationNumber'),
+    formatter: dataFormatter,
+  },
+  {
+    key: 'identifyLed',
+    label: t('pageInventory.table.identifyLed'),
+    formatter: dataFormatter,
+  },
+]);
+
+const chassis = computed(() => {
+  return chassisStore.chassis;
+});
+
+onBeforeMount(() => {
+  chassisStore.fetchGetChassisInfo().finally(() => {
+    // Emit initial data fetch complete to parent component
+    eventBus.emit('hardware-status-chassis-complete');
+    isBusy.value = false;
+  });
+});
+
+function toggleIdentifyLedValue(row) {
+  chassisStore
+    .updateIdentifyLedValue({ uri: row.uri, identifyLed: row.identifyLed })
+    .then((message) => successToast(message))
+    .catch(({ message }) => errorToast(message));
+}
+function hasIdentifyLed(identifyLed) {
+  return typeof identifyLed === 'boolean';
+}
+function getStatusTooltip(status) {
+  switch (status) {
+    case 'Enabled':
+      return t('pageInventory.enumDescriptionIndicator.enabled');
+    case 'Absent':
+      return t('pageInventory.enumDescriptionIndicator.absent');
+    case 'Deferring':
+      return t('pageInventory.enumDescriptionIndicator.deferring');
+    case 'Disabled':
+      return t('pageInventory.enumDescriptionIndicator.disabled');
+    case 'InTest':
+      return t('pageInventory.enumDescriptionIndicator.inTest');
+    case 'Qualified':
+      return t('pageInventory.enumDescriptionIndicator.qualified');
+    case 'Quiesced':
+      return t('pageInventory.enumDescriptionIndicator.quiesced');
+    case 'StandbyOffline':
+      return t('pageInventory.enumDescriptionIndicator.standbyOffline');
+    case 'StandbySpare':
+      return t('pageInventory.enumDescriptionIndicator.standbySpare');
+    case 'Starting':
+      return t('pageInventory.enumDescriptionIndicator.starting');
+    case 'UnavailableOffline':
+      return t('pageInventory.enumDescriptionIndicator.unavailableOffline');
+    case 'Updating':
+      return t('pageInventory.enumDescriptionIndicator.updating');
+    default:
+      return '';
+  }
+}
 </script>
+<style lang="scss" scoped>
+.rotateSvg {
+  svg {
+    transform: rotate(180deg);
+  }
+}
+.b-table-sticky-header {
+  overflow: visible !important;
+  width: 120%;
+}
+</style>

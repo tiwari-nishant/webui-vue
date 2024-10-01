@@ -2,6 +2,7 @@
 .b-table-sticky-header {
   max-height: 75vh;
   min-height: 100px;
+  min-width: 116%;
   border: 1px solid #efefef;
   .table.b-table {
     thead {
@@ -18,7 +19,6 @@
           //     background-color: $light;
           //   }
           // }
-
           vertical-align: middle;
           border-top: 1px solid $gray-300;
           border-bottom: 1px solid $gray-300;
@@ -52,6 +52,7 @@
 .table {
   position: relative;
   z-index: $zindex-dropdown;
+  overflow-x: visible;
 
   td {
     border-top: 1px solid $gray-300;

@@ -18,7 +18,13 @@ import AuditLogsStore from './modules/Logs/AuditLogsStore';
 import SessionsStore from './modules/SecurityAndAccess/SessionsStore.js';
 import LicenseStore from './modules/ResourceManagement/LicenseStore';
 import BmcStore from './modules/HardwareStatus/BmcStore';
-
+import ChassisStore from './modules/HardwareStatus/ChassisStore';
+import PowerSupplyStore from './modules/HardwareStatus/PowerSupplyStore';
+import PcieSlotsStore from './modules/HardwareStatus/PcieSlotsStore';
+import FanStore from './modules/HardwareStatus/FanStore';
+import MemoryStore from './modules/HardwareStatus/MemoryStore';
+import AssemblyStore from './modules/HardwareStatus/AssemblyStore';
+import FabricAdaptersStore from './modules/HardwareStatus/FabricAdaptersStore';
 // ... (export use other stores)
 export {
   EventLogStore,
@@ -39,5 +45,12 @@ export {
   AuditLogsStore,
   SessionsStore,
   LicenseStore,
+  ChassisStore,
+  PowerSupplyStore,
+  PcieSlotsStore,
+  FanStore,
+  MemoryStore,
   BmcStore,
+  AssemblyStore,
+  FabricAdaptersStore,
 };

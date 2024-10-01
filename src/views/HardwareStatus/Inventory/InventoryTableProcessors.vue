@@ -3,12 +3,9 @@
     <!-- Search -->
     <b-row class="align-items-end">
       <b-col sm="6" md="5" xl="4">
-        <search
-          @change-search="onChangeSearchInput"
-          @clear-search="onClearSearchInput"
-        />
+        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
       </b-col>
-      <b-col sm="6" md="3" xl="2">
+      <b-col sm="6" md="7" xl="4" class="mb-4">
         <table-cell-count
           :filtered-items-count="filteredRows"
           :total-number-of-cells="processors.length"
@@ -21,11 +18,12 @@
       hover
       responsive="md"
       show-empty
+      sticky-header="75vh"
       sort-by="id"
       :items="processors"
       :fields="fields"
       :sort-desc="false"
-      :filter="searchFilter"
+      :filter="searchFilterInput"
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
@@ -37,20 +35,22 @@
       </template>
       <!-- Expand button -->
       <template #cell(expandRow)="row">
-        <b-button
+        <BButton
           variant="link"
+          :aria-label="expandRowLabel"
           data-test-id="hardwareStatus-button-expandProcessors"
           :title="expandRowLabel"
-          class="btn-icon-only"
-          @click="toggleRowDetails(row)"
+          :class="
+            row.item.toggleDetails ? 'rotateSvg btn-icon-only' : 'btn-icon-only'
+          "
+          @click="toggleRow(row)"
         >
           <icon-chevron />
-          <span class="sr-only">{{ expandRowLabel }}</span>
-        </b-button>
+        </BButton>
       </template>
       <!-- Health -->
       <template #cell(health)="{ value }">
-        <status-icon :status="statusIcon(value)" />
+        <status-icon :status="statusIconValue(value)" />
         {{
           value === 'OK'
             ? $t('global.status.ok')
@@ -112,7 +112,7 @@
 
       <template #row-details="{ item }">
         <b-container fluid>
-          <b-row>
+          <b-row style="margin-left: 5px;">
             <b-col class="mt-2" sm="6" xl="6">
               <dl>
                 <!-- Name -->
@@ -155,156 +155,162 @@
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
+<script setup>
+import PageSection from '@/components/Global/PageSection.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
-import StatusIcon from '@/components/Global/StatusIcon';
-import TableCellCount from '@/components/Global/TableCellCount';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import InfoTooltip from '@/components/Global/InfoTooltip';
-import TableSortMixin from '@/components/Mixins/TableSortMixin';
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
-import Search from '@/components/Global/Search';
-import SearchFilterMixin, {
-  searchFilter,
-} from '@/components/Mixins/SearchFilterMixin';
-import TableRowExpandMixin, {
-  expandRowLabel,
-} from '@/components/Mixins/TableRowExpandMixin';
+import StatusIcon from '@/components/Global/StatusIcon.vue';
+import TableCellCount from '@/components/Global/TableCellCount.vue';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import Search from '@/components/Global/Search.vue';
+import ProcessorStore from '../../../store/modules/HardwareStatus/ProcessorStore';
+import { computed, onBeforeMount, reactive, ref } from 'vue';
+import useToast from '@/components/Composables/useToastComposable';
+import eventBus from '@/eventBus';
+import { useI18n } from 'vue-i18n';
+import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
+import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
 
-export default {
-  components: {
-    IconChevron,
-    InfoTooltip,
-    PageSection,
-    StatusIcon,
-    Search,
-    TableCellCount,
+const { t } = useI18n();
+const isBusy = ref(true);
+const searchTotalFilteredRows = ref(0);
+
+const { toggleRow } = useTableRowExpandComposable();
+const { dataFormatter, statusIconValue } = useDataFormatterGlobal();
+
+const processorStore = ProcessorStore();
+const { successToast, errorToast } = useToast();
+
+const { searchFilterInput, onChangeSearch, onClearSearch } =
+  useSearchFilterComposable();
+
+const { expandRowLabel } = useTableRowExpandComposable();
+const fields = reactive([
+  {
+    key: 'expandRow',
+    label: '',
+    tdClass: 'table-row-expand',
+    sortable: false,
   },
-  mixins: [
-    BVToastMixin,
-    TableRowExpandMixin,
-    DataFormatterMixin,
-    TableSortMixin,
-    SearchFilterMixin,
-  ],
-  data() {
-    return {
-      isBusy: true,
-      fields: [
-        {
-          key: 'expandRow',
-          label: '',
-          tdClass: 'table-row-expand',
-          sortable: false,
-        },
-        {
-          key: 'id',
-          label: this.$t('pageInventory.table.name'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'health',
-          label: this.$t('pageInventory.table.health'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'status',
-          label: this.$t('pageUserManagement.table.status'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'locationNumber',
-          label: this.$t('pageInventory.table.locationNumber'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'identifyLed',
-          label: this.$t('pageInventory.table.identifyLed'),
-          formatter: this.dataFormatter,
-          sortable: false,
-        },
-      ],
-      searchFilter: searchFilter,
-      searchTotalFilteredRows: 0,
-      expandRowLabel: expandRowLabel,
-    };
+  {
+    key: 'id',
+    label: t('pageInventory.table.name'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-  computed: {
-    filteredRows() {
-      return this.searchFilter
-        ? this.searchTotalFilteredRows
-        : this.processors.length;
-    },
-    processors() {
-      return this.$store.getters['processors/processors'];
-    },
+  {
+    key: 'health',
+    label: t('pageInventory.table.health'),
+    formatter: dataFormatter,
+    sortable: true,
+    tdClass: 'text-nowrap',
   },
-  created() {
-    this.$store.dispatch('processors/getProcessorsInfo').finally(() => {
-      // Emit initial data fetch complete to parent component
-      this.$root.$emit('hardware-status-processors-complete');
-      this.isBusy = false;
-    });
+  {
+    key: 'status',
+    label: t('pageUserManagement.table.status'),
+    formatter: dataFormatter,
+    sortable: true,
+    tdClass: 'text-nowrap',
   },
-  methods: {
-    onFiltered(filteredItems) {
-      this.searchTotalFilteredRows = filteredItems.length;
-    },
-    toggleIdentifyLedValue(row) {
-      this.$store
-        .dispatch('processors/updateIdentifyLedValue', {
-          uri: row.uri,
-          identifyLed: row.identifyLed,
-        })
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    // TO DO: remove hasIdentifyLed when the following is merged:
-    // https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/37045
-    hasIdentifyLed(identifyLed) {
-      return typeof identifyLed === 'boolean';
-    },
-    getStatusTooltip(status) {
-      switch (status) {
-        case 'Present':
-          return this.$t('pageInventory.enumDescriptionIndicator.enabled');
-        case 'Absent':
-          return this.$t('pageInventory.enumDescriptionIndicator.absent');
-        case 'Deferring':
-          return this.$t('pageInventory.enumDescriptionIndicator.deferring');
-        case 'Disabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.disabled');
-        case 'InTest':
-          return this.$t('pageInventory.enumDescriptionIndicator.inTest');
-        case 'Qualified':
-          return this.$t('pageInventory.enumDescriptionIndicator.qualified');
-        case 'Quiesced':
-          return this.$t('pageInventory.enumDescriptionIndicator.quiesced');
-        case 'StandbyOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.standbyOffline',
-          );
-        case 'StandbySpare':
-          return this.$t('pageInventory.enumDescriptionIndicator.standbySpare');
-        case 'Starting':
-          return this.$t('pageInventory.enumDescriptionIndicator.starting');
-        case 'UnavailableOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.unavailableOffline',
-          );
-        case 'Updating':
-          return this.$t('pageInventory.enumDescriptionIndicator.updating');
-        default:
-          return '';
-      }
-    },
+  {
+    key: 'locationNumber',
+    label: t('pageInventory.table.locationNumber'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-};
+  {
+    key: 'identifyLed',
+    label: t('pageInventory.table.identifyLed'),
+    formatter: dataFormatter,
+    sortable: false,
+  },
+]);
+const filteredRows = computed(() => {
+  return searchFilterInput.value
+    ? searchTotalFilteredRows.value
+    : processorStore.processorsGetter.length;
+});
+
+onBeforeMount(() => {
+  processorStore.getProcessorsInfo().finally(() => {
+    // Emit initial data fetch complete to parent component
+    eventBus.emit('hardware-status-processors-complete');
+    isBusy.value = false;
+  });
+});
+
+const processors = computed(() => {
+  return processorStore.processors;
+});
+
+function onFiltered(filteredItems) {
+  searchTotalFilteredRows.value = filteredItems.length;
+}
+
+function toggleIdentifyLedValue(row) {
+  processorStore
+    .updateIdentifyLedValue({
+      uri: row.uri,
+      identifyLed: row.identifyLed,
+    })
+    .then((message) => successToast(message))
+    .catch(({ message }) => errorToast(message));
+}
+
+function hasIdentifyLed(identifyLed) {
+  return typeof identifyLed === 'boolean';
+}
+
+function getStatusTooltip(status) {
+  switch (status) {
+    case 'Present':
+      return t('pageInventory.enumDescriptionIndicator.enabled');
+    case 'Absent':
+      return t('pageInventory.enumDescriptionIndicator.absent');
+    case 'Deferring':
+      return t('pageInventory.enumDescriptionIndicator.deferring');
+    case 'Disabled':
+      return t('pageInventory.enumDescriptionIndicator.disabled');
+    case 'InTest':
+      return t('pageInventory.enumDescriptionIndicator.inTest');
+    case 'Qualified':
+      return t('pageInventory.enumDescriptionIndicator.qualified');
+    case 'Quiesced':
+      return t('pageInventory.enumDescriptionIndicator.quiesced');
+    case 'StandbyOffline':
+      return t('pageInventory.enumDescriptionIndicator.standbyOffline');
+    case 'StandbySpare':
+      return t('pageInventory.enumDescriptionIndicator.standbySpare');
+    case 'Starting':
+      return t('pageInventory.enumDescriptionIndicator.starting');
+    case 'UnavailableOffline':
+      return t('pageInventory.enumDescriptionIndicator.unavailableOffline');
+    case 'Updating':
+      return t('pageInventory.enumDescriptionIndicator.updating');
+    default:
+      return '';
+  }
+}
 </script>
+<style lang="scss" scoped>
+.text-right {
+  text-align: right;
+}
+.searchStyle {
+  height: 74px;
+  top: 22px;
+  position: relative;
+}
+.margin-style {
+  margin-bottom: 23px;
+  margin-left: 10px;
+}
+.container-fluid {
+  width: calc(100% - 90px);
+}
+.rotateSvg {
+  svg {
+    transform: rotate(180deg);
+  }
+}
+</style>

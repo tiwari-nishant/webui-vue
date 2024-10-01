@@ -1,32 +1,29 @@
 <template>
   <page-section :section-title="$t('pageInventory.fabricAdapters')">
-    <b-row class="align-items-end">
-      <b-col sm="6" md="5" xl="4">
-        <search
-          @change-search="onChangeSearchInput"
-          @clear-search="onClearSearchInput"
-        />
-      </b-col>
+    <BRow class="align-items-end">
+      <BCol sm="6" md="5" xl="4">
+        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+      </BCol>
 
-      <b-col sm="6" md="3" xl="2">
+      <BCol sm="6" md="3" xl="2" class="mb-4">
         <table-cell-count
           :filtered-items-count="filteredRows"
           :total-number-of-cells="fabricAdapters.length"
         ></table-cell-count>
-      </b-col>
-    </b-row>
-    <b-table
+      </BCol>
+    </BRow>
+    <BTable
       sort-icon-left
       no-sort-reset
       hover
       responsive="md"
       sort-by="id"
       show-empty
+      sticky-header="75vh"
       :items="fabricAdapters"
       :fields="fields"
       :sort-desc="false"
-      :sort-compare="sortCompare"
-      :filter="searchFilter"
+      :filter="searchFilterInput"
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
@@ -40,22 +37,24 @@
       <template #cell(expandRow)="row">
         <b-button
           variant="link"
+          :aria-label="expandRowLabel"
           data-test-id="inventory-button-expandFabricAdapters"
           :title="expandRowLabel"
-          class="btn-icon-only"
-          @click="toggleRowDetails(row)"
+          :class="
+            row.item.toggleDetails ? 'rotateSvg btn-icon-only' : 'btn-icon-only'
+          "
+          @click="toggleRow(row)"
         >
           <icon-chevron />
-          <span class="sr-only">{{ expandRowLabel }}</span>
         </b-button>
       </template>
       <!-- Health -->
       <template #cell(health)="{ value }">
         <status-icon
           v-if="isIoExpansionChassis && isPoweredOff"
-          :status="statusIcon('')"
+          :status="statusIconValue('')"
         />
-        <status-icon v-else :status="statusIcon(value)" />
+        <status-icon v-else :status="statusIconValue(value)" />
         {{
           isIoExpansionChassis && isPoweredOff
             ? $t('global.status.unavailable')
@@ -120,8 +119,8 @@
       </template>
       <template #row-details="{ item }">
         <b-container fluid>
-          <b-row>
-            <b-col sm="6" xl="6">
+          <BRow style="margin-left: 5px;">
+            <BCol sm="6" xl="6">
               <dl>
                 <dt>{{ $t('pageInventory.table.model') }}</dt>
                 <dd>{{ dataFormatter(item.model) }}</dd>
@@ -130,8 +129,8 @@
                 <dt>{{ $t('pageInventory.table.serialNumber') }}</dt>
                 <dd>{{ dataFormatter(item.serialNumber) }}</dd>
               </dl>
-            </b-col>
-            <b-col sm="6" xl="6">
+            </BCol>
+            <BCol sm="6" xl="6">
               <dl>
                 <dt>{{ $t('pageInventory.table.partNumber') }}</dt>
                 <dd>{{ dataFormatter(item.partNumber) }}</dd>
@@ -140,202 +139,210 @@
                 <dt>{{ $t('pageInventory.table.sparePartNumber') }}</dt>
                 <dd>{{ dataFormatter(item.sparePartNumber) }}</dd>
               </dl>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
         </b-container>
       </template>
-    </b-table>
+    </BTable>
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
+<script setup>
+import PageSection from '@/components/Global/PageSection.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
-import InfoTooltip from '@/components/Global/InfoTooltip';
-import TableCellCount from '@/components/Global/TableCellCount';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
+import TableCellCount from '@/components/Global/TableCellCount.vue';
+import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
+import { useI18n } from 'vue-i18n';
+import { reactive, ref, computed, watch, onBeforeMount } from 'vue';
+import { GlobalStore } from '../../../store';
+import { FabricAdaptersStore } from '../../../store';
+import eventBus from '@/eventBus';
+import useToast from '@/components/Composables/useToastComposable';
 
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
-import TableSortMixin from '@/components/Mixins/TableSortMixin';
-import Search from '@/components/Global/Search';
-import SearchFilterMixin, {
-  searchFilter,
-} from '@/components/Mixins/SearchFilterMixin';
-import TableRowExpandMixin, {
-  expandRowLabel,
-} from '@/components/Mixins/TableRowExpandMixin';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
+const globalStore = GlobalStore();
+const fabricAdaptersStore = FabricAdaptersStore();
+const props = defineProps({
+  chassis: {
+    type: String,
+    default: '',
+  },
+});
+const isBusy = ref(false);
+const { t } = useI18n();
+const { dataFormatter, statusIconValue } = useDataFormatterGlobal();
+const { searchFilterInput, onChangeSearch, onClearSearch } =
+  useSearchFilterComposable();
+const { toggleRow } = useTableRowExpandComposable();
+const { successToast, errorToast } = useToast();
 
-export default {
-  components: { IconChevron, InfoTooltip, PageSection, Search, TableCellCount },
-  mixins: [
-    BVToastMixin,
-    TableRowExpandMixin,
-    DataFormatterMixin,
-    TableSortMixin,
-    SearchFilterMixin,
-  ],
-  props: {
-    chassis: {
-      type: String,
-      default: '',
-    },
+const searchTotalFilteredRows = ref(0);
+const fields = reactive([
+  {
+    key: 'expandRow',
+    label: '',
+    tdClass: 'table-row-expand',
+    sortable: false,
   },
-  data() {
-    return {
-      created: 0,
-      isBusy: true,
-      fields: [
-        {
-          key: 'expandRow',
-          label: '',
-          tdClass: 'table-row-expand',
-          sortable: false,
-        },
-        {
-          key: 'name',
-          label: this.$t('pageInventory.table.name'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'health',
-          label: this.$t('pageInventory.table.health'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'status',
-          label: this.$t('pageUserManagement.table.status'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'locationNumber',
-          label: this.$t('pageInventory.table.locationNumber'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'identifyLed',
-          label: this.$t('pageInventory.table.identifyLed'),
-          formatter: this.dataFormatter,
-        },
-      ],
-      searchFilter: searchFilter,
-      searchTotalFilteredRows: 0,
-      expandRowLabel: expandRowLabel,
-    };
+  {
+    key: 'name',
+    label: t('pageInventory.table.name'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-  computed: {
-    filteredRows() {
-      return this.searchFilter
-        ? this.searchTotalFilteredRows
-        : this.fabricAdapters.length;
-    },
-    fabricAdapters() {
-      const adapters = this.$store.getters['fabricAdapters/fabricAdapters'];
-      return adapters;
-    },
-    serverStatus() {
-      if (this.chassis.endsWith('chassis')) {
-        return false;
-      } else if (this.$store.getters['global/serverStatus'] !== 'on') {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    isPoweredOff() {
-      if (this.$store.getters['global/serverStatus'] === 'off') {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    isIoExpansionChassis() {
-      if (this.chassis.endsWith('chassis')) {
-        return false;
-      } else {
-        return true;
-      }
-    },
+  {
+    key: 'health',
+    label: t('pageInventory.table.health'),
+    formatter: dataFormatter,
+    sortable: true,
+    tdClass: 'text-nowrap',
   },
-  watch: {
-    chassis: function (value) {
-      this.$store
-        .dispatch('fabricAdapters/getFabricAdaptersInfo', { uri: value })
-        .finally(() => {
-          this.$root.$emit('hardware-status-fabric-adapters-complete');
-          this.isBusy = false;
-        });
-    },
+  {
+    key: 'status',
+    label: t('pageUserManagement.table.status'),
+    formatter: dataFormatter,
+    sortable: true,
+    tdClass: 'text-nowrap',
   },
-  created() {
-    this.$store
-      .dispatch('fabricAdapters/getFabricAdaptersInfo', { uri: this.chassis })
+  {
+    key: 'locationNumber',
+    label: t('pageInventory.table.locationNumber'),
+    formatter: dataFormatter,
+    sortable: true,
+  },
+  {
+    key: 'identifyLed',
+    label: t('pageInventory.table.identifyLed'),
+    formatter: dataFormatter,
+  },
+]);
+
+const filteredRows = computed(() => {
+  return searchFilterInput.value
+    ? searchTotalFilteredRows.value
+    : fabricAdaptersStore.fabricAdapters.length;
+});
+
+const serverStatus = computed(() => {
+  if (props.chassis.endsWith('chassis')) {
+    return false;
+  } else if (globalStore.serverStatus !== 'on') {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+const isPoweredOff = computed(() => {
+  if (globalStore.serverStatus === 'off') {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+const isIoExpansionChassis = computed(() => {
+  if (props.chassis.endsWith('chassis')) {
+    return false;
+  } else {
+    return true;
+  }
+});
+
+const fabricAdapters = computed(() => {
+  const adapters = fabricAdaptersStore.fabricAdapters;
+  return adapters;
+});
+
+watch(
+  () => props.chassis,
+  () => {
+    fabricAdaptersStore
+      .getFabricAdaptersInfo({ uri: props.chassis })
       .finally(() => {
-        this.$root.$emit('hardware-status-fabric-adapters-complete');
-        this.isBusy = false;
+        eventBus.emit('hardware-status-fabric-adapters-complete');
+        isBusy.value = false;
       });
   },
-  methods: {
-    toggleIdentifyLedValue(row) {
-      this.$store
-        .dispatch('fabricAdapters/updateIdentifyLedValue', {
-          uri: row.uri,
-          memberId: row.id,
-          identifyLed: row.identifyLed,
-        })
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    sortCompare(a, b, key) {
-      if (key === 'health') {
-        return this.sortStatus(a, b, key);
-      }
-    },
-    onFiltered(filteredItems) {
-      this.searchTotalFilteredRows = filteredItems.length;
-    },
-    hasIdentifyLed(identifyLed) {
-      return typeof identifyLed === 'boolean';
-    },
-    getStatusTooltip(status) {
-      switch (status) {
-        case 'Present':
-          return this.$t('pageInventory.enumDescriptionIndicator.enabled');
-        case 'Absent':
-          return this.$t('pageInventory.enumDescriptionIndicator.absent');
-        case 'Deferring':
-          return this.$t('pageInventory.enumDescriptionIndicator.deferring');
-        case 'Disabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.disabled');
-        case 'InTest':
-          return this.$t('pageInventory.enumDescriptionIndicator.inTest');
-        case 'Qualified':
-          return this.$t('pageInventory.enumDescriptionIndicator.qualified');
-        case 'Quiesced':
-          return this.$t('pageInventory.enumDescriptionIndicator.quiesced');
-        case 'StandbyOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.standbyOffline',
-          );
-        case 'StandbySpare':
-          return this.$t('pageInventory.enumDescriptionIndicator.standbySpare');
-        case 'Starting':
-          return this.$t('pageInventory.enumDescriptionIndicator.starting');
-        case 'UnavailableOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.unavailableOffline',
-          );
-        case 'Updating':
-          return this.$t('pageInventory.enumDescriptionIndicator.updating');
-        default:
-          return '';
-      }
-    },
-  },
-};
+);
+
+onBeforeMount(() => {
+  fabricAdaptersStore
+    .getFabricAdaptersInfo({ uri: props.chassis })
+    .finally(() => {
+      eventBus.emit('hardware-status-fabric-adapters-complete');
+      isBusy.value = false;
+    });
+});
+function onFiltered(filteredItems) {
+  searchTotalFilteredRows.value = filteredItems.length;
+}
+
+function toggleIdentifyLedValue(row) {
+  fabricAdaptersStore
+    .updateIdentifyLedValue({
+      uri: row.uri,
+      memberId: row.id,
+      identifyLed: row.identifyLed,
+    })
+    .then((message) => successToast(message))
+    .catch(({ message }) => errorToast(message));
+}
+function hasIdentifyLed(identifyLed) {
+  return typeof identifyLed === 'boolean';
+}
+function getStatusTooltip(status) {
+  switch (status) {
+    case 'Present':
+      return t('pageInventory.enumDescriptionIndicator.enabled');
+    case 'Absent':
+      return t('pageInventory.enumDescriptionIndicator.absent');
+    case 'Deferring':
+      return t('pageInventory.enumDescriptionIndicator.deferring');
+    case 'Disabled':
+      return t('pageInventory.enumDescriptionIndicator.disabled');
+    case 'InTest':
+      return t('pageInventory.enumDescriptionIndicator.inTest');
+    case 'Qualified':
+      return t('pageInventory.enumDescriptionIndicator.qualified');
+    case 'Quiesced':
+      return t('pageInventory.enumDescriptionIndicator.quiesced');
+    case 'StandbyOffline':
+      return t('pageInventory.enumDescriptionIndicator.standbyOffline');
+    case 'StandbySpare':
+      return t('pageInventory.enumDescriptionIndicator.standbySpare');
+    case 'Starting':
+      return t('pageInventory.enumDescriptionIndicator.starting');
+    case 'UnavailableOffline':
+      return t('pageInventory.enumDescriptionIndicator.unavailableOffline');
+    case 'Updating':
+      return t('pageInventory.enumDescriptionIndicator.updating');
+    default:
+      return '';
+  }
+}
 </script>
+<style lang="scss" scoped>
+.text-right {
+  text-align: right;
+}
+.searchStyle {
+  height: 74px;
+  top: 22px;
+  position: relative;
+}
+.margin-style {
+  margin-bottom: 23px;
+  margin-left: 10px;
+}
+.container-fluid {
+  width: calc(100% - 90px);
+}
+.rotateSvg {
+  svg {
+    transform: rotate(180deg);
+  }
+}
+</style>

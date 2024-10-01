@@ -1,19 +1,19 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
-
-const ChassisStore = {
+import { defineStore } from 'pinia';
+export const ChassisStore = defineStore('chassisStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     chassis: [],
     powerState: null,
-  },
+  }),
   getters: {
-    chassis: (state) => state.chassis,
-    powerState: (state) => state.powerState,
+    chassisGetter: (state) => state.chassis,
+    powerStateGetter: (state) => state.powerState,
   },
-  mutations: {
-    setChassisInfo: (state, data) => {
-      state.chassis = data.map((chassis) => {
+  actions: {
+    setChassisInfo(data) {
+      this.chassis = data.map((chassis) => {
         const {
           Id,
           Status = {},
@@ -36,9 +36,7 @@ const ChassisStore = {
       });
     },
     setPowerState: (state, powerState) => (state.powerState = powerState),
-  },
-  actions: {
-    async getChassisInfo({ commit }) {
+    async fetchGetChassisInfo() {
       return await api
         .get('/redfish/v1/Chassis')
         .then(({ data: { Members = [] } }) =>
@@ -47,11 +45,11 @@ const ChassisStore = {
         .then((promises) => api.all(promises))
         .then((response) => {
           const data = response.map(({ data }) => data);
-          commit('setChassisInfo', data);
+          this.setChassisInfo(data);
         })
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue({ dispatch }, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         LocationIndicatorActive: led.identifyLed,
@@ -59,23 +57,27 @@ const ChassisStore = {
       return await api
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
-          dispatch('getChassisInfo');
+          this.fetchGetChassisInfo();
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
-          dispatch('getChassisInfo');
+          this.fetchGetChassisInfo();
           console.log('error', error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
@@ -89,6 +91,6 @@ const ChassisStore = {
         .catch((error) => console.log(error));
     },
   },
-};
+});
 
 export default ChassisStore;
