@@ -13,7 +13,7 @@ export const ResourceMemoryStore = defineStore('resourceMemory', {
     numHugePages: null,
     hmcManaged: null,
     memoryMirroringMode: null,
-    predictiveMemoryGuard: null,
+    predictiveDynamicMemoryDeallocation: null,
   }),
   getters: {
     logicalMemorySizeOptionsGetter: (state) => state.logicalMemorySizeOptions,
@@ -26,7 +26,8 @@ export const ResourceMemoryStore = defineStore('resourceMemory', {
     numHugePagesGetter: (state) => state.numHugePages,
     hmcManagedGetter: (state) => state.hmcManaged,
     memoryMirroringModeGetter: (state) => state.memoryMirroringMode,
-    predictiveMemoryGuardGetter: (state) => state.predictiveMemoryGuard,
+    predictiveDynamicMemoryDeallocationGetter: (state) =>
+      state.predictiveDynamicMemoryDeallocation,
   },
   actions: {
     async getMemorySizeOptions() {
@@ -183,48 +184,57 @@ export const ResourceMemoryStore = defineStore('resourceMemory', {
           );
         });
     },
-    async getPredictiveMemoryGuard() {
+    async getPredictiveDynamicMemoryDeallocation() {
       return await api
         .get(
           '/redfish/v1/Registries/BiosAttributeRegistry/BiosAttributeRegistry',
         )
         .then(({ data: { RegistryEntries } }) => {
-          const predictiveMemoryGuard = RegistryEntries.Attributes.filter(
-            (Attribute) => Attribute.AttributeName == 'hb_predictive_mem_guard',
-          );
-          if (predictiveMemoryGuard.length > 0) {
-            let predictiveMemoryGuardValue =
-              predictiveMemoryGuard[0].CurrentValue;
+          const predictiveDynamicMemoryDeallocation =
+            RegistryEntries.Attributes.filter(
+              (Attribute) =>
+                Attribute.AttributeName == 'hb_predictive_mem_guard',
+            );
+          if (predictiveDynamicMemoryDeallocation.length > 0) {
+            let predictiveDynamicMemoryDeallocationValue =
+              predictiveDynamicMemoryDeallocation[0].CurrentValue;
             let predictiveMemValue =
-              predictiveMemoryGuardValue == 'Enabled' ? true : false;
-            this.predictiveMemoryGuard = predictiveMemValue;
+              predictiveDynamicMemoryDeallocationValue == 'Enabled'
+                ? true
+                : false;
+            this.predictiveDynamicMemoryDeallocation = predictiveMemValue;
           }
         })
         .catch((error) => console.log(error));
     },
-    async savePredictiveMemoryGuard(activePredictiveMemoryGuardValue) {
-      let updatedMirroringModeValue = activePredictiveMemoryGuardValue
-        ? 'Enabled'
-        : 'Disabled';
-      this.predictiveMemoryGuard = activePredictiveMemoryGuardValue;
-      const updatedPredictiveMemoryGuard = {
+    async savePredictiveDynamicMemoryDeallocation(
+      activePredictiveDynamicMemoryDeallocationValue,
+    ) {
+      let updatedMirroringModeValue =
+        activePredictiveDynamicMemoryDeallocationValue ? 'Enabled' : 'Disabled';
+      this.predictiveDynamicMemoryDeallocation =
+        activePredictiveDynamicMemoryDeallocationValue;
+      const updatedPredictiveDynamicMemoryDeallocation = {
         Attributes: { hb_predictive_mem_guard: updatedMirroringModeValue },
       };
       return api
         .patch(
           '/redfish/v1/Systems/system/Bios/Settings',
-          updatedPredictiveMemoryGuard,
+          updatedPredictiveDynamicMemoryDeallocation,
         )
         .then(() => {
           return i18n.global.t(
-            'pageMemory.toast.successSavingPredictiveMemoryGuard',
+            'pageMemory.toast.successSavingPredictiveDynamicMemoryDeallocation',
           );
         })
         .catch((error) => {
           console.log(error);
-          this.predictiveMemoryGuard = !activePredictiveMemoryGuardValue;
+          this.predictiveDynamicMemoryDeallocation =
+            !activePredictiveDynamicMemoryDeallocationValue;
           throw new Error(
-            i18n.global.t('pageMemory.toast.errorSavingPredictiveMemoryGuard'),
+            i18n.global.t(
+              'pageMemory.toast.errorSavingPredictiveDynamicMemoryDeallocation',
+            ),
           );
         });
     },

@@ -1,16 +1,16 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
+import { defineStore } from 'pinia';
 
-const BmcStore = {
-  namespaced: true,
-  state: {
+export const BmcStore = defineStore('bmc', {
+  state: () => ({
     bmc: null,
-  },
+  }),
   getters: {
-    bmc: (state) => state.bmc,
+    bmcGetter: (state) => state.bmc,
   },
-  mutations: {
-    setBmcInfo: (state, data) => {
+  actions: {
+    setBmcInfo(data) {
       const bmc = {};
       bmc.dateTime = new Date(data.DateTime);
       bmc.description = data.Description;
@@ -26,17 +26,15 @@ const BmcStore = {
       bmc.sparePartNumber = data.SparePartNumber;
       bmc.statusState = data.Status.State;
       bmc.uri = data['@odata.id'];
-      state.bmc = bmc;
+      this.bmc = bmc;
     },
-  },
-  actions: {
-    async getBmcInfo({ commit }) {
+    async getBmcInfo() {
       return await api
         .get('/redfish/v1/Managers/bmc')
-        .then(({ data }) => commit('setBmcInfo', data))
+        .then(({ data }) => this.setBmcInfo(data))
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue({ dispatch }, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         LocationIndicatorActive: led.identifyLed,
@@ -44,28 +42,32 @@ const BmcStore = {
       return await api
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
-          dispatch('getBmcInfo');
+          this.getBmcInfo();
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
-          dispatch('getBmcInfo');
+          this.getBmcInfo();
           console.log('error', error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default BmcStore;

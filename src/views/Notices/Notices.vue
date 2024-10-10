@@ -1,20 +1,21 @@
 <template>
-  <b-container fluid="xl">
+  <BContainer fluid="xl">
     <page-title :title="$t('appPageTitle.notices')" />
     <notices-text class="notice"></notices-text>
-  </b-container>
+  </BContainer>
 </template>
 
-<script>
-import NoticesText from './NoticesText';
-import PageTitle from '@/components/Global/PageTitle';
-export default {
-  name: 'Notices',
-  components: { NoticesText, PageTitle },
-  mounted() {
-    this.$root.$emit('loading-bar-status', true);
-  },
-};
+<script setup>
+import { onMounted } from 'vue';
+import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
+import NoticesText from '@/views/Notices/NoticesText.vue';
+import PageTitle from '@/components/Global/PageTitle.vue';
+
+const { hideLoader } = useLoadingBar();
+
+onMounted(() => {
+  hideLoader();
+});
 </script>
 
 <style scoped>

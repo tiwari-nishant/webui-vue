@@ -16,7 +16,11 @@ import FactoryReset from '@/views/Operations/FactoryReset';
 import Memory from '@/views/ResourceManagement/Memory';
 import Power from '@/views/ResourceManagement/Power';
 import PowerRestorePolicy from '@/views/Settings/PowerRestorePolicy';
+import ConcurrentMaintenance from '../views/HardwareStatus/ConcurrentMaintenance/ConcurrentMaintenance.vue';
 import IBMiServiceFunctions from '@/views/Logs/IBMiServiceFunctions';
+import Notices from '@/views/Notices/Notices.vue';
+import Sessions from '@/views/SecurityAndAccess/Sessions';
+import Firmware from '@/views/Operations/Firmware';
 
 const roles = {
   administrator: 'Administrator',
@@ -66,6 +70,14 @@ export const routes = [
         component: Sensors,
         meta: {
           title: i18n.global.t('appPageTitle.sensors'),
+        },
+      },
+      {
+        path: '/hardware-status/concurrent-maintenance',
+        name: 'concurrent-maintenance',
+        component: ConcurrentMaintenance,
+        meta: {
+          title: i18n.global.t('appPageTitle.concurrentMaintenance'),
         },
       },
       {
@@ -119,6 +131,14 @@ export const routes = [
         },
       },
       {
+        path: '/operations/firmware',
+        name: 'firmware',
+        component: Firmware,
+        meta: {
+          title: i18n.global.t('appPageTitle.firmware'),
+        },
+      },
+      {
         path: '/settings/power-restore-policy',
         name: 'power-restore-policy',
         component: PowerRestorePolicy,
@@ -143,11 +163,27 @@ export const routes = [
         },
       },
       {
+        path: '/security-and-access/sessions',
+        name: 'sessions',
+        component: Sessions,
+        meta: {
+          title: i18n.global.t('appPageTitle.sessions'),
+        },
+      },
+      {
         path: '/:pathMatch(.*)*',
         name: 'page-not-found',
         component: PageNotFound,
         meta: {
           title: i18n.global.t('appPageTitle.pageNotFound'),
+        },
+      },
+      {
+        path: '/notices',
+        name: 'notices',
+        component: Notices,
+        meta: {
+          title: i18n.global.t('appPageTitle.notices'),
         },
       },
     ],

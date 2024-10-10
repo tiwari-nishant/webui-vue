@@ -3,3 +3,18 @@
     background-color: theme-color-light($success) !important;
   }
 }
+
+.card-header,
+.card-footer {
+  padding: 12px 20px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+@media (max-width: 576px) {
+  .card-deck > .card {
+    margin-bottom: 15px !important;
+  }
+}

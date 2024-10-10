@@ -1,10 +1,10 @@
 <template>
   <page-section :section-title="$t('pageFirmware.sectionTitleHostCards')">
-    <b-card-group deck>
+    <BCardGroup deck>
       <!-- Running image -->
-      <b-card>
+      <BCard>
         <template #header>
-          <p class="font-weight-bold m-0">
+          <p class="fw-bold m-0">
             {{ $t('pageFirmware.cardTitleRunning') }}
           </p>
         </template>
@@ -12,12 +12,12 @@
           <dt>{{ $t('pageFirmware.cardBodyVersion') }}</dt>
           <dd class="mb-0">{{ runningVersion }}</dd>
         </dl>
-      </b-card>
+      </BCard>
 
       <!-- Backup image -->
-      <b-card>
+      <BCard>
         <template #header>
-          <p class="font-weight-bold m-0">
+          <p class="fw-bold m-0">
             {{ $t('pageFirmware.cardTitleBackup') }}
           </p>
         </template>
@@ -25,45 +25,48 @@
           <dt>{{ $t('pageFirmware.cardBodyVersion') }}</dt>
           <dd class="mb-0">
             <status-icon v-if="showBackupImageStatus" status="danger" />
-            <span v-if="showBackupImageStatus" class="sr-only">
+            <span v-if="showBackupImageStatus" class="visually-hidden">
               {{ backupStatus }}
             </span>
             {{ backupVersion }}
           </dd>
         </dl>
-      </b-card>
-    </b-card-group>
+      </BCard>
+    </BCardGroup>
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
+<script setup>
+import { computed } from 'vue';
+import PageSection from '@/components/Global/PageSection.vue';
+import StatusIcon from '@/components/Global/StatusIcon.vue';
+import { FirmwareStore } from '@/store';
 
-export default {
-  components: { PageSection },
-  computed: {
-    running() {
-      return this.$store.getters['firmware/activeHostFirmware'];
-    },
-    backup() {
-      return this.$store.getters['firmware/backupHostFirmware'];
-    },
-    runningVersion() {
-      return this.running?.version || '--';
-    },
-    backupVersion() {
-      return this.backup?.version || '--';
-    },
-    backupStatus() {
-      return this.backup?.status || null;
-    },
-    showBackupImageStatus() {
-      return (
-        this.backupStatus === 'Critical' || this.backupStatus === 'Warning'
-      );
-    },
-  },
-};
+const firmwareStore = FirmwareStore();
+
+const running = computed(() => {
+  return firmwareStore.activeHostFirmware;
+});
+
+const backup = computed(() => {
+  return firmwareStore.backupHostFirmware;
+});
+
+const runningVersion = computed(() => {
+  return running.value?.version || '--';
+});
+
+const backupVersion = computed(() => {
+  return backup.value?.version || '--';
+});
+
+const backupStatus = computed(() => {
+  return backup.value?.status || null;
+});
+
+const showBackupImageStatus = computed(() => {
+  return backupStatus.value === 'Critical' || backupStatus.value === 'Warning';
+});
 </script>
 
 <style lang="scss" scoped>

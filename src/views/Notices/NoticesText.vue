@@ -5972,9 +5972,3 @@ FW1060
 ===========================================================================
   </pre>
 </template>
-
-<script>
-export default {
-  name: 'NoticesText',
-};
-</script>

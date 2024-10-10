@@ -59,6 +59,16 @@ div[role='group'] {
   }
 }
 
+.form-control.form-control-file {
+  opacity: 0;
+  height: 0;
+  &:focus + span {
+    box-shadow:
+      inset 0 0 0 3px $primary,
+      inset 0 0 0 5px $white;
+  }
+}
+
 .form-select,
 .form-check-label,
 .form-control {
