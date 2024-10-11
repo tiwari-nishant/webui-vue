@@ -1,17 +1,14 @@
 <template>
   <page-section :section-title="$t('pageInventory.pcieSlots')">
     {{ $t('pageInventory.pcieTopologyLinkDescription') }}
-    <b-link href="#/hardware-status/pcie-topology">{{
+    <b-link href="/hardware-status/pcie-topology">{{
       $t('pageInventory.pcieTopologyLink')
     }}</b-link>
     <b-row class="align-items-end">
       <b-col sm="6" md="5" xl="4">
-        <search
-          @change-search="onChangeSearchInput"
-          @clear-search="onClearSearchInput"
-        />
+        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
       </b-col>
-      <b-col sm="6" md="3" xl="2">
+      <b-col sm="6" md="3" xl="2" class="mb-4">
         <table-cell-count
           :filtered-items-count="filteredRows"
           :total-number-of-cells="pcieSlots.length"
@@ -25,11 +22,11 @@
       responsive="md"
       sort-by="name"
       show-empty
+      sticky-header="75vh"
       :items="pcieSlots"
       :fields="fields"
       :sort-desc="false"
-      :sort-compare="sortCompare"
-      :filter="searchFilter"
+      :filter="searchFilterInput"
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
@@ -75,121 +72,128 @@
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
-import TableCellCount from '@/components/Global/TableCellCount';
+<script setup>
+import PageSection from '@/components/Global/PageSection.vue';
+import TableCellCount from '@/components/Global/TableCellCount.vue';
+import {
+  defineProps,
+  reactive,
+  ref,
+  computed,
+  watch,
+  onBeforeMount,
+} from 'vue';
 
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
-import TableSortMixin from '@/components/Mixins/TableSortMixin';
-import InfoTooltip from '@/components/Global/InfoTooltip';
-import Search from '@/components/Global/Search';
-import SearchFilterMixin, {
-  searchFilter,
-} from '@/components/Mixins/SearchFilterMixin';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
+import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
+import { PcieSlotsStore } from '../../../store';
+import { GlobalStore } from '../../../store';
+import eventBus from '@/eventBus';
+import useToast from '@/components/Composables/useToastComposable';
+import { useI18n } from 'vue-i18n';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import { BLink } from 'bootstrap-vue-next';
 
-export default {
-  components: { PageSection, InfoTooltip, Search, TableCellCount },
-  mixins: [BVToastMixin, DataFormatterMixin, TableSortMixin, SearchFilterMixin],
-  props: {
-    chassis: {
-      type: String,
-      default: '',
-    },
+const props = defineProps({
+  chassis: {
+    type: String,
+    default: '',
   },
-  data() {
-    return {
-      isBusy: true,
-      fields: [
-        {
-          key: 'type',
-          label: this.$t('pageInventory.table.slotType'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          class: 'text-center',
-        },
-        {
-          key: 'locationNumber',
-          label: this.$t('pageInventory.table.locationNumber'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'identifyLed',
-          label: this.$t('pageInventory.table.identifyLed'),
-          formatter: this.dataFormatter,
-        },
-      ],
-      searchFilter: searchFilter,
-      searchTotalFilteredRows: 0,
-    };
+});
+const { t } = useI18n();
+const pcieSlotsStore = PcieSlotsStore();
+const globalStore = GlobalStore();
+const isBusy = ref(true);
+const searchTotalFilteredRows = ref(0);
+const { successToast, errorToast } = useToast();
+
+const { searchFilterInput, onChangeSearch, onClearSearch } =
+  useSearchFilterComposable();
+const { dataFormatter } = useDataFormatterGlobal();
+
+const fields = reactive([
+  {
+    key: 'type',
+    label: t('pageInventory.table.slotType'),
+    formatter: dataFormatter,
+    sortable: true,
+    class: 'text-center',
   },
-  computed: {
-    filteredRows() {
-      return this.searchFilter
-        ? this.searchTotalFilteredRows
-        : this.pcieSlots.length;
-    },
-    pcieSlots() {
-      let slotsList = [];
-      const slots = this.$store.getters['pcieSlots/pcieSlots'];
-      slots.map((slot) => {
-        if (slot.type !== 'OEM') {
-          slotsList.push(slot);
-        }
-      });
-      return slotsList;
-    },
-    serverStatus() {
-      if (this.chassis.endsWith('chassis')) {
-        return false;
-      } else if (this.$store.getters['global/serverStatus'] !== 'on') {
-        return true;
-      } else {
-        return false;
-      }
-    },
+  {
+    key: 'locationNumber',
+    label: t('pageInventory.table.locationNumber'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-  watch: {
-    chassis: function (value) {
-      this.$store
-        .dispatch('pcieSlots/getPcieSlotsInfo', { uri: value })
-        .finally(() => {
-          this.$root.$emit('hardware-status-pcie-slots-complete');
-          this.isBusy = false;
-        });
-    },
+  {
+    key: 'identifyLed',
+    label: t('pageInventory.table.identifyLed'),
+    formatter: dataFormatter,
   },
-  created() {
-    this.$store
-      .dispatch('pcieSlots/getPcieSlotsInfo', { uri: this.chassis })
-      .finally(() => {
-        this.$root.$emit('hardware-status-pcie-slots-complete');
-        this.isBusy = false;
-      });
+]);
+
+const filteredRows = computed(() => {
+  return searchFilterInput.value
+    ? searchTotalFilteredRows.value
+    : slotListLength.value;
+});
+const slotListLength = ref(0);
+
+const pcieSlots = computed(() => {
+  let slotsList = [];
+  const slots = pcieSlotsStore.pcieSlots;
+  slots.map((slot) => {
+    if (slot.type !== 'OEM') {
+      slotsList.push(slot);
+    }
+  });
+  slotListLength.value = slotsList.length;
+  return slotsList;
+});
+
+const serverStatus = computed(() => {
+  if (props.chassis.endsWith('chassis')) {
+    return false;
+  } else if (globalStore.serverStatus !== 'on') {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+watch(
+  () => props.chassis,
+  (value) => {
+    pcieSlotsStore.getPcieSlotsInfo({ uri: value }).finally(() => {
+      eventBus.emit('hardware-status-pcie-slots-complete');
+      isBusy.value = false;
+    });
   },
-  methods: {
-    sortCompare(a, b, key) {
-      if (key === 'health') {
-        return this.sortStatus(a, b, key);
-      }
-    },
-    onFiltered(filteredItems) {
-      this.searchTotalFilteredRows = filteredItems.length;
-    },
-    toggleIdentifyLedValue(row) {
-      this.$store
-        .dispatch('pcieSlots/updateIdentifyLedValue', {
-          locationNumber: row.locationNumber,
-          identifyLed: row.identifyLed,
-          uri: this.chassis,
-        })
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    hasIdentifyLed(identifyLed) {
-      return typeof identifyLed === 'boolean';
-    },
-  },
-};
+);
+
+onBeforeMount(() => {
+  pcieSlotsStore.getPcieSlotsInfo({ uri: props.chassis }).finally(() => {
+    eventBus.emit('hardware-status-pcie-slots-complete');
+    isBusy.value = false;
+  });
+});
+
+function onFiltered(filteredItems) {
+  searchTotalFilteredRows.value = filteredItems.length;
+}
+
+function toggleIdentifyLedValue(row) {
+  pcieSlotsStore
+    .updateIdentifyLedValue({
+      locationNumber: row.locationNumber,
+      identifyLed: row.identifyLed,
+      uri: props.chassis,
+    })
+    .then((message) => successToast(message))
+    .catch(({ message }) => errorToast(message));
+}
+
+function hasIdentifyLed(identifyLed) {
+  return typeof identifyLed === 'boolean';
+}
 </script>

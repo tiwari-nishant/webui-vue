@@ -12,7 +12,7 @@
         <b-card no-body>
           <b-tabs content-class="mt-3" fill>
             <b-tab
-              v-for="(value, index) in chassis"
+              v-for="(val, index) in chassis"
               :key="index"
               :title="
                 index === 0
@@ -35,15 +35,15 @@
                       xl="4"
                     >
                       <div v-for="item in column" :key="item.id">
-                        <b-link
+                        <BLink style="text-decoration: none;"
                           :href="item.href"
                           :data-ref="item.dataRef"
                           @click.prevent="
-                            scrollToOffsetInventory($event, currentTab)
+                            scrollToOffsetInventory($refs, $event, index)
                           "
                         >
-                          <jump-link /> {{ item.linkText }}
-                        </b-link>
+                          <icon-jump-link  /> {{ item.linkText }}
+                        </BLink>
                       </div>
                     </b-col>
                   </b-row>
@@ -59,15 +59,15 @@
                       xl="4"
                     >
                       <div v-for="item in column" :key="item.id">
-                        <b-link
+                        <BLink
                           :href="item.href"
                           :data-ref="item.dataRef"
                           @click.prevent="
-                            scrollToOffsetInventory($event, currentTab)
+                            scrollToOffsetInventory($refs, $event, index)
                           "
                         >
                           <jump-link /> {{ item.linkText }}
-                        </b-link>
+                        </BLink>
                       </div>
                     </b-col>
                   </b-row>
@@ -149,7 +149,6 @@
                   ref="assembly"
                   :chassis="chassis[currentTab].uri"
                 />
-
                 <!-- PCIe slots table -->
                 <table-pcie-slots
                   v-if="currentTab > 0"
@@ -172,267 +171,245 @@
   </b-container>
 </template>
 
-<script>
-import Alert from '@/components/Global/Alert';
-import PageTitle from '@/components/Global/PageTitle';
-import TableSystem from './InventoryTableSystem';
-import TablePowerSupplies from './InventoryTablePowerSupplies';
-import TableDimmSlot from './InventoryTableDimmSlot';
-import TableFans from './InventoryTableFans';
-import TableBmcManager from './InventoryTableBmcManager';
-import TableChassis from './InventoryTableChassis';
-import TableProcessors from './InventoryTableProcessors';
-import TableAssembly from './InventoryTableAssembly';
-import TableFabricAdapters from './InventoryFabricAdapters';
-import TablePcieSlots from './InventoryTablePcieSlots';
-import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
-import PageSection from '@/components/Global/PageSection';
-import ServiceIndicator from './InventoryServiceIndicator';
-import JumpLink16 from '@carbon/icons-vue/es/jump-link/16';
-import JumpLinkMixin from '@/components/Mixins/JumpLinkMixin';
-import { chunk } from 'lodash';
+<script setup>
+import Alert from '@/components/Global/Alert.vue';
+import PageTitle from '@/components/Global/PageTitle.vue';
+import TableSystem from './InventoryTableSystem.vue';
+import TablePowerSupplies from './InventoryTablePowerSupplies.vue';
+import TableDimmSlot from './InventoryTableDimmSlot.vue';
+import TableFans from './InventoryTableFans.vue';
+import TableBmcManager from './InventoryTableBmcManager.vue';
+import TableChassis from './InventoryTableChassis.vue';
+import TableProcessors from './InventoryTableProcessors.vue';
 
-export default {
-  components: {
-    Alert,
-    PageTitle,
-    ServiceIndicator,
-    TableDimmSlot,
-    TablePowerSupplies,
-    TableSystem,
-    TableFans,
-    TableBmcManager,
-    TableChassis,
-    TableProcessors,
-    TableAssembly,
-    TablePcieSlots,
-    TableFabricAdapters,
-    PageSection,
-    JumpLink: JumpLink16,
+import TableAssembly from './InventoryTableAssembly.vue';
+import TableFabricAdapters from './InventoryFabricAdapters.vue';
+import TablePcieSlots from './InventoryTablePcieSlots.vue';
+import PageSection from '@/components/Global/PageSection.vue';
+import ServiceIndicator from './InventoryServiceIndicator.vue';
+import { default as IconJumpLink } from '@carbon/icons-vue/es/jump-link/16';
+import { chunk } from 'lodash';
+import { computed, watch, onBeforeMount, ref, reactive } from 'vue';
+import ChassisStore from '../../../store/modules/HardwareStatus/ChassisStore';
+import { GlobalStore } from '@/store';
+import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
+import eventBus from '@/eventBus';
+import { useI18n } from 'vue-i18n';
+import useJumpLinkComposable from '../../../components/Composables/useJumpLinkComposable';
+import { BLink } from 'bootstrap-vue-next';
+
+const { startLoader, endLoader } = useLoadingBar();
+const chassisStore = ChassisStore();
+const global = GlobalStore();
+
+const isBusy = ref(false);
+const currentTab = ref(0);
+
+const { t } = useI18n();
+const { scrollToOffsetInventory } = useJumpLinkComposable();
+
+const links = reactive([
+  {
+    id: 'system',
+    dataRef: 'system',
+    href: '#system',
+    linkText: t('pageInventory.system'),
   },
-  mixins: [LoadingBarMixin, JumpLinkMixin],
-  beforeRouteLeave(to, from, next) {
-    // Hide loader if user navigates away from page
-    // before requests complete
-    this.hideLoader();
-    next();
+  {
+    id: 'bmc',
+    dataRef: 'bmc',
+    href: '#bmc',
+    linkText: t('pageInventory.bmcManager'),
   },
-  data() {
-    return {
-      isBusy: false,
-      currentTab: 0,
-      links: [
-        {
-          id: 'system',
-          dataRef: 'system',
-          href: '#system',
-          linkText: this.$t('pageInventory.system'),
-        },
-        {
-          id: 'bmc',
-          dataRef: 'bmc',
-          href: '#bmc',
-          linkText: this.$t('pageInventory.bmcManager'),
-        },
-        {
-          id: 'dimms',
-          dataRef: 'dimms',
-          href: '#dimms',
-          linkText: this.$t('pageInventory.dimmSlot'),
-        },
-        {
-          id: 'fans',
-          dataRef: 'fans',
-          href: '#fans',
-          linkText: this.$t('pageInventory.fans'),
-        },
-        {
-          id: 'powerSupply',
-          dataRef: 'powerSupply',
-          href: '#powerSupply',
-          linkText: this.$t('pageInventory.powerSupplies'),
-        },
-        {
-          id: 'processors',
-          dataRef: 'processors',
-          href: '#processors',
-          linkText: this.$t('pageInventory.processors'),
-        },
-        {
-          id: 'assembly',
-          dataRef: 'assembly',
-          href: '#assembly',
-          linkText: this.$t('pageInventory.assemblies'),
-        },
-        {
-          id: 'pcieSlots',
-          dataRef: 'pcieSlots',
-          href: '#pcieSlots',
-          linkText: this.$t('pageInventory.pcieSlots'),
-        },
-        {
-          id: 'fabricAdapters',
-          dataRef: 'fabricAdapters',
-          href: '#fabricAdapters',
-          linkText: this.$t('pageInventory.fabricAdapters'),
-        },
-      ],
-      mexLinks: [
-        {
-          id: 'fans',
-          dataRef: 'fans',
-          href: '#fans',
-          linkText: this.$t('pageInventory.fans'),
-        },
-        {
-          id: 'powerSupply',
-          dataRef: 'powerSupply',
-          href: '#powerSupply',
-          linkText: this.$t('pageInventory.powerSupplies'),
-        },
-        {
-          id: 'assembly',
-          dataRef: 'assembly',
-          href: '#assembly',
-          linkText: this.$t('pageInventory.assemblies'),
-        },
-        {
-          id: 'pcieSlots',
-          dataRef: 'pcieSlots',
-          href: '#pcieSlots',
-          linkText: this.$t('pageInventory.pcieSlots'),
-        },
-        {
-          id: 'fabricAdapters',
-          dataRef: 'fabricAdapters',
-          href: '#fabricAdapters',
-          linkText: this.$t('pageInventory.fabricAdapters'),
-        },
-      ],
-    };
+  {
+    id: 'dimms',
+    dataRef: 'dimms',
+    href: '#dimms',
+    linkText: t('pageInventory.dimmSlot'),
   },
-  computed: {
-    quicklinkColumns() {
-      // Chunk links array to 3 array's to display 3 items per column
-      return chunk(this.links, 3);
-    },
-    quicklinkMexColumns() {
-      // Chunk links array to 2 array's to display 2 items per column
-      return chunk(this.mexLinks, 2);
-    },
-    chassis() {
-      return this.$store.getters['chassis/chassis'];
-    },
-    isPoweredOff() {
-      if (this.$store.getters['global/serverStatus'] === 'off') {
-        return true;
-      } else {
-        return false;
-      }
-    },
+  {
+    id: 'fans',
+    dataRef: 'fans',
+    href: '#fans',
+    linkText: t('pageInventory.fans'),
   },
-  watch: {
-    currentTab: function () {
-      this.getAllInfo('watched');
-    },
+  {
+    id: 'powerSupply',
+    dataRef: 'powerSupply',
+    href: '#powerSupply',
+    linkText: t('pageInventory.powerSupplies'),
   },
-  created() {
-    this.getAllInfo('created');
+  {
+    id: 'processors',
+    dataRef: 'processors',
+    href: '#processors',
+    linkText: t('pageInventory.processors'),
   },
-  methods: {
-    currentTabUpdate(index) {
-      this.currentTab = index;
-    },
-    getAllInfo(value) {
-      this.startLoader();
-      this.isBusy = true;
-      this.$store.dispatch('chassis/getChassisInfo');
-      const bmcManagerTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-bmc-manager-complete', () => resolve());
-      });
-      const chassisTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-chassis-complete', () => resolve());
-      });
-      const dimmSlotTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-dimm-slot-complete', () => resolve());
-      });
-      const fansTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-fans-complete', () => resolve());
-      });
-      const powerSuppliesTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-power-supplies-complete', () =>
-          resolve(),
-        );
-      });
-      const processorsTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-processors-complete', () => resolve());
-      });
-      const serviceIndicatorPromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-service-complete', () => resolve());
-      });
-      const systemTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-system-complete', () => resolve());
-      });
-      const assemblyTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-assembly-complete', () => resolve());
-      });
-      const pcieSlotsTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-pcie-slots-complete', () => resolve());
-      });
-      const fabricAdaptersTablePromise = new Promise((resolve) => {
-        this.$root.$on('hardware-status-fabric-adapters-complete', () =>
-          resolve(),
-        );
-      });
-      if (this.currentTab === 0 && value === 'created') {
-        // Combine all child component Promises to indicate
-        // when page data load complete
-        Promise.all([
-          bmcManagerTablePromise,
-          chassisTablePromise,
-          dimmSlotTablePromise,
-          fansTablePromise,
-          powerSuppliesTablePromise,
-          processorsTablePromise,
-          serviceIndicatorPromise,
-          systemTablePromise,
-          assemblyTablePromise,
-          pcieSlotsTablePromise,
-          fabricAdaptersTablePromise,
-        ]).finally(() => {
-          this.endLoader();
-          this.isBusy = false;
-        });
-      } else if (this.currentTab === 0 && value === 'watched') {
-        // Combine all child component Promises to indicate
-        // when page data load complete
-        Promise.all([
-          bmcManagerTablePromise,
-          dimmSlotTablePromise,
-          fansTablePromise,
-          powerSuppliesTablePromise,
-          processorsTablePromise,
-          systemTablePromise,
-          assemblyTablePromise,
-          pcieSlotsTablePromise,
-          fabricAdaptersTablePromise,
-        ]).finally(() => {
-          this.endLoader();
-          this.isBusy = false;
-        });
-      } else {
-        Promise.all([
-          fansTablePromise,
-          powerSuppliesTablePromise,
-          assemblyTablePromise,
-          pcieSlotsTablePromise,
-          fabricAdaptersTablePromise,
-        ]).finally(() => {
-          this.endLoader();
-          this.isBusy = false;
-        });
-      }
-    },
+  {
+    id: 'assembly',
+    dataRef: 'assembly',
+    href: '#assembly',
+    linkText: t('pageInventory.assemblies'),
   },
-};
+  {
+    id: 'pcieSlots',
+    dataRef: 'pcieSlots',
+    href: '#pcieSlots',
+    linkText: t('pageInventory.pcieSlots'),
+  },
+  {
+    id: 'fabricAdapters',
+    dataRef: 'fabricAdapters',
+    href: '#fabricAdapters',
+    linkText: t('pageInventory.fabricAdapters'),
+  },
+]);
+const mexLinks = reactive([
+  {
+    id: 'fans',
+    dataRef: 'fans',
+    href: '#fans',
+    linkText: t('pageInventory.fans'),
+  },
+  {
+    id: 'powerSupply',
+    dataRef: 'powerSupply',
+    href: '#powerSupply',
+    linkText: t('pageInventory.powerSupplies'),
+  },
+  {
+    id: 'assembly',
+    dataRef: 'assembly',
+    href: '#assembly',
+    linkText: t('pageInventory.assemblies'),
+  },
+  {
+    id: 'pcieSlots',
+    dataRef: 'pcieSlots',
+    href: '#pcieSlots',
+    linkText: t('pageInventory.pcieSlots'),
+  },
+  {
+    id: 'fabricAdapters',
+    dataRef: 'fabricAdapters',
+    href: '#fabricAdapters',
+    linkText: t('pageInventory.fabricAdapters'),
+  },
+]);
+
+const quicklinkColumns = computed(() => {
+  return chunk(links, 3);
+});
+const quicklinkMexColumns = computed(() => {
+  return chunk(mexLinks, 2);
+});
+const chassis = computed(() => {
+  return chassisStore.chassis;
+});
+
+const serverStatus = computed(() => global.serverStatus);
+const isPoweredOff = computed(() =>
+  serverStatus.value === 'off' ? true : false,
+);
+
+watch(
+  () => currentTab,
+  () => {
+    getAllInfo('watched');
+  },
+);
+function getAllInfo(val) {
+  startLoader();
+  isBusy.value = true;
+  chassisStore.fetchGetChassisInfo();
+  const bmcManagerTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-bmc-manager-complete', () => resolve());
+  });
+  const chassisTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-chassis-complete', () => resolve());
+  });
+  const dimmSlotTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-dimm-slot-complete', () => resolve());
+  });
+  const fansTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-fans-complete', () => resolve());
+  });
+  const powerSuppliesTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-power-supplies-complete', () => resolve());
+  });
+  const processorsTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-processors-complete', () => resolve());
+  });
+  const serviceIndicatorPromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-service-complete', () => resolve());
+  });
+  const systemTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-system-complete', () => resolve());
+  });
+  const assemblyTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-assembly-complete', () => resolve());
+  });
+  const pcieSlotsTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-pcie-slots-complete', () => resolve());
+  });
+  const fabricAdaptersTablePromise = new Promise((resolve) => {
+    eventBus.on('hardware-status-fabric-adapters-complete', () => resolve());
+  });
+  if (currentTab.value === 0 && val === 'created') {
+    // Combine all child component Promises to indicate
+    // when page data load complete
+    Promise.all([
+      bmcManagerTablePromise,
+      chassisTablePromise,
+      dimmSlotTablePromise,
+      fansTablePromise,
+      powerSuppliesTablePromise,
+      processorsTablePromise,
+      serviceIndicatorPromise,
+      systemTablePromise,
+      assemblyTablePromise,
+      pcieSlotsTablePromise,
+      fabricAdaptersTablePromise,
+    ]).finally(() => {
+      endLoader();
+      isBusy.value = false;
+    });
+  } else if (currentTab.value === 0 && val === 'watched') {
+    // Combine all child component Promises to indicate
+    // when page data load complete
+    Promise.all([
+      bmcManagerTablePromise,
+      dimmSlotTablePromise,
+      fansTablePromise,
+      powerSuppliesTablePromise,
+      processorsTablePromise,
+      systemTablePromise,
+      assemblyTablePromise,
+      pcieSlotsTablePromise,
+      fabricAdaptersTablePromise,
+    ]).finally(() => {
+      endLoader();
+      isBusy.value = false;
+    });
+  } else {
+    Promise.all([
+      fansTablePromise,
+      powerSuppliesTablePromise,
+      assemblyTablePromise,
+      pcieSlotsTablePromise,
+      fabricAdaptersTablePromise,
+    ]).finally(() => {
+      endLoader();
+      isBusy.value = false;
+    });
+  }
+}
+
+function currentTabUpdate(index) {
+  currentTab.value = index;
+}
+
+onBeforeMount(() => {
+  getAllInfo('created');
+});
 </script>

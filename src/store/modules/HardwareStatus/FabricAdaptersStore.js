@@ -1,17 +1,18 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
+import { defineStore } from 'pinia';
 
-const FabricAdaptersStore = {
+export const FabricAdaptersStore = defineStore('fabricStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     fabricAdapters: [],
-  },
+  }),
   getters: {
-    fabricAdapters: (state) => state.fabricAdapters,
+    fabricAdaptersGetter: (state) => state.fabricAdapters,
   },
-  mutations: {
-    setFabricAdaptersInfo: (state, data) => {
-      state.fabricAdapters = data.map((adapter) => {
+  actions: {
+    setFabricAdaptersInfo(data) {
+      this.fabricAdapters = data.map((adapter) => {
         const {
           Id,
           Location,
@@ -38,11 +39,9 @@ const FabricAdaptersStore = {
         };
       });
     },
-  },
-  actions: {
-    async getFabricAdaptersInfo({ commit }, requestBody) {
+    async getFabricAdaptersInfo(requestBody) {
       let tempFabricAdapters = [];
-      commit('setFabricAdaptersInfo', tempFabricAdapters);
+      this.setFabricAdaptersInfo(tempFabricAdapters);
       const res = await api.get(requestBody.uri + '/PCIeSlots');
       return await api
         .get(`/redfish/v1/Systems/system/FabricAdapters`)
@@ -56,7 +55,7 @@ const FabricAdaptersStore = {
                     memberResponse.data?.Links?.PCIeDevices[0]['@odata.id']
                   ) {
                     tempFabricAdapters.push(memberResponse.data);
-                    commit('setFabricAdaptersInfo', tempFabricAdapters);
+                    this.setFabricAdaptersInfo(tempFabricAdapters);
                   }
                 });
               } else {
@@ -65,7 +64,7 @@ const FabricAdaptersStore = {
                   requestBody.uri.endsWith('chassis')
                 ) {
                   tempFabricAdapters.push(memberResponse.data);
-                  commit('setFabricAdaptersInfo', tempFabricAdapters);
+                  this.setFabricAdaptersInfo(tempFabricAdapters);
                 }
               }
             });
@@ -73,36 +72,39 @@ const FabricAdaptersStore = {
         })
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue({ dispatch }, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         LocationIndicatorActive: led.identifyLed,
       };
-
       return await api
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
-          dispatch('getFabricAdaptersInfo');
+          this.getFabricAdaptersInfo(led);
           console.log('error', error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default FabricAdaptersStore;

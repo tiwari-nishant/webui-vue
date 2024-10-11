@@ -30,22 +30,31 @@
   </b-row>
 </template>
 
-<script>
-import Alert from '@/components/Global/Alert';
+<script setup>
+import { computed } from 'vue';
+import Alert from '@/components/Global/Alert.vue';
+import { ControlStore } from '@/store';
 
-export default {
-  components: { Alert },
-  props: {
-    isServerOff: {
-      required: true,
-      type: Boolean,
-      default: true,
-    },
+const controlStore = ControlStore();
+
+defineProps({
+  isServerOff: {
+    required: true,
+    type: Boolean,
+    default: true,
   },
-  computed: {
-    isOperationInProgress() {
-      return this.$store.getters['controls/isOperationInProgress'];
-    },
-  },
-};
+});
+
+const isOperationInProgress = computed(() => {
+  return controlStore.getIsOperationInProgress;
+});
 </script>
+
+<style lang="scss" scoped>
+:deep(a) {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+</style>

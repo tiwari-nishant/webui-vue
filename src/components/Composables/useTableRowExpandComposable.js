@@ -7,10 +7,14 @@ const useTableRowExpandComposable = () => {
       ? i18n.global.t('global.table.collapseTableRow')
       : i18n.global.t('global.table.expandTableRow');
   };
-
+  const toggleRow = (row) => {
+    row.item.toggleDetails = !row.item.toggleDetails;
+    toggleRowDetails(row);
+  };
   return {
     expandRowLabel,
     toggleRowDetails,
+    toggleRow,
   };
 };
 

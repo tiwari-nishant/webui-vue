@@ -1,14 +1,18 @@
-export const searchFilter = null;
+import { ref } from 'vue';
 const useSearchFilterComposable = () => {
-  const onChangeSearchInput = (searchValue) => {
-    return searchValue;
+  let searchFilterInput = ref('');
+  const onChangeSearch = (searchValue) => {
+    searchFilterInput.value = searchValue;
+    return;
   };
-  const onClearSearchInput = () => {
-    return null;
+  const onClearSearch = () => {
+    searchFilterInput.value = '';
+    return;
   };
   return {
-    onChangeSearchInput,
-    onClearSearchInput,
+    searchFilterInput,
+    onChangeSearch,
+    onClearSearch,
   };
 };
 

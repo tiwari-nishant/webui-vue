@@ -1,31 +1,28 @@
 <template>
   <page-section :section-title="$t('pageInventory.dimmSlot')">
-    <b-row class="align-items-end">
-      <b-col sm="6" md="5" xl="4">
-        <search
-          @change-search="onChangeSearchInput"
-          @clear-search="onClearSearchInput"
-        />
-      </b-col>
-      <b-col sm="6" md="3" xl="2">
+    <BRow class="align-items-end">
+      <BCol sm="6" md="5" xl="4">
+        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+      </BCol>
+      <BCol sm="6" md="3" xl="2" class="mb-4">
         <table-cell-count
           :filtered-items-count="filteredRows"
           :total-number-of-cells="dimms.length"
         ></table-cell-count>
-      </b-col>
-    </b-row>
-    <b-table
+      </BCol>
+    </BRow>
+    <BTable
       sort-icon-left
       no-sort-reset
       hover
       sort-by="id"
       responsive="md"
       show-empty
+      sticky-header="75vh"
       :items="dimms"
       :fields="fields"
       :sort-desc="false"
-      :sort-compare="sortCompare"
-      :filter="searchFilter"
+      :filter="searchFilterInput"
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
@@ -41,17 +38,18 @@
           variant="link"
           data-test-id="hardwareStatus-button-expandDimms"
           :title="expandRowLabel"
-          class="btn-icon-only"
-          @click="toggleRowDetails(row)"
+          :class="
+            row.item.toggleDetails ? 'rotateSvg btn-icon-only' : 'btn-icon-only'
+          "
+          @click="toggleRow(row)"
         >
           <icon-chevron />
-          <span class="sr-only">{{ expandRowLabel }}</span>
         </b-button>
       </template>
 
       <!-- Health -->
       <template #cell(health)="{ value }">
-        <status-icon :status="statusIcon(value)" />
+        <status-icon :status="statusIconValue(value)" />
         {{
           value === 'OK'
             ? $t('global.status.ok')
@@ -111,8 +109,8 @@
       </template>
       <template #row-details="{ item }">
         <b-container fluid>
-          <b-row>
-            <b-col sm="6" xl="6">
+          <BRow style="margin-left: 5px;">
+            <BCol sm="6" xl="6">
               <dl>
                 <!-- Part Number -->
                 <dt>{{ $t('pageInventory.table.partNumber') }}</dt>
@@ -133,8 +131,8 @@
                 <dt>{{ $t('pageInventory.table.bmcManagerModel') }}</dt>
                 <dd>{{ dataFormatter(item.model) }}</dd>
               </dl>
-            </b-col>
-            <b-col sm="6" xl="6">
+            </BCol>
+            <BCol sm="6" xl="6">
               <dl>
                 <!-- Capacity MiB -->
                 <dt>{{ $t('pageInventory.table.capacityMiB') }}</dt>
@@ -151,167 +149,163 @@
                   }}
                 </dd>
               </dl>
-            </b-col>
-          </b-row>
+            </BCol>
+          </BRow>
         </b-container>
       </template>
-    </b-table>
+    </BTable>
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
+<script setup>
+import PageSection from '@/components/Global/PageSection.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
+import TableCellCount from '@/components/Global/TableCellCount.vue';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
+import Search from '@/components/Global/Search.vue';
+import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
+import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import { useI18n } from 'vue-i18n';
+import eventBus from '@/eventBus';
+import useToast from '@/components/Composables/useToastComposable';
 
-import StatusIcon from '@/components/Global/StatusIcon';
-import TableCellCount from '@/components/Global/TableCellCount';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
-import InfoTooltip from '@/components/Global/InfoTooltip';
-import TableSortMixin from '@/components/Mixins/TableSortMixin';
-import Search from '@/components/Global/Search';
-import SearchFilterMixin, {
-  searchFilter,
-} from '@/components/Mixins/SearchFilterMixin';
-import TableRowExpandMixin, {
-  expandRowLabel,
-} from '@/components/Mixins/TableRowExpandMixin';
+import { ref, reactive, computed, onBeforeMount } from 'vue';
 
-export default {
-  components: {
-    IconChevron,
-    InfoTooltip,
-    PageSection,
-    StatusIcon,
-    Search,
-    TableCellCount,
+import { MemoryStore } from '../../../store';
+
+const { searchFilterInput, onChangeSearch, onClearSearch } =
+  useSearchFilterComposable();
+
+const { expandRowLabel, toggleRow } = useTableRowExpandComposable();
+const isBusy = ref(false);
+const { t } = useI18n();
+const searchTotalFilteredRows = ref(0);
+const { dataFormatter, statusIconValue } = useDataFormatterGlobal();
+const memoryStore = MemoryStore();
+const { successToast, errorToast } = useToast();
+
+const fields = reactive([
+  {
+    key: 'expandRow',
+    label: '',
+    tdClass: 'table-row-expand',
   },
-  mixins: [
-    BVToastMixin,
-    TableRowExpandMixin,
-    DataFormatterMixin,
-    TableSortMixin,
-    SearchFilterMixin,
-  ],
-  data() {
-    return {
-      isBusy: true,
-      fields: [
-        {
-          key: 'expandRow',
-          label: '',
-          tdClass: 'table-row-expand',
-        },
-        {
-          key: 'name',
-          label: this.$t('pageInventory.table.name'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'health',
-          label: this.$t('pageInventory.table.health'),
-          formatter: this.dataFormatter,
-          tdClass: 'text-nowrap',
-          sortable: true,
-        },
-        {
-          key: 'status',
-          label: this.$t('pageUserManagement.table.status'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'locationNumber',
-          label: this.$t('pageInventory.table.locationNumber'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'identifyLed',
-          label: this.$t('pageInventory.table.identifyLed'),
-          formatter: this.dataFormatter,
-          sortable: false,
-        },
-      ],
-      searchFilter: searchFilter,
-      searchTotalFilteredRows: 0,
-      expandRowLabel: expandRowLabel,
-    };
+  {
+    key: 'name',
+    label: t('pageInventory.table.name'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-  computed: {
-    filteredRows() {
-      return this.searchFilter
-        ? this.searchTotalFilteredRows
-        : this.dimms.length;
-    },
-    dimms() {
-      return this.$store.getters['memory/dimms'];
-    },
+  {
+    key: 'health',
+    label: t('pageInventory.table.health'),
+    formatter: dataFormatter,
+    tdClass: 'text-nowrap',
+    sortable: true,
   },
-  created() {
-    this.$store.dispatch('memory/getDimms').finally(() => {
-      // Emit initial data fetch complete to parent component
-      this.$root.$emit('hardware-status-dimm-slot-complete');
-      this.isBusy = false;
-    });
+  {
+    key: 'status',
+    label: t('pageUserManagement.table.status'),
+    formatter: dataFormatter,
+    sortable: true,
+    tdClass: 'text-nowrap',
   },
-  methods: {
-    sortCompare(a, b, key) {
-      if (key === 'health') {
-        return this.sortStatus(a, b, key);
-      }
-    },
-    onFiltered(filteredItems) {
-      this.searchTotalFilteredRows = filteredItems.length;
-    },
-    toggleIdentifyLedValue(row) {
-      this.$store
-        .dispatch('memory/updateIdentifyLedValue', {
-          uri: row.uri,
-          identifyLed: row.identifyLed,
-        })
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    hasIdentifyLed(identifyLed) {
-      return typeof identifyLed === 'boolean';
-    },
-    getStatusTooltip(status) {
-      switch (status) {
-        case 'Present':
-          return this.$t('pageInventory.enumDescriptionIndicator.enabled');
-        case 'Absent':
-          return this.$t('pageInventory.enumDescriptionIndicator.absent');
-        case 'Deferring':
-          return this.$t('pageInventory.enumDescriptionIndicator.deferring');
-        case 'Disabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.disabled');
-        case 'InTest':
-          return this.$t('pageInventory.enumDescriptionIndicator.inTest');
-        case 'Qualified':
-          return this.$t('pageInventory.enumDescriptionIndicator.qualified');
-        case 'Quiesced':
-          return this.$t('pageInventory.enumDescriptionIndicator.quiesced');
-        case 'StandbyOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.standbyOffline',
-          );
-        case 'StandbySpare':
-          return this.$t('pageInventory.enumDescriptionIndicator.standbySpare');
-        case 'Starting':
-          return this.$t('pageInventory.enumDescriptionIndicator.starting');
-        case 'UnavailableOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.unavailableOffline',
-          );
-        case 'Updating':
-          return this.$t('pageInventory.enumDescriptionIndicator.updating');
-        default:
-          return '';
-      }
-    },
+  {
+    key: 'locationNumber',
+    label: t('pageInventory.table.locationNumber'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-};
+  {
+    key: 'identifyLed',
+    label: t('pageInventory.table.identifyLed'),
+    formatter: dataFormatter,
+    sortable: false,
+  },
+]);
+
+const filteredRows = computed(() => {
+  return searchFilterInput.value
+    ? searchTotalFilteredRows.value
+    : memoryStore.dimms.length;
+});
+
+const dimms = computed(() => {
+  return memoryStore.dimms;
+});
+
+onBeforeMount(() => {
+  memoryStore.getDimms().finally(() => {
+    // Emit initial data fetch complete to parent component
+    eventBus.emit('hardware-status-dimm-slot-complete');
+    isBusy.value = false;
+  });
+});
+
+function onFiltered(filteredItems) {
+  searchTotalFilteredRows.value = filteredItems.length;
+}
+
+function toggleIdentifyLedValue(row) {
+  memoryStore
+    .updateIdentifyLedValue({ uri: row.uri, identifyLed: row.identifyLed })
+    .then((message) => successToast(message))
+    .catch(({ message }) => errorToast(message));
+}
+function hasIdentifyLed(identifyLed) {
+  return typeof identifyLed === 'boolean';
+}
+function getStatusTooltip(status) {
+  switch (status) {
+    case 'Present':
+      return t('pageInventory.enumDescriptionIndicator.enabled');
+    case 'Absent':
+      return t('pageInventory.enumDescriptionIndicator.absent');
+    case 'Deferring':
+      return t('pageInventory.enumDescriptionIndicator.deferring');
+    case 'Disabled':
+      return t('pageInventory.enumDescriptionIndicator.disabled');
+    case 'InTest':
+      return t('pageInventory.enumDescriptionIndicator.inTest');
+    case 'Qualified':
+      return t('pageInventory.enumDescriptionIndicator.qualified');
+    case 'Quiesced':
+      return t('pageInventory.enumDescriptionIndicator.quiesced');
+    case 'StandbyOffline':
+      return t('pageInventory.enumDescriptionIndicator.standbyOffline');
+    case 'StandbySpare':
+      return t('pageInventory.enumDescriptionIndicator.standbySpare');
+    case 'Starting':
+      return t('pageInventory.enumDescriptionIndicator.starting');
+    case 'UnavailableOffline':
+      return t('pageInventory.enumDescriptionIndicator.unavailableOffline');
+    case 'Updating':
+      return t('pageInventory.enumDescriptionIndicator.updating');
+    default:
+      return '';
+  }
+}
 </script>
+<style lang="scss" scoped>
+.text-right {
+  text-align: right;
+}
+.searchStyle {
+  height: 74px;
+  top: 22px;
+  position: relative;
+}
+.margin-style {
+  margin-bottom: 23px;
+  margin-left: 10px;
+}
+.container-fluid {
+  width: calc(100% - 90px);
+}
+.rotateSvg {
+  svg {
+    transform: rotate(180deg);
+  }
+}
+</style>

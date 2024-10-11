@@ -1,17 +1,17 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
-
-const PowerSupplyStore = {
+import { defineStore } from 'pinia';
+export const PowerSupplyStore = defineStore('powerSupplyStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     powerSupplies: [],
-  },
+  }),
   getters: {
-    powerSupplies: (state) => state.powerSupplies,
+    powerSuppliesGetter: (state) => state.powerSupplies,
   },
-  mutations: {
-    setPowerSupply: (state, data) => {
-      state.powerSupplies = data.map((powerSupply) => {
+  actions: {
+    setPowerSupply(data) {
+      this.powerSupplies = data.map((powerSupply) => {
         const {
           FirmwareVersion,
           Location,
@@ -40,10 +40,8 @@ const PowerSupplyStore = {
         };
       });
     },
-  },
-  actions: {
-    async getAllPowerSupplies({ commit }, requestBody) {
-      commit('setPowerSupply', []);
+    async getAllPowerSupplies(requestBody) {
+      this.setPowerSupply([]);
       return await api
         .get(`${requestBody.uri}`)
         .then((response) => api.get(response.data.PowerSubsystem['@odata.id']))
@@ -58,11 +56,11 @@ const PowerSupplyStore = {
           const powerSuppliesData = powerSupplies.map(
             (powerSupplies) => powerSupplies.data,
           );
-          commit('setPowerSupply', powerSuppliesData);
+          this.setPowerSupply(powerSuppliesData);
         })
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue(_, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         LocationIndicatorActive: led.identifyLed,
@@ -71,25 +69,29 @@ const PowerSupplyStore = {
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
           console.log(error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default PowerSupplyStore;

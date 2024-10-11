@@ -124,6 +124,11 @@ export const GlobalStore = defineStore('global', {
     setUtcTime(state, isUtcDisplay) {
       state.isUtcDisplay = isUtcDisplay;
     },
+    async getCurrentTask(task) {
+      return await api.get(task).then(({ data }) => {
+        return data;
+      });
+    },
   },
 });
 

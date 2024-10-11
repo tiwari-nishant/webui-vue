@@ -1,10 +1,10 @@
 <template>
-  <b-modal
+  <BModal
     id="modal-update-firmware"
+    v-model="modal"
     :title="$t('pageFirmware.sectionTitleUpdateFirmware')"
     :ok-title="$t('pageFirmware.form.updateFirmware.startUpdate')"
     :cancel-title="$t('global.action.cancel')"
-    @ok="$emit('ok')"
   >
     <template v-if="isSingleFileUploadEnabled">
       <p>
@@ -24,21 +24,31 @@
     <template v-else>
       {{ $t('pageFirmware.modal.updateFirmwareInfoDefault') }}
     </template>
-  </b-modal>
+  </BModal>
 </template>
 
-<script>
-export default {
-  computed: {
-    runningBmc() {
-      return this.$store.getters['firmware/activeBmcFirmware'];
-    },
-    runningBmcVersion() {
-      return this.runningBmc?.version || '--';
-    },
-    isSingleFileUploadEnabled() {
-      return this.$store.getters['firmware/isSingleFileUploadEnabled'];
-    },
-  },
-};
+<script setup>
+import { ref, computed } from 'vue';
+import eventBus from '@/eventBus';
+import { FirmwareStore } from '@/store';
+
+const firmwareStore = FirmwareStore();
+
+const modal = ref(false);
+
+eventBus.on('modal-update-firmware', () => {
+  modal.value = true;
+});
+
+const runningBmc = computed(() => {
+  return firmwareStore.activeBmcFirmware;
+});
+
+const runningBmcVersion = computed(() => {
+  return runningBmc.value?.version || '--';
+});
+
+const isSingleFileUploadEnabled = computed(() => {
+  return firmwareStore.isSingleFileUploadEnabled;
+});
 </script>

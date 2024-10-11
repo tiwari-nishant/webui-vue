@@ -1,6 +1,7 @@
 <template>
   <BContainer fluid="xl">
     <page-title :title="$t('appPageTitle.sensors')" />
+    <div style="width:117%">
     <BRow class="align-items-end">
       <BCol sm="6" md="5" xl="4" class="searchStyle">
         <search
@@ -20,6 +21,7 @@
         <table-filter :filters="tableFilters" @filter-change="onFilterChange" />
       </BCol>
     </BRow>
+  </div>
     <BRow>
       <BCol xl="12">
         <table-toolbar
@@ -91,6 +93,7 @@
       </BCol>
     </BRow>
     <!-- Table pagination -->
+    <div style="width:116%">
     <BRow>
       <BCol sm="6">
         <BFormGroup
@@ -112,11 +115,12 @@
           first-number
           last-number
           :per-page="itemPerPage"
-          :total-rows="getTotalRowCount(filteredRows)"
+          :total-rows="getTotalRowCount(filteredRows, itemPerPage)"
           aria-controls="table-sensors"
         />
       </BCol>
     </BRow>
+  </div>
   </BContainer>
 </template>
 
@@ -150,6 +154,7 @@ const {
   tableHeaderCheckboxIndeterminate,
 } = useTableSelectableComposable();
 const { dataFormatter } = useDataFormatterGlobal();
+const { statusIconValue } = useDataFormatterGlobal();
 const { getFilteredTableData } = useTableFilterComposable();
 const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
@@ -214,19 +219,6 @@ onMounted(() => {
     endLoader();
   });
 });
-const statusIconValue = (val) => {
-  if (val) {
-    if (val === 'OK') {
-      return 'success';
-    } else if (val === 'Warning') {
-      return 'warning';
-    } else if (val === 'Critical') {
-      return 'danger';
-    } else {
-      return 'unavailable';
-    }
-  }
-};
 const filteredRows = computed(() => {
   return searchFilterInput.value
     ? searchTotalFilteredRows.value

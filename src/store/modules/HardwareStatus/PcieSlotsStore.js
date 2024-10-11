@@ -1,17 +1,17 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
-
-const PcieSlotsStore = {
+import { defineStore } from 'pinia';
+export const PcieSlotsStore = defineStore('pcieSlotsStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     pcieSlots: [],
-  },
+  }),
   getters: {
-    pcieSlots: (state) => state.pcieSlots,
+    pcieSlotsGetter: (state) => state.pcieSlots,
   },
-  mutations: {
-    setPcieSlotsInfo: (state, data) => {
-      state.pcieSlots = data.map((slot) => {
+  actions: {
+    setPcieSlotsInfo(data) {
+      this.pcieSlots = data.map((slot) => {
         const { LocationIndicatorActive, Location, SlotType } = slot;
         return {
           type: SlotType,
@@ -20,20 +20,18 @@ const PcieSlotsStore = {
         };
       });
     },
-  },
-  actions: {
-    async getPcieSlotsInfo({ commit }, requestBody) {
-      commit('setPcieSlotsInfo', []);
+    async getPcieSlotsInfo(requestBody) {
+      this.setPcieSlotsInfo([]);
       return await api
         .get(`${requestBody.uri}/PCIeSlots`)
         .then(({ data }) => {
-          commit('setPcieSlotsInfo', data.Slots);
+          this.setPcieSlotsInfo(data.Slots);
         })
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue({ dispatch, state }, led) {
+    async updateIdentifyLedValue(led) {
       const tempPcieSlots = [];
-      state.pcieSlots.map((slot) => {
+      this.pcieSlots.map((slot) => {
         if (slot.locationNumber === led.locationNumber) {
           tempPcieSlots.push({ LocationIndicatorActive: led.identifyLed });
         } else {
@@ -47,26 +45,30 @@ const PcieSlotsStore = {
         .patch(`${led.uri}/PCIeSlots`, updatedIdentifyLedValue)
         .then(() => {
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
-          dispatch('getPcieSlotsInfo', { uri: led.uri });
+          this.getPcieSlotsInfo({ uri: led.uri });
           console.log('error', error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default PcieSlotsStore;

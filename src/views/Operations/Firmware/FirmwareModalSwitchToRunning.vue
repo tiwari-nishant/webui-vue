@@ -1,10 +1,10 @@
 <template>
   <b-modal
     id="modal-switch-to-running"
+    v-model="modal"
     :ok-title="$t('pageFirmware.modal.switchImages')"
     :cancel-title="$t('global.action.cancel')"
     :title="$t('pageFirmware.modal.switchRunningImage')"
-    @ok="$emit('ok')"
   >
     <p>
       {{ $t('pageFirmware.modal.switchRunningImageInfo') }}
@@ -19,13 +19,20 @@
   </b-modal>
 </template>
 
-<script>
-export default {
-  props: {
-    backup: {
-      type: String,
-      required: true,
-    },
+<script setup>
+import { ref } from 'vue';
+import eventBus from '@/eventBus';
+
+defineProps({
+  backup: {
+    type: String,
+    required: true,
   },
-};
+});
+
+const modal = ref(false);
+
+eventBus.on('modal-switch-to-running', () => {
+  modal.value = true;
+});
 </script>

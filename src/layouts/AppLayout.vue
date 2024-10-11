@@ -21,6 +21,7 @@ import AppHeader from '@/components/AppHeader/AppHeader.vue';
 // import useJumpLinkComposable from '@/components/Composables/useJumpLinkComposable';
 import { ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import eventBus from '@/eventBus';
 
 // const { setFocus } = useJumpLinkComposable();
 const routerKey = ref(0);
@@ -28,6 +29,7 @@ const route = useRoute();
 const currentRoute = ref(null);
 onMounted(() => {
   currentRoute.value = route;
+  eventBus.on('refresh-application', () => refreshPage());
 });
 
 watch(

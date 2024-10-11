@@ -1,8 +1,8 @@
 <template>
-  <b-container fluid="xl">
+  <BContainer fluid="xl">
     <page-title :title="$t('appPageTitle.sessions')" />
-    <b-row>
-      <b-col md="8" xl="6">
+    <BRow>
+      <BCol md="8" xl="6">
         <alert variant="warning" class="mb-4">
           <div class="font-weight-bold">
             {{ $t('pageSessions.alert.heading') }}
@@ -11,72 +11,80 @@
             {{ $t('pageSessions.alert.message') }}
           </div>
         </alert>
-      </b-col>
-    </b-row>
-    <b-row class="align-items-end">
-      <b-col sm="6" md="5" xl="4">
+      </BCol>
+    </BRow>
+    <BRow class="align-items-end">
+      <BCol sm="6" md="5" xl="4" class="searchStyle">
         <search
           :placeholder="$t('pageSessions.table.searchSessions')"
           data-test-id="sessions-input-searchSessions"
-          @change-search="onChangeSearchInput"
-          @clear-search="onClearSearchInput"
+          @change-search="onChangeSearch"
+          @clear-search="onClearSearch"
         />
-      </b-col>
-      <b-col sm="3" md="3" xl="2">
+      </BCol>
+      <BCol sm="3" md="3" xl="2">
         <table-cell-count
           :filtered-items-count="filteredRows"
           :total-number-of-cells="allConnections.length"
         ></table-cell-count>
-      </b-col>
-    </b-row>
-    <b-row>
-      <b-col>
+      </BCol>
+    </BRow>
+    <BRow>
+      <BCol>
         <table-toolbar
           ref="toolbar"
-          :selected-items-count="selectedRows.length"
+          :selected-items-count="selectedRowsLists.length"
           :actions="batchActions"
-          @clear-selected="clearSelectedRows($refs.table)"
+          @clear-selected="clearSelectedRows(tableSessionsRef)"
           @batch-action="onBatchAction"
         >
         </table-toolbar>
-        <b-table
+        <BTable
           id="table-session-logs"
-          ref="table"
+          ref="tableSessionsRef"
           responsive="md"
           selectable
           no-select-on-click
           hover
-          show-empty
-          sort-by="clientID"
+          sticky-header="75vh"
+          :sort-by="[{ key: 'clientID', order: 'asc' }]"
           :busy="isBusy"
+          show-empty
           :fields="fields"
           :items="allConnections"
-          :filter="searchFilter"
+          :filter="searchFilterInput"
           :empty-text="$t('global.table.emptyMessage')"
-          :per-page="perPage"
-          :current-page="currentPage"
+          :per-page="itemPerPage"
+          :current-page="currentPageNo"
           @filtered="onFiltered"
           @row-selected="onRowSelected($event, allConnections.length)"
         >
           <!-- Checkbox column -->
           <template #head(checkbox)>
-            <b-form-checkbox
-              v-model="tableHeaderCheckboxModel"
+            <BFormCheckbox
+              v-model="tableHeaderCheckbox"
               data-test-id="sessions-checkbox-selectAll"
-              :indeterminate="tableHeaderCheckboxIndeterminate"
-              @change="onChangeHeaderCheckbox($refs.table)"
+              :indeterminate="tableHeaderCheckboxIndeterminated"
+              @change="
+                onChangeHeaderCheckbox(tableSessionsRef, tableHeaderCheckbox)
+              "
+              @update:modelValue="toggleAll"
             >
-              <span class="sr-only">{{ $t('global.table.selectAll') }}</span>
-            </b-form-checkbox>
+            </BFormCheckbox>
           </template>
           <template #cell(checkbox)="row">
-            <b-form-checkbox
-              v-model="row.rowSelected"
+            <BFormCheckbox
+              v-model="sessionsStore.allConnections[row.index].isSelected"
               :data-test-id="`sessions-checkbox-selectRow-${row.index}`"
-              @change="toggleSelectRow($refs.table, row.index)"
-            >
-              <span class="sr-only">{{ $t('global.table.selectItem') }}</span>
-            </b-form-checkbox>
+              @change="
+                toggleSelectRow(
+                  tableSessionsRef,
+                  row.index,
+                  sessionsStore.allConnections[row.index].isSelected,
+                  row.item,
+                )
+              "
+            ></BFormCheckbox>
           </template>
 
           <!-- Actions column -->
@@ -92,217 +100,222 @@
               @click-table-action="onTableRowAction($event, row.item)"
             ></table-row-action>
           </template>
-        </b-table>
-      </b-col>
-    </b-row>
+        </BTable>
+      </BCol>
+    </BRow>
 
     <!-- Table pagination -->
-    <b-row>
-      <b-col sm="6">
-        <b-form-group
+    <BRow>
+      <BCol sm="6">
+        <BFormGroup
           class="table-pagination-select"
           :label="$t('global.table.itemsPerPage')"
           label-for="pagination-items-per-page"
         >
-          <b-form-select
+          <BFormSelect
             id="pagination-items-per-page"
-            v-model="perPage"
+            v-model="itemPerPage"
             :options="itemsPerPageOptions"
           />
-        </b-form-group>
-      </b-col>
-      <b-col sm="6">
+        </BFormGroup>
+      </BCol>
+      <BCol sm="6">
         <b-pagination
-          v-model="currentPage"
+          v-model="currentPageNo"
+          class="b-pagination"
           first-number
           last-number
-          :per-page="perPage"
-          :total-rows="getTotalRowCount(filteredRows)"
+          :per-page="itemPerPage"
+          :total-rows="getTotalRowCount(filteredRows, itemPerPage)"
           aria-controls="table-session-logs"
         />
-      </b-col>
-    </b-row>
-  </b-container>
+      </BCol>
+    </BRow>
+    <BModal
+      v-model="openModal"
+      :title="$t('pageSessions.modal.disconnectTitle', { count: count }, count)"
+      :ok-title="$t('pageSessions.action.disconnect')"
+      :cancel-title="$t('global.action.cancel')"
+      @ok="handleOk"
+    >
+      <p>
+        {{
+          $t('pageSessions.modal.disconnectMessage', { count: count }, count)
+        }}
+      </p>
+    </BModal>
+  </BContainer>
 </template>
 
-<script>
-import PageTitle from '@/components/Global/PageTitle';
-import Search from '@/components/Global/Search';
-import TableCellCount from '@/components/Global/TableCellCount';
-import TableRowAction from '@/components/Global/TableRowAction';
-import TableToolbar from '@/components/Global/TableToolbar';
-import Alert from '@/components/Global/Alert';
-
-import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
-import BVPaginationMixin, {
-  currentPage,
-  perPage,
-  itemsPerPageOptions,
-} from '@/components/Mixins/BVPaginationMixin';
-import BVTableSelectableMixin, {
-  selectedRows,
+<script setup>
+import { ref, onMounted, computed, onBeforeMount } from 'vue';
+import { SessionsStore } from '@/store';
+import { onBeforeRouteLeave } from 'vue-router';
+import i18n from '@/i18n';
+import eventBus from '@/eventBus';
+import usePaginationComposable from '@/components/Composables/usePaginationComposable';
+import useTableSelectableComposable from '@/components/Composables/useTableSelectableComposable';
+import PageTitle from '@/components/Global/PageTitle.vue';
+import Search from '@/components/Global/Search.vue';
+import TableCellCount from '@/components/Global/TableCellCount.vue';
+import TableRowAction from '@/components/Global/TableRowAction.vue';
+import TableToolbar from '@/components/Global/TableToolbar.vue';
+import Alert from '@/components/Global/Alert.vue';
+import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
+import useToastComposable from '@/components/Composables/useToastComposable';
+const { hideLoader, startLoader, endLoader } = useLoadingBar();
+const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
+  usePaginationComposable();
+const {
+  clearSelectedRows,
+  toggleSelectRow,
+  onRowSelected,
+  onChangeHeaderCheckbox,
+  selectedRowsList,
   tableHeaderCheckboxModel,
   tableHeaderCheckboxIndeterminate,
-} from '@/components/Mixins/BVTableSelectableMixin';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import SearchFilterMixin, {
-  searchFilter,
-} from '@/components/Mixins/SearchFilterMixin';
+} = useTableSelectableComposable();
+const sessionsStore = SessionsStore();
+const Toast = useToastComposable();
+const tableSessionsRef = ref(null);
+const isBusy = ref(true);
+const tableHeaderCheckbox = ref(tableHeaderCheckboxModel);
+const tableHeaderCheckboxIndeterminated = ref(tableHeaderCheckboxIndeterminate);
+const currentPageNo = ref(currentPage);
+const itemPerPage = ref(perPage);
+const searchTotalFilteredRows = ref(0);
+const openModal = ref(false);
+const count = ref(0);
+const searchFilterInput = ref('');
+const isAllSelected = ref(false);
+const urisStore = ref();
+const selectedRowsLists = ref(selectedRowsList);
+const selectedRowsNo = ref(0);
+const fields = ref([
+  {
+    key: 'checkbox',
+  },
+  {
+    key: 'clientID',
+    label: i18n.global.t('pageSessions.table.clientID'),
+  },
+  {
+    key: 'username',
+    label: i18n.global.t('pageSessions.table.username'),
+  },
+  {
+    key: 'ipAddress',
+    label: i18n.global.t('pageSessions.table.ipAddress'),
+  },
+  {
+    key: 'actions',
+    label: '',
+  },
+]);
+const batchActions = ref([
+  {
+    value: 'disconnect',
+    label: i18n.global.t('pageSessions.action.disconnect'),
+  },
+]);
+onBeforeRouteLeave(() => {
+  hideLoader();
+});
 
-export default {
-  components: {
-    Alert,
-    PageTitle,
-    Search,
-    TableCellCount,
-    TableRowAction,
-    TableToolbar,
-  },
-  mixins: [
-    BVPaginationMixin,
-    BVTableSelectableMixin,
-    BVToastMixin,
-    LoadingBarMixin,
-    SearchFilterMixin,
-  ],
-  beforeRouteLeave(to, from, next) {
-    // Hide loader if the user navigates to another page
-    // before request is fulfilled.
-    this.hideLoader();
-    next();
-  },
-  data() {
+const filteredRows = computed(() => {
+  return searchFilterInput.value
+    ? searchTotalFilteredRows.value
+    : allConnections.value.length;
+});
+
+const allConnections = computed(() => {
+  return sessionsStore.allConnectionsGetter.map((session) => {
     return {
-      isBusy: true,
-      fields: [
-        {
-          key: 'checkbox',
-        },
-        {
-          key: 'clientID',
-          label: this.$t('pageSessions.table.clientID'),
-        },
-        {
-          key: 'username',
-          label: this.$t('pageSessions.table.username'),
-        },
-        {
-          key: 'ipAddress',
-          label: this.$t('pageSessions.table.ipAddress'),
-        },
-        {
-          key: 'actions',
-          label: '',
-        },
-      ],
-      batchActions: [
+      ...session,
+      actions: [
         {
           value: 'disconnect',
-          label: this.$t('pageSessions.action.disconnect'),
+          title: i18n.global.t('pageSessions.action.disconnect'),
         },
       ],
-      currentPage: currentPage,
-      itemsPerPageOptions: itemsPerPageOptions,
-      perPage: perPage,
-      selectedRows: selectedRows,
-      searchTotalFilteredRows: 0,
-      tableHeaderCheckboxModel: tableHeaderCheckboxModel,
-      tableHeaderCheckboxIndeterminate: tableHeaderCheckboxIndeterminate,
-      searchFilter: searchFilter,
     };
-  },
-  computed: {
-    filteredRows() {
-      return this.searchFilter
-        ? this.searchTotalFilteredRows
-        : this.allConnections.length;
-    },
-    allConnections() {
-      return this.$store.getters['sessions/allConnections'].map((session) => {
-        return {
-          ...session,
-          actions: [
-            {
-              value: 'disconnect',
-              title: this.$t('pageSessions.action.disconnect'),
-            },
-          ],
-        };
-      });
-    },
-  },
-  created() {
-    this.startLoader();
-    this.$store.dispatch('sessions/getSessionsData').finally(() => {
-      this.endLoader();
-      this.isBusy = false;
+  });
+});
+onBeforeMount(() => {
+  eventBus.on('clear-selected', () => {
+    sessionsStore?.allConnectionsGetter?.map((singleConnection) => {
+      singleConnection.isSelected = false;
     });
-  },
-  methods: {
-    onFiltered(filteredItems) {
-      this.searchTotalFilteredRows = filteredItems.length;
-    },
-    onChangeSearchInput(event) {
-      this.searchFilter = event;
-    },
-    disconnectSessions(uris) {
-      this.$store
-        .dispatch('sessions/disconnectSessions', uris)
-        .then((messages) => {
-          messages.forEach(({ type, message }) => {
-            if (type === 'success') {
-              this.successToast(message);
-            } else if (type === 'error') {
-              this.errorToast(message);
-            }
-          });
-        });
-    },
-    onTableRowAction(action, { uri }) {
-      if (action === 'disconnect') {
-        this.$bvModal
-          .msgBoxConfirm(this.$tc('pageSessions.modal.disconnectMessage'), {
-            title: this.$tc('pageSessions.modal.disconnectTitle'),
-            okTitle: this.$t('pageSessions.action.disconnect'),
-            cancelTitle: this.$t('global.action.cancel'),
-          })
-          .then((deleteConfirmed) => {
-            if (deleteConfirmed) this.disconnectSessions([uri]);
-          });
+    clearSelectedRows(tableSessionsRef);
+  });
+});
+onMounted(() => {
+  startLoader();
+  sessionsStore.getSessionsData().finally(() => {
+    isBusy.value = false;
+    endLoader();
+  });
+});
+const onFiltered = (filteredItems) => {
+  searchTotalFilteredRows.value = filteredItems.length;
+};
+const onChangeSearch = (event) => {
+  searchFilterInput.value = event;
+};
+const onClearSearch = () => {
+  searchFilterInput.value = '';
+};
+const disconnectSessions = (uris) => {
+  sessionsStore.disconnectSessions(uris).then((messages) => {
+    messages.forEach(({ type, message }) => {
+      if (type === 'success') {
+        Toast.successToast(message);
+      } else if (type === 'error') {
+        Toast.errorToast(message);
       }
-    },
-    onBatchAction(action) {
-      if (action === 'disconnect') {
-        const uris = this.selectedRows.map((row) => row.uri);
-        this.$bvModal
-          .msgBoxConfirm(
-            this.$tc(
-              'pageSessions.modal.disconnectMessage',
-              this.selectedRows.length,
-            ),
-            {
-              title: this.$tc(
-                'pageSessions.modal.disconnectTitle',
-                this.selectedRows.length,
-              ),
-              okTitle: this.$t('pageSessions.action.disconnect'),
-              cancelTitle: this.$t('global.action.cancel'),
-            },
-          )
-          .then((deleteConfirmed) => {
-            if (deleteConfirmed) {
-              this.disconnectSessions(uris);
-            }
-          });
-      }
-    },
-  },
+    });
+  });
+};
+const onTableRowAction = (action, { uri }) => {
+  if (action === 'disconnect') {
+    urisStore.value = uri;
+    selectedRowsNo.value = selectedRowsLists.value.map((row) => row.uri).length;
+    count.value = 1;
+    openModal.value = true;
+  }
+};
+const onBatchAction = (action) => {
+  if (action === 'disconnect') {
+    const uris = selectedRowsLists.value.map((row) => row.uri);
+    urisStore.value = uris;
+    selectedRowsNo.value = selectedRowsLists.value.map((row) => row.uri).length;
+    count.value = selectedRowsNo.value;
+    openModal.value = true;
+  }
+};
+const handleOk = () => {
+  openModal.value = false;
+  if (selectedRowsNo.value > 1) {
+    disconnectSessions(urisStore.value);
+  } else {
+    disconnectSessions([urisStore.value]);
+  }
+  selectedRowsNo.value = 0;
+};
+const toggleAll = (checked) => {
+  sessionsStore?.allConnections?.map((singleConnection) => {
+    singleConnection.isSelected = checked;
+  });
+  isAllSelected.value = checked;
 };
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 #table-session-logs {
   td .btn-link {
     width: auto !important;
   }
+}
+.searchStyle {
+  height: 74px;
 }
 </style>

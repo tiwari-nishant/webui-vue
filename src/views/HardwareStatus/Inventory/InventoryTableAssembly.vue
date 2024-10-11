@@ -1,29 +1,27 @@
 <template>
   <page-section :section-title="$t('pageInventory.assemblies')">
-    <b-row class="align-items-end">
-      <b-col sm="6" md="5" xl="4">
-        <search
-          @change-search="onChangeSearchInput"
-          @clear-search="onClearSearchInput"
-        />
-      </b-col>
-      <b-col sm="6" md="3" xl="2">
+    <BRow class="align-items-end">
+      <BCol sm="6" md="5" xl="4">
+        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+      </BCol>
+      <BCol sm="6" md="3" xl="2" class="mb-4">
         <table-cell-count
           :filtered-items-count="filteredRows"
           :total-number-of-cells="items.length"
         ></table-cell-count>
-      </b-col>
-    </b-row>
-    <b-table
+      </BCol>
+    </BRow>
+    <BTable
       sort-icon-left
       no-sort-reset
       hover
       sort-by="name"
+      sticky-header="75vh"
       :sort-desc="false"
       responsive="xl"
       :items="items"
       :fields="tableHeaders"
-      :filter="searchFilter"
+      :filter="searchFilterInput"
       show-empty
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
@@ -40,20 +38,21 @@
           variant="link"
           data-test-id="hardwareStatus-button-expandAssembly"
           :title="expandRowLabel"
-          class="btn-icon-only"
-          @click="toggleRowDetails(row)"
+          :class="
+            row.item.toggleDetails ? 'rotateSvg btn-icon-only' : 'btn-icon-only'
+          "
+          @click="toggleRow(row)"
         >
           <icon-chevron />
-          <span class="sr-only">{{ expandRowLabel }}</span>
         </b-button>
       </template>
       <!-- Health -->
       <template #cell(health)="row">
         <status-icon
           v-if="isIoExpansionChassis && isPoweredOff"
-          :status="statusIcon('')"
+          :status="statusIconValue('')"
         />
-        <status-icon v-else :status="statusIcon(row.item.health)" />
+        <status-icon v-else :status="statusIconValue(row.item.health)" />
         {{
           isIoExpansionChassis && isPoweredOff
             ? $t('global.status.unavailable')
@@ -118,10 +117,10 @@
       </template>
 
       <template #row-details="{ item }">
-        <b-container fluid>
-          <b-row>
-            <b-col class="mt-2" sm="6" xl="6">
-              <dl>
+        <BContainer fluid >
+          <BRow style="margin-left: 50px;">
+            <BCol class="mt-10" sm="6" xl="6">
+              <dl >
                 <!-- Name -->
                 <dt>{{ $t('pageInventory.table.name') }}</dt>
                 <dd>{{ dataFormatter(item.name) }}</dd>
@@ -131,8 +130,8 @@
                 <dt>{{ $t('pageInventory.table.serialNumber') }}</dt>
                 <dd>{{ dataFormatter(item.serialNumber) }}</dd>
               </dl>
-            </b-col>
-            <b-col class="mt-2" sm="6" xl="6">
+            </BCol>
+            <BCol class="mt-2" sm="6" xl="6">
               <dl v-if="!isIoExpansionChassis">
                 <!-- Model-->
                 <dt>{{ $t('pageInventory.table.bmcManagerModel') }}</dt>
@@ -143,212 +142,214 @@
                 <dt>{{ $t('pageInventory.table.sparePartNumber') }}</dt>
                 <dd>{{ dataFormatter(item.sparePartNumber) }}</dd>
               </dl>
-            </b-col>
-          </b-row>
-        </b-container>
+            </BCol>
+          </BRow>
+        </BContainer>
       </template>
-    </b-table>
+    </BTable>
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
-import Search from '@/components/Global/Search';
-import TableCellCount from '@/components/Global/TableCellCount';
-import SearchFilterMixin, {
-  searchFilter,
-} from '@/components/Mixins/SearchFilterMixin';
-import InfoTooltip from '@/components/Global/InfoTooltip';
+<script setup>
+import PageSection from '@/components/Global/PageSection.vue';
+import TableCellCount from '@/components/Global/TableCellCount.vue';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import TableRowExpandMixin, {
-  expandRowLabel,
-} from '@/components/Mixins/TableRowExpandMixin';
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
+import { reactive, ref, computed, watch, onBeforeMount } from 'vue';
+import { useI18n } from 'vue-i18n';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
+import useToast from '@/components/Composables/useToastComposable';
+import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
+import { GlobalStore } from '../../../store';
+import { AssemblyStore } from '../../../store';
+import eventBus from '@/eventBus';
 
-export default {
-  components: { IconChevron, Search, InfoTooltip, PageSection, TableCellCount },
-  mixins: [
-    BVToastMixin,
-    SearchFilterMixin,
-    TableRowExpandMixin,
-    DataFormatterMixin,
-  ],
-  props: {
-    chassis: {
-      type: String,
-      default: '',
-    },
+const props = defineProps({
+  chassis: {
+    type: String,
+    default: '',
   },
-  data() {
-    return {
-      isBusy: true,
-      fields: [
-        {
-          key: 'expandRow',
-          label: '',
-          tdClass: 'table-row-expand',
-        },
-        {
-          key: 'name',
-          label: this.$t('pageInventory.table.name'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'health',
-          label: this.$t('pageInventory.table.health'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'status',
-          label: this.$t('pageUserManagement.table.status'),
-          formatter: this.dataFormatter,
-          sortable: true,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'locationNumber',
-          label: this.$t('pageInventory.table.locationNumber'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        },
-        {
-          key: 'identifyLed',
-          label: this.$t('pageInventory.table.identifyLed'),
-          formatter: this.dataFormatter,
-        },
-      ],
-      searchFilter: searchFilter,
-      searchTotalFilteredRows: 0,
-      expandRowLabel: expandRowLabel,
-    };
+});
+
+const { searchFilterInput, onChangeSearch, onClearSearch } =
+  useSearchFilterComposable();
+const { successToast, errorToast } = useToast();
+const globalStore = GlobalStore();
+const assemblyStore = AssemblyStore();
+const { dataFormatter, statusIconValue } = useDataFormatterGlobal();
+const { expandRowLabel, toggleRow } = useTableRowExpandComposable();
+const { t } = useI18n();
+const isBusy = ref(true);
+const searchTotalFilteredRows = ref(0);
+
+const fields = reactive([
+  {
+    key: 'expandRow',
+    label: '',
+    tdClass: 'table-row-expand',
   },
-  computed: {
-    filteredRows() {
-      return this.searchFilter
-        ? this.searchTotalFilteredRows
-        : this.items.length;
-    },
-    assemblies() {
-      return this.$store.getters['assemblies/assemblies'];
-    },
-    items() {
-      if (this.assemblies) {
-        return this.assemblies;
-      } else {
-        return [];
-      }
-    },
-    serverStatus() {
-      if (this.chassis.endsWith('chassis')) {
-        return false;
-      } else if (this.$store.getters['global/serverStatus'] !== 'on') {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    isPoweredOff() {
-      if (this.$store.getters['global/serverStatus'] === 'off') {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    isIoExpansionChassis() {
-      if (this.chassis.endsWith('chassis')) {
-        return false;
-      } else {
-        return true;
-      }
-    },
-    tableHeaders() {
-      let tempFields = [...this.fields];
-      if (!this.isIoExpansionChassis) {
-        tempFields.splice(4, 0, {
-          key: 'partNumber',
-          label: this.$t('pageInventory.table.partNumber'),
-          formatter: this.dataFormatter,
-          sortable: true,
-        });
-      }
-      return tempFields;
-    },
+  {
+    key: 'name',
+    label: t('pageInventory.table.name'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-  watch: {
-    chassis: function (value) {
-      this.$store
-        .dispatch('assemblies/getAssemblyInfo', { uri: value })
-        .finally(() => {
-          // Emit initial data fetch complete to parent component
-          this.$root.$emit('hardware-status-assembly-complete');
-          this.isBusy = false;
-        });
-    },
+  {
+    key: 'health',
+    label: t('pageInventory.table.health'),
+    formatter: dataFormatter,
+    sortable: true,
+    tdClass: 'text-nowrap',
   },
-  created() {
-    this.$store
-      .dispatch('assemblies/getAssemblyInfo', { uri: this.chassis })
-      .finally(() => {
-        // Emit initial data fetch complete to parent component
-        this.$root.$emit('hardware-status-assembly-complete');
-        this.isBusy = false;
-      });
+  {
+    key: 'status',
+    label: t('pageUserManagement.table.status'),
+    formatter: dataFormatter,
+    sortable: true,
+    tdClass: 'text-nowrap',
   },
-  methods: {
-    onFiltered(filteredItems) {
-      this.searchTotalFilteredRows = filteredItems.length;
-    },
-    toggleIdentifyLedValue(row) {
-      this.$store
-        .dispatch('assemblies/updateIdentifyLedValue', {
-          uri: row.uri,
-          memberId: row.id,
-          identifyLed: row.identifyLed,
-        })
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    hasIdentifyLed(identifyLed) {
-      return typeof identifyLed === 'boolean';
-    },
-    getStatusTooltip(status) {
-      switch (status) {
-        case 'Present':
-          return this.$t('pageInventory.enumDescriptionIndicator.enabled');
-        case 'Absent':
-          return this.$t('pageInventory.enumDescriptionIndicator.absent');
-        case 'Deferring':
-          return this.$t('pageInventory.enumDescriptionIndicator.deferring');
-        case 'Disabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.disabled');
-        case 'InTest':
-          return this.$t('pageInventory.enumDescriptionIndicator.inTest');
-        case 'Qualified':
-          return this.$t('pageInventory.enumDescriptionIndicator.qualified');
-        case 'Quiesced':
-          return this.$t('pageInventory.enumDescriptionIndicator.quiesced');
-        case 'StandbyOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.standbyOffline',
-          );
-        case 'StandbySpare':
-          return this.$t('pageInventory.enumDescriptionIndicator.standbySpare');
-        case 'Starting':
-          return this.$t('pageInventory.enumDescriptionIndicator.starting');
-        case 'UnavailableOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.unavailableOffline',
-          );
-        case 'Updating':
-          return this.$t('pageInventory.enumDescriptionIndicator.updating');
-        default:
-          return '';
-      }
-    },
+  {
+    key: 'locationNumber',
+    label: t('pageInventory.table.locationNumber'),
+    formatter: dataFormatter,
+    sortable: true,
   },
-};
+  {
+    key: 'identifyLed',
+    label: t('pageInventory.table.identifyLed'),
+    formatter: dataFormatter,
+  },
+]);
+
+const assemblies = computed(() => {
+  return assemblyStore.assemblies;
+});
+
+const items = computed(() => {
+  if (assemblies.value) {
+    return assemblies.value;
+  } else {
+    return [];
+  }
+});
+
+const filteredRows = computed(() => {
+  return searchFilterInput.value
+    ? searchTotalFilteredRows.value
+    : items.value.length;
+});
+
+const serverStatus = computed(() => {
+  if (props.chassis.endsWith('chassis')) {
+    return false;
+  } else if (globalStore.serverStatus !== 'on') {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+const isPoweredOff = computed(() => {
+  if (globalStore.serverStatus === 'off') {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+const isIoExpansionChassis = computed(() => {
+  if (props.chassis.endsWith('chassis')) {
+    return false;
+  } else {
+    return true;
+  }
+});
+
+const tableHeaders = computed(() => {
+  let tempFields = [...fields];
+  if (!isIoExpansionChassis.value) {
+    tempFields.splice(4, 0, {
+      key: 'partNumber',
+      label: t('pageInventory.table.partNumber'),
+      formatter: dataFormatter,
+      sortable: true,
+    });
+  }
+  return tempFields;
+});
+
+watch(
+  () => props.chassis,
+  (value) => {
+    assemblyStore.getAssemblyInfo({ uri: value }).finally(() => {
+      // Emit initial data fetch complete to parent component
+      eventBus.emit('hardware-status-assembly-complete');
+      isBusy.value = false;
+    });
+  },
+);
+
+onBeforeMount(() => {
+  assemblyStore.getAssemblyInfo({ uri: props.chassis }).finally(() => {
+    // Emit initial data fetch complete to parent component
+    eventBus.emit('hardware-status-assembly-complete');
+    isBusy.value = false;
+  });
+});
+
+function onFiltered(filteredItems) {
+  searchTotalFilteredRows.value = filteredItems.length;
+}
+
+function toggleIdentifyLedValue(row) {
+  assemblyStore
+    .updateIdentifyLedValue({
+      uri: row.uri,
+      memberId: row.id,
+      identifyLed: row.identifyLed,
+    })
+    .then((message) => successToast(message))
+    .catch(({ message }) => errorToast(message));
+}
+function hasIdentifyLed(identifyLed) {
+  return typeof identifyLed === 'boolean';
+}
+function getStatusTooltip(status) {
+  switch (status) {
+    case 'Present':
+      return t('pageInventory.enumDescriptionIndicator.enabled');
+    case 'Absent':
+      return t('pageInventory.enumDescriptionIndicator.absent');
+    case 'Deferring':
+      return t('pageInventory.enumDescriptionIndicator.deferring');
+    case 'Disabled':
+      return t('pageInventory.enumDescriptionIndicator.disabled');
+    case 'InTest':
+      return t('pageInventory.enumDescriptionIndicator.inTest');
+    case 'Qualified':
+      return t('pageInventory.enumDescriptionIndicator.qualified');
+    case 'Quiesced':
+      return t('pageInventory.enumDescriptionIndicator.quiesced');
+    case 'StandbyOffline':
+      return t('pageInventory.enumDescriptionIndicator.standbyOffline');
+    case 'StandbySpare':
+      return t('pageInventory.enumDescriptionIndicator.standbySpare');
+    case 'Starting':
+      return t('pageInventory.enumDescriptionIndicator.starting');
+    case 'UnavailableOffline':
+      return t('pageInventory.enumDescriptionIndicator.unavailableOffline');
+    case 'Updating':
+      return t('pageInventory.enumDescriptionIndicator.updating');
+    default:
+      return '';
+  }
+}
 </script>
+<style lang="scss" scoped>
+.rotateSvg {
+  svg {
+    transform: rotate(180deg);
+  }
+}
+</style>

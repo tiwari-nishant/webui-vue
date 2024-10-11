@@ -7,32 +7,39 @@
       <dd>
         <span v-if="hasLicenses">--</span>
         <span v-else>
-          {{ firmwareAccessKeyInfo.expirationDate | formatDate }}
+          {{ $filters.formatDate(firmwareAccessKeyInfo.expirationDate) }}
         </span>
       </dd>
-      <b-link
+      <BLink
         class="d-inline-block mb-4 m-md-0"
         to="/resource-management/capacity-on-demand"
       >
         {{ $t('pageFirmware.form.updateFirmware.manageAccessKeys') }}
-      </b-link>
+      </BLink>
     </dl>
   </div>
 </template>
 
-<script>
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
-import { mapGetters } from 'vuex';
-export default {
-  name: 'FirmwareAccessKey',
-  mixins: [LoadingBarMixin, BVToastMixin],
-  computed: {
-    ...mapGetters('licenses', ['firmwareAccessKeyInfo']),
+<script setup>
+import { computed } from 'vue';
+import { LicenseStore } from '@/store';
 
-    hasLicenses() {
-      return !Object.keys(this.$store.getters['licenses/licenses']).length;
-    },
-  },
-};
+const licenseStore = LicenseStore();
+
+const firmwareAccessKeyInfo = computed(() => {
+  return licenseStore.firmwareAccessKeyInfo;
+});
+
+const hasLicenses = computed(() => {
+  return !Object.keys(licenseStore.licensesGetter).length;
+});
 </script>
+
+<style lang="scss" scoped>
+dl :deep(a) {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+</style>

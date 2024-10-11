@@ -9,22 +9,22 @@
     </template>
     <template #default>
       <p class="mb-0">{{ body }}</p>
-      <p v-if="timestamp" class="mt-3 mb-0">{{ formattedTimestamp }}</p>
       <p v-if="refreshAction">
         <BLink class="d-inline-block mt-3" @click="handleRefresh">
           {{ i18n.global.t('global.action.refresh') }}
         </BLink>
       </p>
+      <p v-if="timestamp" class="mt-3 mb-0">{{ formattedTimestamp }}</p>
     </template>
   </BToast>
 </template>
 
 <script setup>
-import { ref, defineProps, computed, defineEmits } from 'vue';
+import { ref, defineProps, computed } from 'vue';
 import i18n from '@/i18n';
 import StatusIcon from './StatusIcon.vue';
 import { formatTime } from '../utilities/dateFilter';
-const emit = defineEmits(['refresh']);
+import eventBus from '@/eventBus';
 
 const { title, body, statusPassed, timestamp, refreshAction } = defineProps({
   // eslint-disable-next-line vue/require-default-prop
@@ -41,7 +41,6 @@ const { title, body, statusPassed, timestamp, refreshAction } = defineProps({
 const showToast = ref(false);
 
 const formattedTimestamp = computed(() => {
-  console.log('in toast component');
   if (timestamp) {
     return formatTime(new Date());
   } else {
@@ -49,7 +48,7 @@ const formattedTimestamp = computed(() => {
   }
 });
 const handleRefresh = () => {
-  emit('refresh-application');
+  eventBus.emit('refresh-application');
 };
 </script>
 

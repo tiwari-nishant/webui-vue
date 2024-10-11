@@ -1,17 +1,18 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
+import { defineStore } from 'pinia';
 
-const MemoryStore = {
+export const MemoryStore = defineStore('memoryStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     dimms: [],
-  },
+  }),
   getters: {
-    dimms: (state) => state.dimms,
+    dimmsGetter: (state) => state.dimms,
   },
-  mutations: {
-    setMemoryInfo: (state, data) => {
-      state.dimms = data.map(({ data }) => {
+  actions: {
+    setMemoryInfo(data) {
+      this.dimms = data.map(({ data }) => {
         const {
           Id,
           Status = {},
@@ -42,20 +43,18 @@ const MemoryStore = {
         };
       });
     },
-  },
-  actions: {
-    async getDimms({ commit }) {
-      commit('setMemoryInfo', []);
+    async getDimms() {
+      this.setMemoryInfo([]);
       return await api
         .get('/redfish/v1/Systems/system/Memory')
         .then(({ data: { Members } }) => {
           const promises = Members.map((item) => api.get(item['@odata.id']));
           return api.all(promises);
         })
-        .then((response) => commit('setMemoryInfo', response))
+        .then((response) => this.setMemoryInfo(response))
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue({ dispatch }, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         LocationIndicatorActive: led.identifyLed,
@@ -64,26 +63,30 @@ const MemoryStore = {
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
-          dispatch('getDimms');
+          this.getDimms;
           console.log('error', error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default MemoryStore;

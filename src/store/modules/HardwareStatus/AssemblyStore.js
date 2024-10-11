@@ -1,13 +1,14 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
+import { defineStore } from 'pinia';
 
-const AssemblyStore = {
+export const AssemblyStore = defineStore('assemblyStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     assemblies: null,
-  },
+  }),
   getters: {
-    assemblies: (state) => state.assemblies,
+    assembliesGetter: (state) => state.assemblies,
   },
   mutations: {
     setAssemblyInfo: (state, data) => {
@@ -40,14 +41,42 @@ const AssemblyStore = {
     },
   },
   actions: {
-    async getAssemblyInfo({ commit }, requestBody) {
-      commit('setAssemblyInfo', []);
+    setAssemblyInfo(data) {
+      this.assemblies = data.map((assembly) => {
+        const {
+          MemberId,
+          PartNumber,
+          SerialNumber,
+          SparePartNumber,
+          Model,
+          Name,
+          Location,
+          Status,
+          LocationIndicatorActive,
+        } = assembly;
+        return {
+          id: MemberId,
+          health: Status?.Health,
+          partNumber: PartNumber,
+          serialNumber: SerialNumber,
+          sparePartNumber: SparePartNumber,
+          model: Model,
+          name: Name,
+          locationNumber: Location?.PartLocation?.ServiceLabel,
+          identifyLed: LocationIndicatorActive,
+          status: Status?.State === 'Enabled' ? 'Present' : Status?.State,
+          uri: assembly['@odata.id'],
+        };
+      });
+    },
+    async getAssemblyInfo(requestBody) {
+      this.setAssemblyInfo([]);
       return await api
         .get(`${requestBody.uri}/Assembly`)
-        .then(({ data }) => commit('setAssemblyInfo', data?.Assemblies))
+        .then(({ data }) => this.setAssemblyInfo(data.Assemblies))
         .catch((error) => console.log(error));
     },
-    async updateIdentifyLedValue({ dispatch }, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         Assemblies: [
@@ -62,26 +91,30 @@ const AssemblyStore = {
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
-          dispatch('getAssemblyInfo');
+          this.getAssemblyInfo();
           console.log('error', error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default AssemblyStore;

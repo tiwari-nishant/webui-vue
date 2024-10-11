@@ -17,7 +17,10 @@ module.exports = {
         trailingComma: 'all',
       },
     ],
-    'vue/component-name-in-template-casing': ['error', 'kebab-case'],
+    'vue/component-name-in-template-casing': [
+      'error',
+      'PascalCase' | 'kebab-case',
+    ],
   },
   ignorePatterns: ['*.timestamp-*.mjs'],
   overrides: [

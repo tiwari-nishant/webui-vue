@@ -1,17 +1,17 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
-
-const ProcessorStore = {
+import { defineStore } from 'pinia';
+export const ProcessorStore = defineStore('ProcessorStore', {
   namespaced: true,
-  state: {
+  state: () => ({
     processors: [],
-  },
+  }),
   getters: {
-    processors: (state) => state.processors,
+    processorsGetter: (state) => state.processors,
   },
-  mutations: {
-    setProcessorsInfo: (state, data) => {
-      state.processors = data.map((processor) => {
+  actions: {
+    setProcessorsInfo(data) {
+      this.processors = data.map((processor) => {
         const {
           Id,
           Status = {},
@@ -42,10 +42,8 @@ const ProcessorStore = {
         };
       });
     },
-  },
-  actions: {
-    async getProcessorsInfo({ commit }) {
-      commit('setProcessorsInfo', []);
+    async getProcessorsInfo() {
+      this.setProcessorsInfo([]);
       return await api
         .get('/redfish/v1/Systems/system/Processors')
         .then(({ data: { Members = [] } }) =>
@@ -54,13 +52,13 @@ const ProcessorStore = {
         .then((promises) => api.all(promises))
         .then((response) => {
           const data = response.map(({ data }) => data);
-          commit('setProcessorsInfo', data);
+          this.setProcessorsInfo(data);
         })
         .catch((error) => console.log(error));
     },
     // Waiting for the following to be merged to test the Identify Led:
     // https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/37045
-    async updateIdentifyLedValue({ dispatch }, led) {
+    async updateIdentifyLedValue(led) {
       const uri = led.uri;
       const updatedIdentifyLedValue = {
         LocationIndicatorActive: led.identifyLed,
@@ -69,26 +67,30 @@ const ProcessorStore = {
         .patch(uri, updatedIdentifyLedValue)
         .then(() => {
           if (led.identifyLed) {
-            return i18n.t('pageInventory.toast.successEnableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successEnableIdentifyLed',
+            );
           } else {
-            return i18n.t('pageInventory.toast.successDisableIdentifyLed');
+            return i18n.global.t(
+              'pageInventory.toast.successDisableIdentifyLed',
+            );
           }
         })
         .catch((error) => {
-          dispatch('getProcessorsInfo');
+          this.getProcessorsInfo();
           console.log('error', error);
           if (led.identifyLed) {
             throw new Error(
-              i18n.t('pageInventory.toast.errorEnableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorEnableIdentifyLed'),
             );
           } else {
             throw new Error(
-              i18n.t('pageInventory.toast.errorDisableIdentifyLed'),
+              i18n.global.t('pageInventory.toast.errorDisableIdentifyLed'),
             );
           }
         });
     },
   },
-};
+});
 
 export default ProcessorStore;

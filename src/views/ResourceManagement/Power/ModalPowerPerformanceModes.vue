@@ -1,7 +1,7 @@
 <template>
   <BModal
     id="modal-power-performance-modes"
-    ref="modal"
+    v-model="modal"
     :title="$t(`pagePower.modalEnablePowerPerformanceMode.title${title}`)"
     :ok-title="$t(`pagePower.modalEnablePowerPerformanceMode.title${title}`)"
   >
@@ -28,6 +28,6 @@ defineProps({
 const modal = ref(null);
 
 eventBus.on('modal-power-performance-modes', () => {
-  modal.value.show();
+  modal.value = true;
 });
 </script>

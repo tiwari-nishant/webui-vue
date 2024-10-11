@@ -1,11 +1,11 @@
 <template>
   <div>
     <page-section :section-title="sectionTitle">
-      <b-card-group deck>
+      <BCardGroup deck>
         <!-- Running image -->
-        <b-card>
+        <BCard>
           <template #header>
-            <p class="font-weight-bold m-0">
+            <p class="fw-bold m-0">
               {{ $t('pageFirmware.cardTitleRunning') }}
             </p>
           </template>
@@ -21,12 +21,12 @@
               <p class="m-0">{{ $t('pageFirmware.permanent') }}</p>
             </div>
           </template>
-        </b-card>
+        </BCard>
 
         <!-- Backup image -->
-        <b-card>
+        <BCard>
           <template #header>
-            <p class="font-weight-bold m-0">
+            <p class="fw-bold m-0">
               {{ $t('pageFirmware.cardTitleBackup') }}
             </p>
           </template>
@@ -48,172 +48,187 @@
               <p class="m-0">{{ $t('pageFirmware.temporary') }}</p>
             </div>
           </template>
-          <b-btn
+          <BButton
             v-if="!switchToBackupImageDisabled"
-            v-b-modal.modal-switch-to-running
             data-test-id="firmware-button-switchToRunning"
             variant="link"
             size="sm"
             class="py-0 px-1 mt-2"
             :disabled="isPageDisabled || !backup || !isServerOff"
+            @click="showConfirmationModal"
           >
             <icon-switch class="d-none d-sm-inline-block" />
             {{ $t('pageFirmware.cardActionSwitchToRunning') }}
-          </b-btn>
-        </b-card>
-      </b-card-group>
+          </BButton>
+        </BCard>
+      </BCardGroup>
     </page-section>
     <modal-switch-to-running :backup="backupVersion" @ok="switchToRunning" />
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch, defineEmits } from 'vue';
+import i18n from '@/i18n';
+import eventBus from '@/eventBus';
+import useLoadingBar, {
+  loading,
+} from '@/components/Composables/useLoadingBarComposable';
+import useToast from '@/components/Composables/useToastComposable';
+import PageSection from '@/components/Global/PageSection.vue';
+import ModalSwitchToRunning from './FirmwareModalSwitchToRunning.vue';
+import StatusIcon from '@/components/Global/StatusIcon.vue';
 import IconSwitch from '@carbon/icons-vue/es/arrows--horizontal/20';
-import PageSection from '@/components/Global/PageSection';
-import LoadingBarMixin, { loading } from '@/components/Mixins/LoadingBarMixin';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
+import { GlobalStore, FirmwareStore } from '@/store';
 
-import ModalSwitchToRunning from './FirmwareModalSwitchToRunning';
+const { errorToast, infoToast } = useToast();
+const { startLoader, endLoader } = useLoadingBar();
 
-export default {
-  components: { IconSwitch, ModalSwitchToRunning, PageSection },
-  mixins: [BVToastMixin, LoadingBarMixin],
-  props: {
-    isPageDisabled: {
-      required: true,
-      type: Boolean,
-      default: false,
-    },
-    isServerOff: {
-      required: true,
-      type: Boolean,
-      default: false,
-    },
+const globalStore = GlobalStore();
+const firmwareStore = FirmwareStore();
+
+const emit = defineEmits(['loadingStatus']);
+
+defineProps({
+  isPageDisabled: {
+    required: true,
+    type: Boolean,
+    default: false,
   },
-  data() {
-    return {
-      loading,
-      switchToBackupImageDisabled:
-        process.env.VUE_APP_SWITCH_TO_BACKUP_IMAGE_DISABLED === 'true',
-    };
+  isServerOff: {
+    required: true,
+    type: Boolean,
+    default: false,
   },
-  computed: {
-    bootProgress() {
-      return this.$store.getters['global/bootProgress'];
-    },
-    isSingleFileUploadEnabled() {
-      return this.$store.getters['firmware/isSingleFileUploadEnabled'];
-    },
-    sectionTitle() {
-      if (this.isSingleFileUploadEnabled) {
-        return this.$t('pageFirmware.sectionTitleBmcCardsCombined');
+});
+
+const switchToBackupImageDisabled = ref(
+  import.meta.env.VITE_APP_SWITCH_TO_BACKUP_IMAGE_DISABLED === 'true',
+);
+
+const bootProgress = computed(() => {
+  return globalStore.bootProgressGetter;
+});
+
+const isSingleFileUploadEnabled = computed(() => {
+  return firmwareStore.isSingleFileUploadEnabled;
+});
+
+const sectionTitle = computed(() => {
+  if (isSingleFileUploadEnabled.value) {
+    return i18n.global.t('pageFirmware.sectionTitleBmcCardsCombined');
+  }
+  return i18n.global.t('pageFirmware.sectionTitleBmcCards');
+});
+
+const running = computed(() => {
+  return firmwareStore.activeBmcFirmware;
+});
+
+const backup = computed(() => {
+  return firmwareStore.backupBmcFirmware;
+});
+
+const runningVersion = computed(() => {
+  return running.value?.version || '--';
+});
+
+const backupVersion = computed(() => {
+  return backup.value?.version || '--';
+});
+
+const backupStatus = computed(() => {
+  return backup.value?.status || null;
+});
+
+const showBackupImageStatus = computed(() => {
+  return backupStatus.value === 'Critical' || backupStatus.value === 'Warning';
+});
+
+const firmwareBootSide = computed(() => {
+  return firmwareStore.firmwareBootSideGetter;
+});
+
+watch(loading, (value) => {
+  emit('loadingStatus', value);
+});
+
+function showConfirmationModal() {
+  eventBus.emit('modal-switch-to-running');
+}
+
+function switchToRunning() {
+  startLoader();
+  emit('loadingStatus', loading.value);
+  console.log('confirm');
+
+  // Step 1 - Switch firmware
+  const switchFirmware = () => {
+    infoToast(
+      i18n.global.t('pageFirmware.toast.switchToRunning.step1Message'),
+      {
+        title: i18n.global.t('pageFirmware.toast.switchToRunning.step1'),
+        timestamp: true,
+      },
+    );
+    firmwareStore
+      .switchBmcFirmwareAndReboot()
+      .then(async () => bmcReboot())
+      .catch(({ message }) => {
+        endLoader();
+        errorToast(message);
+      });
+  };
+
+  // Step 2 - BMC Reboot
+  const bmcReboot = () => {
+    infoToast(
+      i18n.global.t('pageFirmware.toast.switchToRunning.step2Message'),
+      {
+        title: i18n.global.t('pageFirmware.toast.switchToRunning.step2'),
+        timestamp: true,
+      },
+    );
+    const timer = (checkCounter = 0) => {
+      checkCounter++;
+
+      // This counter goes up by 1 every time this function runs
+      // If the function successfully goes to last toast, it won't run anymore
+      // if this function runs more than 10 times, it won't run anymore
+      if (checkCounter > 10) {
+        endLoader();
+        return errorToast(
+          i18n.global.t('pageFirmware.toast.errorSwitchImages'),
+        );
       }
-      return this.$t('pageFirmware.sectionTitleBmcCards');
-    },
-    running() {
-      return this.$store.getters['firmware/activeBmcFirmware'];
-    },
-    backup() {
-      return this.$store.getters['firmware/backupBmcFirmware'];
-    },
-    runningVersion() {
-      return this.running?.version || '--';
-    },
-    backupVersion() {
-      return this.backup?.version || '--';
-    },
-    backupStatus() {
-      return this.backup?.status || null;
-    },
-    showBackupImageStatus() {
-      return (
-        this.backupStatus === 'Critical' || this.backupStatus === 'Warning'
+      globalStore.getBootProgress().then(() => {
+        if (bootProgress.value) {
+          step3();
+        } else {
+          setTimeout(() => {
+            timer(checkCounter);
+          }, 60000); // 1 minute;
+        }
+      });
+    };
+    timer();
+  };
+
+  // Step 3 - Firmware switch complete
+  const step3 = () => {
+    setTimeout(() => {
+      endLoader();
+      return infoToast(
+        i18n.global.t('pageFirmware.toast.switchToRunning.step3Message'),
+        {
+          title: i18n.global.t('pageFirmware.toast.switchToRunning.step3'),
+          refreshAction: true,
+          timestamp: true,
+        },
       );
-    },
-    firmwareBootSide() {
-      return this.$store.getters['firmware/firmwareBootSide'];
-    },
-  },
-  watch: {
-    loading: function (value) {
-      this.$emit('loadingStatus', value);
-    },
-  },
-  methods: {
-    switchToRunning() {
-      this.startLoader();
-      this.$emit('loadingStatus', this.loading);
+    }, 120000); // 2 minutes
+  };
 
-      // Step 1 - Switch firmware
-      const switchFirmware = () => {
-        this.infoToast(
-          this.$t('pageFirmware.toast.switchToRunning.step1Message'),
-          {
-            title: this.$t('pageFirmware.toast.switchToRunning.step1'),
-            timestamp: true,
-          },
-        );
-        this.$store
-          .dispatch('firmware/switchBmcFirmwareAndReboot')
-          .then(async () => bmcReboot())
-          .catch(({ message }) => {
-            this.endLoader();
-            this.errorToast(message);
-          });
-      };
-
-      // Step 2 - BMC Reboot
-      const bmcReboot = () => {
-        this.infoToast(
-          this.$t('pageFirmware.toast.switchToRunning.step2Message'),
-          {
-            title: this.$t('pageFirmware.toast.switchToRunning.step2'),
-            timestamp: true,
-          },
-        );
-        const timer = (checkCounter = 0) => {
-          checkCounter++;
-
-          // This counter goes up by 1 every time this function runs
-          // If the function successfully goes to last toast, it won't run anymore
-          // if this function runs more than 10 times, it won't run anymore
-          if (checkCounter > 10) {
-            this.endLoader();
-            return this.errorToast(
-              this.$t('pageFirmware.toast.errorSwitchImages'),
-            );
-          }
-
-          this.$store.dispatch('global/getBootProgress').then(() => {
-            if (this.bootProgress) {
-              step3();
-            } else {
-              setTimeout(() => {
-                timer(checkCounter);
-              }, 60000); // 1 minute;
-            }
-          });
-        };
-        timer();
-      };
-
-      // Step 3 - Firmware switch complete
-      const step3 = () => {
-        setTimeout(() => {
-          this.endLoader();
-          return this.infoToast(
-            this.$t('pageFirmware.toast.switchToRunning.step3Message'),
-            {
-              title: this.$t('pageFirmware.toast.switchToRunning.step3'),
-              refreshAction: true,
-              timestamp: true,
-            },
-          );
-        }, 120000); // 2 minutes
-      };
-
-      switchFirmware();
-    },
-  },
-};
+  switchFirmware();
+}
 </script>

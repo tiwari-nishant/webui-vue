@@ -3,6 +3,7 @@
     <b-table
       responsive="md"
       hover
+      sticky-header="75vh"
       :items="items"
       :fields="fields"
       show-empty
@@ -11,16 +12,17 @@
     >
       <!-- Expand chevron icon -->
       <template #cell(expandRow)="row">
-        <b-button
+        <BButton
           variant="link"
           data-test-id="hardwareStatus-button-expandBmc"
           :title="expandRowLabel"
-          class="btn-icon-only"
-          @click="toggleRowDetails(row)"
+          :class="
+            row.item.toggleDetails ? 'rotateSvg btn-icon-only' : 'btn-icon-only'
+          "
+          @click="toggleRow(row)"
         >
           <icon-chevron />
-          <span class="sr-only">{{ expandRowLabel }}</span>
-        </b-button>
+        </BButton>
       </template>
       <!-- Name -->
       <template #cell(name)="row">
@@ -32,7 +34,7 @@
       </template>
       <!-- Health -->
       <template #cell(health)="{ value }">
-        <status-icon :status="statusIcon(value)" />
+        <status-icon :status="statusIconValue(value)" />
         {{
           value === 'OK'
             ? $t('global.status.ok')
@@ -93,7 +95,7 @@
 
       <template #row-details="{ item }">
         <b-container fluid>
-          <b-row>
+          <b-row style="margin-left: 5px;">
             <b-col class="mt-2">
               <dl>
                 <!-- Description -->
@@ -126,127 +128,141 @@
   </page-section>
 </template>
 
-<script>
-import PageSection from '@/components/Global/PageSection';
+<script setup>
+import PageSection from '@/components/Global/PageSection.vue';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
-import StatusIcon from '@/components/Global/StatusIcon';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import TableRowExpandMixin, {
-  expandRowLabel,
-} from '@/components/Mixins/TableRowExpandMixin';
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
-import InfoTooltip from '@/components/Global/InfoTooltip';
+import { reactive, ref, computed, onBeforeMount } from 'vue';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
+import { BmcStore } from '../../../store';
+import eventBus from '@/eventBus';
+import { useI18n } from 'vue-i18n';
+import useToast from '@/components/Composables/useToastComposable';
 
-export default {
-  components: { IconChevron, PageSection, StatusIcon, InfoTooltip },
-  mixins: [BVToastMixin, TableRowExpandMixin, DataFormatterMixin],
-  data() {
-    return {
-      isBusy: true,
-      fields: [
-        {
-          key: 'expandRow',
-          label: '',
-          tdClass: 'table-row-expand',
-        },
-        {
-          key: 'name',
-          label: this.$t('pageInventory.table.name'),
-          formatter: this.dataFormatter,
-        },
-        {
-          key: 'health',
-          label: this.$t('pageInventory.table.health'),
-          formatter: this.dataFormatter,
-        },
-        {
-          key: 'status',
-          label: this.$t('pageUserManagement.table.status'),
-          formatter: this.dataFormatter,
-          tdClass: 'text-nowrap',
-        },
-        {
-          key: 'locationNumber',
-          label: this.$t('pageInventory.table.locationNumber'),
-          formatter: this.dataFormatter,
-        },
-        {
-          key: 'identifyLed',
-          label: this.$t('pageInventory.table.identifyLed'),
-          formatter: this.dataFormatter,
-        },
-      ],
-      expandRowLabel: expandRowLabel,
-    };
+const { successToast, errorToast } = useToast();
+const { expandRowLabel, toggleRow } = useTableRowExpandComposable();
+const { dataFormatter, statusIconValue } = useDataFormatterGlobal();
+const bmcStore = BmcStore();
+const isBusy = ref(false);
+const { t } = useI18n();
+const fields = reactive([
+  {
+    key: 'expandRow',
+    label: '',
+    tdClass: 'table-row-expand',
   },
-  computed: {
-    bmc() {
-      return this.$store.getters['bmc/bmc'];
-    },
-    items() {
-      if (this.bmc) {
-        return [this.bmc];
-      } else {
-        return [];
-      }
-    },
+  {
+    key: 'name',
+    label: t('pageInventory.table.name'),
+    formatter: dataFormatter,
   },
-  created() {
-    this.$store.dispatch('bmc/getBmcInfo').finally(() => {
-      // Emit initial data fetch complete to parent component
-      this.$root.$emit('hardware-status-bmc-manager-complete');
-      this.isBusy = false;
-    });
+  {
+    key: 'health',
+    label: t('pageInventory.table.health'),
+    formatter: dataFormatter,
   },
-  methods: {
-    toggleIdentifyLedValue(row) {
-      this.$store
-        .dispatch('bmc/updateIdentifyLedValue', {
-          uri: row.uri,
-          identifyLed: row.identifyLed,
-        })
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    // TO DO: remove hasIdentifyLed method once the following story is merged:
-    // https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/43179
-    hasIdentifyLed(identifyLed) {
-      return typeof identifyLed === 'boolean';
-    },
-    getStatusTooltip(status) {
-      switch (status) {
-        case 'Enabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.enabled');
-        case 'Absent':
-          return this.$t('pageInventory.enumDescriptionIndicator.absent');
-        case 'Deferring':
-          return this.$t('pageInventory.enumDescriptionIndicator.deferring');
-        case 'Disabled':
-          return this.$t('pageInventory.enumDescriptionIndicator.disabled');
-        case 'InTest':
-          return this.$t('pageInventory.enumDescriptionIndicator.inTest');
-        case 'Qualified':
-          return this.$t('pageInventory.enumDescriptionIndicator.qualified');
-        case 'Quiesced':
-          return this.$t('pageInventory.enumDescriptionIndicator.quiesced');
-        case 'StandbyOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.standbyOffline',
-          );
-        case 'StandbySpare':
-          return this.$t('pageInventory.enumDescriptionIndicator.standbySpare');
-        case 'Starting':
-          return this.$t('pageInventory.enumDescriptionIndicator.starting');
-        case 'UnavailableOffline':
-          return this.$t(
-            'pageInventory.enumDescriptionIndicator.unavailableOffline',
-          );
-        case 'Updating':
-          return this.$t('pageInventory.enumDescriptionIndicator.updating');
-        default:
-          return '';
-      }
-    },
+  {
+    key: 'status',
+    label: t('pageUserManagement.table.status'),
+    formatter: dataFormatter,
+    tdClass: 'text-nowrap',
   },
-};
+  {
+    key: 'locationNumber',
+    label: t('pageInventory.table.locationNumber'),
+    formatter: dataFormatter,
+  },
+  {
+    key: 'identifyLed',
+    label: t('pageInventory.table.identifyLed'),
+    formatter: dataFormatter,
+  },
+]);
+
+const bmc = computed(() => {
+  return bmcStore.bmc;
+});
+
+const items = computed(() => {
+  if (bmc.value) {
+    return [bmc.value];
+  } else {
+    return [];
+  }
+});
+
+onBeforeMount(() => {
+  bmcStore.getBmcInfo().finally(() => {
+    // Emit initial data fetch complete to parent component
+    eventBus.emit('hardware-status-bmc-manager-complete');
+    isBusy.value = false;
+  });
+});
+
+function toggleIdentifyLedValue(row) {
+  bmcStore
+    .updateIdentifyLedValue({ uri: row.uri, identifyLed: row.identifyLed })
+    .then((message) => successToast(message))
+    .catch(({ message }) => errorToast(message));
+}
+function hasIdentifyLed(identifyLed) {
+  return typeof identifyLed === 'boolean';
+}
+function getStatusTooltip(status) {
+  switch (status) {
+    case 'Enabled':
+      return t('pageInventory.enumDescriptionIndicator.enabled');
+    case 'Absent':
+      return t('pageInventory.enumDescriptionIndicator.absent');
+    case 'Deferring':
+      return t('pageInventory.enumDescriptionIndicator.deferring');
+    case 'Disabled':
+      return t('pageInventory.enumDescriptionIndicator.disabled');
+    case 'InTest':
+      return t('pageInventory.enumDescriptionIndicator.inTest');
+    case 'Qualified':
+      return t('pageInventory.enumDescriptionIndicator.qualified');
+    case 'Quiesced':
+      return t('pageInventory.enumDescriptionIndicator.quiesced');
+    case 'StandbyOffline':
+      return t('pageInventory.enumDescriptionIndicator.standbyOffline');
+    case 'StandbySpare':
+      return t('pageInventory.enumDescriptionIndicator.standbySpare');
+    case 'Starting':
+      return t('pageInventory.enumDescriptionIndicator.starting');
+    case 'UnavailableOffline':
+      return t('pageInventory.enumDescriptionIndicator.unavailableOffline');
+    case 'Updating':
+      return t('pageInventory.enumDescriptionIndicator.updating');
+    default:
+      return '';
+  }
+}
 </script>
+<style lang="scss" scoped>
+.info-icon {
+  width: 25px !important;
+  height: 23px !important;
+}
+.text-right {
+  text-align: right;
+}
+.searchStyle {
+  height: 74px;
+  top: 22px;
+  position: relative;
+}
+.margin-style {
+  margin-bottom: 23px;
+  margin-left: 10px;
+}
+.container-fluid {
+  width: calc(100% - 90px);
+}
+.rotateSvg {
+  svg {
+    transform: rotate(180deg);
+  }
+}
+</style>

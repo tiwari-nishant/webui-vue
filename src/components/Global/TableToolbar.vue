@@ -13,7 +13,7 @@
             :data-test-id="`table-button-${action.value}Selected`"
             variant="primary"
             class="d-block"
-            @click="emit('batch-action', action.value)"
+            @click="$emit('batch-action', action.value)"
           >
             {{ action.label }}
           </BButton>
