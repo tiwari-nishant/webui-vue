@@ -175,7 +175,7 @@ const FirmwareStore = {
         await dispatch('setApplyTimeImmediate');
       }
       return await api
-        .post('/redfish/v1/UpdateService', image, {
+        .post('/redfish/v1/UpdateService/update', image, {
           headers: { 'Content-Type': 'application/octet-stream' },
         })
         .catch((error) => {

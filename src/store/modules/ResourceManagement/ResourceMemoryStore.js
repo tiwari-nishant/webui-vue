@@ -13,6 +13,7 @@ const ResourceMemoryStore = {
     numHugePages: null,
     hmcManaged: null,
     memoryMirroringMode: null,
+    predictiveDynamicMemoryDeallocation: null,
   },
   getters: {
     logicalMemorySizeOptions: (state) => state.logicalMemorySizeOptions,
@@ -25,6 +26,8 @@ const ResourceMemoryStore = {
     numHugePages: (state) => state.numHugePages,
     hmcManaged: (state) => state.hmcManaged,
     memoryMirroringMode: (state) => state.memoryMirroringMode,
+    predictiveDynamicMemoryDeallocation: (state) =>
+      state.predictiveDynamicMemoryDeallocation,
   },
   mutations: {
     setLogicalMemorySizeOptions: (state, logicalMemorySizeOptions) =>
@@ -47,6 +50,11 @@ const ResourceMemoryStore = {
     setHmcManaged: (state, hmcManaged) => (state.hmcManaged = hmcManaged),
     setMemoryMirroringMode: (state, memoryMirroringMode) =>
       (state.memoryMirroringMode = memoryMirroringMode),
+    setPredictiveDynamicMemoryDeallocation: (
+      state,
+      predictiveDynamicMemoryDeallocation
+    ) =>
+      (state.predictiveDynamicMemoryDeallocation = predictiveDynamicMemoryDeallocation),
   },
   actions: {
     async getMemorySizeOptions({ commit }) {
@@ -201,6 +209,67 @@ const ResourceMemoryStore = {
           commit('setMemoryMirroringMode', !activeMemoryMirroringModeValue);
           throw new Error(
             i18n.t('pageMemory.toast.errorSavingActiveMemoryMirroringMode')
+          );
+        });
+    },
+    async getPredictiveDynamicMemoryDeallocation({ commit }) {
+      return await api
+        .get(
+          '/redfish/v1/Registries/BiosAttributeRegistry/BiosAttributeRegistry'
+        )
+        .then(({ data: { RegistryEntries } }) => {
+          const predictiveDynamicMemoryDeallocation = RegistryEntries.Attributes.filter(
+            (Attribute) => Attribute.AttributeName == 'hb_predictive_mem_guard'
+          );
+          if (predictiveDynamicMemoryDeallocation.length > 0) {
+            let predictiveDynamicMemoryDeallocationValue =
+              predictiveDynamicMemoryDeallocation[0].CurrentValue;
+            let predictiveMemValue =
+              predictiveDynamicMemoryDeallocationValue == 'Enabled'
+                ? true
+                : false;
+            commit(
+              'setPredictiveDynamicMemoryDeallocation',
+              predictiveMemValue
+            );
+          }
+        })
+        .catch((error) => console.log(error));
+    },
+    async savePredictiveDynamicMemoryDeallocation(
+      { commit },
+      activePredictiveDynamicMemoryDeallocationValue
+    ) {
+      let updatedMirroringModeValue = activePredictiveDynamicMemoryDeallocationValue
+        ? 'Enabled'
+        : 'Disabled';
+      commit(
+        'setPredictiveDynamicMemoryDeallocation',
+        activePredictiveDynamicMemoryDeallocationValue
+      );
+      const updatedPredictiveDynamicMemoryDeallocation = {
+        Attributes: { hb_predictive_mem_guard: updatedMirroringModeValue },
+      };
+      return api
+        .patch(
+          '/redfish/v1/Systems/system/Bios/Settings',
+          updatedPredictiveDynamicMemoryDeallocation
+        )
+        .then(() => {
+          return i18n.t(
+            'pageMemory.toast.successSavingPredictiveDynamicMemoryDeallocation'
+          );
+        })
+        .catch((error) => {
+          console.log(error);
+          commit(
+            'setPredictiveDynamicMemoryDeallocation',
+            !activePredictiveDynamicMemoryDeallocationValue
+          );
+          throw new Error(
+            i18n.t(
+              'pageMemory.toast.errorSavingPredictiveDynamicMemoryDeallocation'
+            )
           );
         });
     },

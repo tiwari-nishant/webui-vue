@@ -343,7 +343,9 @@ export default {
         this.$store.dispatch('systemParameters/saveImmediateTestRequested', {
           value: value ? 'Enabled' : 'Disabled',
         }),
-        this.$store.dispatch('systemParameters/getBiosAttributesRegistry'),
+        setTimeout(() => {
+          this.$store.dispatch('systemParameters/getBiosAttributesRegistry');
+        }, 5000),
       ])
         .then((message) => {
           if (value && this.isServerOff) {
@@ -353,7 +355,7 @@ export default {
               )
             );
           } else {
-            this.successToast(message);
+            this.successToast(message[0]);
           }
         })
         .catch(({ message }) => this.errorToast(message))

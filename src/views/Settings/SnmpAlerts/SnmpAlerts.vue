@@ -187,7 +187,6 @@ export default {
       const data = {
         Destination: destination,
         SubscriptionType: 'SNMPTrap',
-        DeliveryRetryPolicy: 'TerminateAfterRetries',
         Protocol: 'SNMPv2c',
       };
       this.startLoader();
