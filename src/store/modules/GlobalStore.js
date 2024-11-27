@@ -46,13 +46,23 @@ export const GlobalStore = defineStore('global', {
     username: localStorage.getItem('storedUsername'),
     isAuthorized: true,
     userPrivilege: null,
+    currentUser: JSON.parse(localStorage.getItem('storedCurrentUser')),
   }),
   getters: {
     bootProgressGetter: (state) => state.bootProgress,
+    isInPhypStandby: (state) =>
+      // SystemHardwareInitializationComplete and after is "PHYP in standby"
+      state.bootProgress === 'SystemHardwareInitializationComplete' ||
+      state.bootProgress === 'SetupEntered' ||
+      state.bootProgress === 'OSBootStarted' ||
+      state.bootProgress === 'OSRunning',
     isOSRunningGetter: (state) => state.bootProgress === 'OSRunning',
     getIsUtcDisplay: (state) => state.isUtcDisplay,
     safeModeGetter: (state) => state.safeMode,
     serverStatusGetter: (state) => state.serverStatus,
+    currentUserGetter: (state) => state.currentUser,
+    isServiceUser: (state) =>
+      state.currentUser?.RoleId === 'OemIBMServiceAgent' || !state.currentUser,
   },
   actions: {
     async getBmcTime() {
@@ -64,6 +74,9 @@ export const GlobalStore = defineStore('global', {
           this.bmcTime = date;
         })
         .catch((error) => console.log(error));
+    },
+    setCurrentUser (currentUsr) {
+      this.currentUser = currentUsr
     },
     getSystemInfo() {
       api
@@ -99,6 +112,36 @@ export const GlobalStore = defineStore('global', {
         )
         .catch((error) => {
           console.log(error);
+          return Promise.reject();
+        });
+    },
+    getCurrentUser(
+      username = localStorage.getItem('storedUsername')
+    ) {
+      if (localStorage.getItem('storedCurrentUser')) return;
+      return api
+        .get(`/redfish/v1/AccountService/Accounts/${username}`)
+        .then(({ data }) => {
+          this.setCurrentUser(data)
+          localStorage.setItem(
+            'storedCurrentUser',
+            JSON.stringify(this.currentUser)
+          );
+        })
+        .catch((error) => {
+          console.log(error);
+          return this.getAccountService();
+        });
+    },
+    getAccountService() {
+      return api
+        .get('/redfish/v1/AccountService')
+        .then((response) => {
+          if (response.data?.LDAP?.RemoteRoleMapping?.length > 0) {
+            return Promise.resolve();
+          }
+        })
+        .catch(() => {
           return Promise.reject();
         });
     },

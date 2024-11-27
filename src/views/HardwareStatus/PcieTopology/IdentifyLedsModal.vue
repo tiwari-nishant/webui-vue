@@ -1,24 +1,26 @@
 <template>
   <b-modal
     id="modal-leds"
+    v-model="props.openIdentifyLedModal"
     ref="modal"
     hide-footer
     title="Identify LEDs"
     title-tag="h2"
+    @hidden="onModalHidden"
   >
     <b-row>
       <b-col>
-        <dt>{{ $t('pagePcieTopology.id') }}</dt>
-        <dd>{{ dataFormatter(selectedObj.id) }}</dd>
+        <dt>{{ i18n.global.t('pagePcieTopology.id') }}</dt>
+        <dd>{{ dataFormatter(props.selectedObj.id) }}</dd>
       </b-col>
       <b-col>
-        <dt>{{ $t('pagePcieTopology.parentId') }}</dt>
-        <dd>{{ dataFormatter(selectedObj.parentId) }}</dd>
+        <dt>{{ i18n.global.t('pagePcieTopology.parentId') }}</dt>
+        <dd>{{ dataFormatter(props.selectedObj.parentId) }}</dd>
       </b-col>
     </b-row>
 
     <div v-if="pcieBridgeLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ $t('pagePcieTopology.bridgeOrHost') }}
+      {{ i18n.global.t('pagePcieTopology.bridgeOrHost') }}
     </div>
     <b-row v-if="pcieBridgeLed.length > 0">
       <b-col cols="8">{{
@@ -37,7 +39,7 @@
     </b-row>
 
     <div v-if="localPortLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ $t('pagePcieTopology.localPort') }}
+      {{ i18n.global.t('pagePcieTopology.localPort') }}
     </div>
     <b-row v-for="(value, i) in localPortLed" :key="'local-port-' + i">
       <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
@@ -54,7 +56,7 @@
     </b-row>
 
     <div v-if="remotePortLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ $t('pagePcieTopology.remotePort') }}s
+      {{ i18n.global.t('pagePcieTopology.remotePort') }}s
     </div>
     <b-row v-for="(value, i) in remotePortLed" :key="'remote-port-' + i">
       <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
@@ -71,7 +73,7 @@
     </b-row>
 
     <div v-if="ioSlotsLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ $t('pagePcieTopology.ioSlots') }}
+      {{ i18n.global.t('pagePcieTopology.ioSlots') }}
     </div>
     <b-row v-for="(value, i) in ioSlotsLed" :key="'io-slot-i' + i">
       <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
@@ -88,93 +90,110 @@
     </b-row>
   </b-modal>
 </template>
-<script>
-import VuelidateMixin from '@/components/Mixins/VuelidateMixin';
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
+<script setup>
 
-export default {
-  mixins: [VuelidateMixin, DataFormatterMixin, BVToastMixin],
-  props: {
-    selectedObj: {
+import { ref,defineProps,watch, computed} from 'vue';
+import { PcieTopologyStore } from '../../../store';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
+import useToast from '@/components/Composables/useToastComposable';
+import i18n from '@/i18n';
+
+const pcieTopologyStore=PcieTopologyStore();
+const {dataFormatter}=useDataFormatterGlobal()
+const props=defineProps({
+  selectedObj: {
       type: Object,
       default: null,
     },
-  },
-  data() {
-    return {
-      pcieBridgeLed: [],
-      ioSlotsLed: [],
-      localPortLed: [],
-      remotePortLed: [],
-    };
-  },
-  watch: {
-    selectedObj() {
-      this.pcieBridgeLed = [];
-      this.ioSlotsLed = [];
-      this.localPortLed = [];
-      this.remotePortLed = [];
-      this.getAllLeds();
-    },
-  },
-  methods: {
-    async getAllLeds() {
-      await this.$store
-        .dispatch('pcieTopology/getAllLedValues', this.selectedObj)
-        .then((returnedObj) => {
-          this.pcieBridgeLed = returnedObj.pcieBridge;
-          this.localPortLed = [];
-          this.selectedObj.localPortLocation.map((selectedPort) => {
+  openIdentifyLedModal:{
+      type:Boolean,
+      default:false
+    }
+})
+const { successToast, errorToast } = useToast();
+const pcieBridgeLed=ref([])
+const ioSlotsLed=ref([])
+const localPortLed=ref([])
+const remotePortLed=ref([])
+
+
+
+watch(
+  ()=>props.selectedObj,
+  ()=>{
+    pcieBridgeLed.value=[];
+    ioSlotsLed.value=[];
+    localPortLed.value=[];
+    remotePortLed.value=[];
+    getAllLeds();
+    
+  }
+)
+
+const emitUpdate = defineEmits(['update:openIdentifyLedModal']);
+function onModalHidden(){
+  emitUpdate('update:openIdentifyLedModal',false);
+}
+const ioSlotsLength=computed(()=>{
+  return ioSlotsLed.length
+})
+const getAllLeds=async()=>{
+  await pcieTopologyStore.getAllLedValues(props.selectedObj)
+  .then((returnedObj) => {
+          ioSlotsLed.value = returnedObj.ioSlots;
+          pcieBridgeLed.value = returnedObj.pcieBridge;
+          localPortLed.value = [];
+          props.selectedObj.localPortLocation.map((selectedPort) => {
             returnedObj.localPortLocation.map((returnedPort) => {
               if (selectedPort.locationNumber === returnedPort.locationNumber) {
-                this.localPortLed.push(returnedPort);
+                localPortLed.push(returnedPort);
               }
             });
-          });
-          this.remotePortLed = [];
-          this.selectedObj.remotePortLocation.map((selectedPort) => {
+          remotePortLed.value = [];
+          props.selectedObj.remotePortLocation.map((selectedPort) => {
             returnedObj.remotePortLocation.map((returnedPort) => {
               if (selectedPort.locationNumber === returnedPort.locationNumber) {
-                this.remotePortLed.push(returnedPort);
+                remotePortLed.push(returnedPort);
               }
             });
           });
-          this.ioSlotsLed = returnedObj.ioSlots;
         });
-    },
-    async changeLedValue(value, type) {
-      this.$store
-        .dispatch('pcieTopology/updateLedValue', { value: value, type: type })
+        
+    });
+
+}
+
+const changeLedValue=async(value,type)=>{
+  pcieTopologyStore.updateLedValue({value:value, type:type})
         .then(() => {
-          this.getAllLeds();
+          getAllLeds();
           if (value.led) {
-            this.successToast(
-              this.$t('pagePcieTopology.toast.successEnableIdentifyLed'),
+            successToast(
+              i18n.global.t('pagePcieTopology.toast.successEnableIdentifyLed'),
             );
           } else {
-            this.successToast(
-              this.$t('pagePcieTopology.toast.successDisableIdentifyLed'),
+            successToast(
+              i18n.global.t('pagePcieTopology.toast.successDisableIdentifyLed'),
             );
           }
         })
         .catch(() => {
-          this.getAllLeds();
+          getAllLeds();
           if (value.led) {
-            this.errorToast(
-              this.$t('pagePcieTopology.toast.errorEnableIdentifyLed'),
+            errorToast(
+              i18n.global.t('pagePcieTopology.toast.errorEnableIdentifyLed'),
             );
           } else {
-            this.errorToast(
-              this.$t('pagePcieTopology.toast.errorDisableIdentifyLed'),
+            errorToast(
+              i18n.global.t('pagePcieTopology.toast.errorDisableIdentifyLed'),
             );
           }
         });
-    },
-  },
-};
+}
+
 </script>
 <style scoped>
+
 .headerStyle {
   font-weight: bold;
 }

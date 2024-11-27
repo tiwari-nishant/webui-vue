@@ -91,7 +91,6 @@ const languages = ref([
 ]);
 
 const login = () => {
-  console.log('userinfo', userInfo);
   v$.value.$touch();
   if (v$.value.$invalid) return;
   Authentication.login(userInfo.username, userInfo.password)
@@ -107,7 +106,20 @@ const login = () => {
       if (PasswordChangeRequired) {
         router.push('/change-password');
       } else {
-        router.push('/');
+        Promise.all([
+              globalStore.getCurrentUser(userInfo.username),
+              globalStore.getSystemInfo()
+            ])
+              .then(() => {
+                router.push('/');
+              })
+              .catch(() => {
+                Promise.all([
+                Authentication.unauthlogin(),
+                Authentication.logout()
+                ]);
+              });
+          
       }
       if (RoleId) {
         globalStore.userPrivilege = RoleId;

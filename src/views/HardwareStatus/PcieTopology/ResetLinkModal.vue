@@ -1,27 +1,28 @@
 <template>
   <b-modal
+    v-model="props.openResetModal"
     id="modal-reset"
     ref="modal"
     :title="
-      $t('pagePcieTopology.modal.resetLinkHeader', {
-        id: resetType,
+      i18n.global.t('pagePcieTopology.modal.resetLinkHeader', {
+        id: props.resetType,
       })
     "
     title-tag="h2"
     @hidden="resetConfirm"
   >
     <p class="mb-2">
-      <strong>{{ $t('pagePcieTopology.modal.resetConfirm') }}</strong>
+      <strong>{{ i18n.global.t('pagePcieTopology.modal.resetConfirm') }}</strong>
     </p>
-    <div>{{ $t('pagePcieTopology.modal.resetLinkDescription') }}</div>
+    <div>{{ i18n.global.t('pagePcieTopology.modal.resetLinkDescription') }}</div>
 
-    <template #modal-footer="{ cancel }">
+    <template #footer="{ cancel }">
       <b-button
         variant="secondary"
         data-test-id="factoryReset-button-cancel"
         @click="cancel()"
       >
-        {{ $t('global.action.cancel') }}
+        {{ i18n.global.t('global.action.cancel') }}
       </b-button>
       <b-button
         type="sumbit"
@@ -30,22 +31,26 @@
         @click="handleConfirm"
       >
         {{
-          $t('pagePcieTopology.modal.resetLinkHeader', {
-            id: resetType,
+          i18n.global.t('pagePcieTopology.modal.resetLinkHeader', {
+            id: props.resetType,
           })
         }}
       </b-button>
     </template>
   </b-modal>
 </template>
-<script>
-import VuelidateMixin from '@/components/Mixins/VuelidateMixin';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
+<script setup>
+import { GlobalStore, PcieTopologyStore } from '../../../store';
+import useVuelidate from '@vuelidate/core';
+import useToast from '@/components/Composables/useToastComposable';
+import { ref,computed,nextTick } from 'vue';
+import i18n from '@/i18n';
 
-export default {
-  mixins: [VuelidateMixin, BVToastMixin],
-  props: {
-    resetType: {
+const { successToast, errorToast } = useToast();
+const pcieTopologyStore=PcieTopologyStore()
+const globalStore = GlobalStore();
+const props=defineProps({
+  resetType: {
       type: Number,
       default: null,
     },
@@ -53,58 +58,64 @@ export default {
       type: String,
       default: '',
     },
-  },
-  data() {
-    return {
-      confirm: false,
-    };
-  },
-  computed: {
-    serverStatus() {
-      return this.$store.getters['global/serverStatus'];
-    },
-    isServerOff() {
-      return this.serverStatus === 'off' ? true : false;
-    },
-  },
-  validations: {
-    confirm: {
-      mustBeTrue: function (value) {
-        return this.isServerOff || value === true;
-      },
-    },
-  },
-  methods: {
-    handleConfirm() {
-      this.resetLink();
-      this.$v.$touch();
-      if (this.$v.$invalid) return;
-      this.$nextTick(() => this.$refs.modal.hide());
-      this.resetConfirm();
-    },
-    resetConfirm() {
-      this.confirm = false;
-      this.$v.$reset();
-    },
-    resetLink() {
-      this.$store
-        .dispatch('pcieTopology/resetTheLink', { uri: this.resetUri })
+    openResetModal:{
+      type:Boolean,
+      default:false
+    }
+})
+const confirm=ref(false)
+const modal=ref(null)
+const serverStatus=computed(()=>{
+    return globalStore.serverStatus
+})
+
+const isServerOff=computed(()=>{
+    return serverStatus.value === 'off' ? true : false;
+})
+
+function mustBeTrue(value){
+  return isServerOff.value || value === true;
+}
+
+//Validation Rules
+const rules=computed(()=>({
+  confirm:{
+    mustBeTrue
+  }
+}))
+const v$=useVuelidate(rules,{confirm})
+
+function handleConfirm() {
+      resetLink();
+      v$.value.$touch()
+      if (v$.value.$invalid) return;
+      nextTick(() => modal.value.hide());
+      resetConfirm();
+}
+const emitUpdate=defineEmits(['update:openResetModal'])
+function resetConfirm() {
+      confirm.value = false;
+      v$.value.$reset() 
+      emitUpdate('update:openResetModal',false)
+
+}
+function resetLink() {
+      pcieTopologyStore.resetTheLink({ uri: props.resetUri })
         .then(() => {
-          this.successToast(
-            this.$t('pagePcieTopology.toast.successReset', {
-              id: this.resetType,
+          successToast(
+            i18n.global.t('pagePcieTopology.toast.successReset', {
+              id: props.resetType,
             }),
           );
         })
         .catch(() => {
-          this.errorToast(
-            this.$t('pagePcieTopology.toast.errorReset', {
-              id: this.resetType,
+          errorToast(
+            i18n.global.t('pagePcieTopology.toast.errorReset', {
+              id: props.resetType,
             }),
           );
         });
-      this.$nextTick(() => this.$refs.modal.hide());
-    },
-  },
-};
+      nextTick(() => modal.value.hide());
+}
+
 </script>

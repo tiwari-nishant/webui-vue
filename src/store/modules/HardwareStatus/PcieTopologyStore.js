@@ -1,17 +1,18 @@
 import api from '@/store/api';
 import i18n from '@/i18n';
+import { defineStore } from 'pinia';
 
-const PcieTopologyStore = {
+export const PcieTopologyStore = defineStore('pcieTopologyStore',{
   namespaced: true,
-  state: {
+  state: ()=>({
     entries: [],
-  },
+  }),
   getters: {
-    entries: (state) => state.entries,
+    entriesGetter: (state) => state.entries,
   },
-  mutations: {
-    setEntries: (state, data) => {
-      state.entries = data.map((pcie) => {
+  actions: {
+    setEntries(data){
+      this.entries = data.map((pcie) => {
         return {
           id: pcie?.linkId,
           resetLinkAvailable: pcie?.resetLinkAvailable,
@@ -33,9 +34,7 @@ const PcieTopologyStore = {
         };
       });
     },
-  },
-  actions: {
-    async resetTheLink(_, requestBody) {
+    async resetTheLink(requestBody) {
       const body = {
         Oem: {
           IBM: {
@@ -69,7 +68,7 @@ const PcieTopologyStore = {
         console.error('Error', error);
       });
     },
-    async getTopologyScreen({ commit }) {
+    async getTopologyScreen() {
       let chassisMembers = [];
       let pcieDeviceMembers = [];
       let procMembers = [];
@@ -1125,16 +1124,17 @@ const PcieTopologyStore = {
               });
             });
             rows.push(row);
-            commit('setEntries', rows);
+            // commit('setEntries', rows);
+            this.setEntries(rows)
           }
         });
       });
     },
-    async getLedValue(_, requestBody) {
+    async getLedValue(requestBody) {
       const uri = requestBody.uri;
       return await api.get(uri);
     },
-    async updateLedValue(_, requestBody) {
+    async updateLedValue(requestBody) {
       await api.all(
         [''].map(async () => {
           if (requestBody.type === 'ioSlots') {
@@ -1179,78 +1179,90 @@ const PcieTopologyStore = {
         }),
       );
     },
-    async getAllLedValues(_, selectedObj) {
+    async getAllLedValues(selectedObj) {
       let returningObj = {
         pcieBridge: [],
         localPortLocation: [],
         remotePortLocation: [],
         ioSlots: [],
       };
-      await api.all(
-        [''].map(async () => {
-          if (selectedObj.pcieBridge?.uri) {
-            await api.get(selectedObj.pcieBridge?.uri).then(({ data }) => {
-              returningObj.pcieBridge.push({
+    
+      const fetchPcieBridge = async () => {
+        if (selectedObj.pcieBridge?.uri) {
+          const { data } = await api.get(selectedObj.pcieBridge?.uri);
+          returningObj.pcieBridge.push({
+            led: data.LocationIndicatorActive,
+            locationNumber: data.Location?.PartLocation?.ServiceLabel,
+            uri: data['@odata.id'],
+          });
+        }
+      };
+    
+      const fetchLocalPorts = async () => {
+        if (selectedObj.localPortLocation.length > 0) {
+          await Promise.all(
+            selectedObj.localPortLocation.map(async (local) => {
+              const { data } = await api.get(local.uri);
+              returningObj.localPortLocation.push({
                 led: data.LocationIndicatorActive,
                 locationNumber: data.Location?.PartLocation?.ServiceLabel,
                 uri: data['@odata.id'],
               });
-            });
-          }
-          if (selectedObj.localPortLocation.length > 0) {
-            await api.all(
-              selectedObj.localPortLocation.map(async (local) => {
-                await api.get(local.uri).then(({ data }) => {
-                  returningObj.localPortLocation.push({
-                    led: data.LocationIndicatorActive,
-                    locationNumber: data.Location?.PartLocation?.ServiceLabel,
-                    uri: data['@odata.id'],
-                  });
-                });
-              }),
-            );
-          }
-          if (selectedObj.remotePortLocation.length > 0) {
-            await api.all(
-              selectedObj.remotePortLocation.map(async (local) => {
-                await api.get(local.uri).then(({ data }) => {
-                  returningObj.remotePortLocation.push({
-                    led: data.LocationIndicatorActive,
-                    locationNumber: data.Location?.PartLocation?.ServiceLabel,
-                    uri: data['@odata.id'],
-                  });
-                });
-              }),
-            );
-          }
-          if (selectedObj.ioSlots.length > 0) {
-            await api.all(
-              selectedObj.ioSlots.map(async (ioSlot) => {
-                api.get(ioSlot.uri).then(async (ioSlotResponse) => {
-                  const tempSlots = ioSlotResponse.data.Slots;
-                  await api.all(
-                    tempSlots.map((tempSlot) => {
-                      if (
-                        tempSlot.Location?.PartLocation?.ServiceLabel ===
-                        ioSlot.locationNumber
-                      ) {
-                        returningObj.ioSlots.push({
-                          led: tempSlot.LocationIndicatorActive,
-                          locationNumber: ioSlot.locationNumber,
-                          uri: ioSlot.uri,
-                        });
-                      }
-                    }),
-                  );
-                });
-              }),
-            );
-          }
-        }),
-      );
+            })
+          );
+        }
+      };
+    
+      const fetchRemotePorts = async () => {
+        if (selectedObj.remotePortLocation.length > 0) {
+          await Promise.all(
+            selectedObj.remotePortLocation.map(async (local) => {
+              const { data } = await api.get(local.uri);
+              returningObj.remotePortLocation.push({
+                led: data.LocationIndicatorActive,
+                locationNumber: data.Location?.PartLocation?.ServiceLabel,
+                uri: data['@odata.id'],
+              });
+            })
+          );
+        }
+      };
+    
+      const fetchIoSlots = async () => {
+        if (selectedObj.ioSlots.length > 0) {
+          await Promise.all(
+            selectedObj.ioSlots.map(async (ioSlot) => {
+              const ioSlotResponse = await api.get(ioSlot.uri);
+              const tempSlots = ioSlotResponse.data.Slots;
+              await Promise.all(
+                tempSlots.map((tempSlot) => {
+                  if (
+                    tempSlot.Location?.PartLocation?.ServiceLabel ===
+                    ioSlot.locationNumber
+                  ) {
+                    returningObj.ioSlots.push({
+                      led: tempSlot.LocationIndicatorActive,
+                      locationNumber: ioSlot.locationNumber,
+                      uri: ioSlot.uri,
+                    });
+                  }
+                })
+              );
+            })
+          );
+        }
+      };
+    
+      await Promise.all([
+        fetchPcieBridge(),
+        fetchLocalPorts(),
+        fetchRemotePorts(),
+        fetchIoSlots(),
+      ]);
+    
       return returningObj;
-    },
+    }    
   },
-};
+});
 
 export default PcieTopologyStore;

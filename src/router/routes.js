@@ -18,6 +18,7 @@ import Memory from '@/views/ResourceManagement/Memory';
 import Power from '@/views/ResourceManagement/Power';
 import PowerRestorePolicy from '@/views/Settings/PowerRestorePolicy';
 import ConcurrentMaintenance from '../views/HardwareStatus/ConcurrentMaintenance/ConcurrentMaintenance.vue';
+import PcieTopology from '../views/HardwareStatus/PcieTopology/PcieTopology.vue';
 import IBMiServiceFunctions from '@/views/Logs/IBMiServiceFunctions';
 import Notices from '@/views/Notices/Notices.vue';
 import Sessions from '@/views/SecurityAndAccess/Sessions';
@@ -90,6 +91,14 @@ export const routes = [
         component: Inventory,
         meta: {
           title: i18n.global.t('appPageTitle.inventory'),
+        },
+      },
+      {
+        path: '/hardware-status/pcie-topology',
+        name: 'pcie-topology',
+        component: PcieTopology,
+        meta: {
+          title: i18n.global.t('appPageTitle.pcieTopology'),
         },
       },
       {

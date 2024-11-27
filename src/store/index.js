@@ -28,7 +28,7 @@ import FabricAdaptersStore from './modules/HardwareStatus/FabricAdaptersStore';
 import SystemParametersStore from './modules/ResourceManagement/SystemParametersStore';
 import CertificatesStore from './modules/SecurityAndAccess/CertificatesStore';
 import UserManagementStore from './modules/SecurityAndAccess/UserManagementStore';
-
+import PcieTopologyStore from './modules/HardwareStatus/PcieTopologyStore.js';
 // ... (export use other stores)
 export {
   EventLogStore,
@@ -60,4 +60,5 @@ export {
   SystemParametersStore,
   CertificatesStore,
   UserManagementStore,
+  PcieTopologyStore
 };

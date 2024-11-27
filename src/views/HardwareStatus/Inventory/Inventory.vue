@@ -1,5 +1,5 @@
 <template>
-  <b-container fluid="xl">
+  <b-container fluid="xl" class="inventory-container">
     <page-title :title="$t('appPageTitle.inventory')" />
 
     <!-- Service indicators -->
@@ -413,3 +413,8 @@ onBeforeMount(() => {
   getAllInfo('created');
 });
 </script>
+<style scoped>
+.inventory-container{
+  min-width: 90%;
+}
+</style>

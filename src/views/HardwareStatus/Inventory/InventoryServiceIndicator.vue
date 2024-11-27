@@ -169,7 +169,5 @@ function toggleLampTestSwitch(lampTestState) {
 }
 </script>
 <style lang="scss" scoped>
-.form-background {
-  width: 120%;
-}
+
 </style>

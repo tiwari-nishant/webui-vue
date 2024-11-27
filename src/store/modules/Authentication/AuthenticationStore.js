@@ -62,6 +62,15 @@ export const AuthenticationStore = defineStore('authentication', {
       const headers = {
         'X-Xsrf-Token': cookies.get('X-XSRF-TOKEN'),
       };
+      Cookies.remove('XSRF-TOKEN');
+      Cookies.remove('IsAuthenticated');
+      localStorage.removeItem('storedModelType');
+      localStorage.removeItem('storedUsername');
+      localStorage.removeItem('storedCurrentUser');
+      localStorage.removeItem('storedHmcManagedValue');
+      localStorage.removeItem('storedLanguage');
+      this.xsrfCookie = undefined;
+      this.isAuthenticatedCookie = undefined;
       return api
         .post('/logout', { data: [] }, { headers: headers })
         .then(() => {
@@ -73,6 +82,7 @@ export const AuthenticationStore = defineStore('authentication', {
           console.log(error);
           this.logoutRemove();
         });
+        
     },
     getUserInfo(username) {
       return api

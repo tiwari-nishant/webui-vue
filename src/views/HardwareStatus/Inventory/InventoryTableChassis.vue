@@ -226,6 +226,6 @@ function getStatusTooltip(status) {
 }
 .b-table-sticky-header {
   overflow: visible !important;
-  width: 120%;
 }
+
 </style>
