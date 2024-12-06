@@ -1,7 +1,7 @@
 <template>
   <div>
-    <b-row>
-      <b-col class="d-flex align-items-center justify-content-between">
+    <BRow>
+      <BCol class="d-flex align-items-center justify-content-between">
         <dl class="mt-3 mb-3 mr-3 w-75">
           <dt id="frequency-cap-label">
             {{ $t('pageSystemParameters.frequencyCap') }}
@@ -17,32 +17,28 @@
             {{ $t('pageSystemParameters.frequencyCapDescription') }}
           </dd>
         </dl>
-        <b-form-checkbox
+        <BFormCheckbox
           id="frequency-cap-switch"
           v-model="frequencyRequestCurrentToggle"
           aria-labelledby="frequency-cap-label"
           aria-describedby="frequency-cap-description"
           :disabled="frequencyMax === 0 && frequencyMin === 0"
           switch
-          @change="changeFrequencyRequestCurrent"
+          @update:modelValue="changeFrequencyRequestCurrent"
         >
           <span v-if="frequencyRequestCurrentToggle">
             {{ $t('global.status.enabled') }}
           </span>
           <span v-else>{{ $t('global.status.disabled') }}</span>
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+        </BFormCheckbox>
+      </BCol>
+    </BRow>
     <!-- Form -->
-    <b-row class="section-divider">
-      <b-col class="d-flex align-items-center justify-content-start col-6 mb-1">
-        <b-form class="form-width" @submit.prevent>
-          <b-form-group
-            id="input-group-1"
-            label-for="input-1"
-            class="mb-0 mr-0"
-          >
-            <b-form-text
+    <BRow class="section-divider">
+      <BCol class="d-flex align-items-center justify-content-start col-6 mb-1">
+        <BForm class="form-width" @submit.prevent>
+          <BFormGroup id="input-group-1" label-for="input-1" class="mb-0 mr-0">
+            <BFormText
               v-show="frequencyRequestCurrentToggle"
               id="frequency-cap-help-text"
             >
@@ -52,21 +48,21 @@
                   max: dataFormatter(frequencyMax),
                 })
               }}
-            </b-form-text>
+            </BFormText>
 
-            <b-input-group>
-              <b-form-input
+            <BInputGroup class="mb-3 mr-0">
+              <BFormInput
                 id="input-1"
                 v-model="frequencyValue"
                 type="number"
                 aria-describedby="frequency-cap-help-text"
                 :disabled="!frequencyRequestCurrentToggle"
                 :number="true"
-                :state="getValidationState($v.frequencyValue)"
-                @click="$v.frequencyValue.$touch()"
+                :state="getValidationState(v$.frequencyValue)"
+                @click="v$.frequencyValue.$touch()"
                 @input="frequencyRequest"
               />
-              <b-form-invalid-feedback
+              <BFormInvalidFeedback
                 v-if="frequencyRequestCurrentToggle"
                 role="alert"
               >
@@ -76,131 +72,122 @@
                     max: frequencyMax,
                   })
                 }}
-              </b-form-invalid-feedback>
-            </b-input-group>
-            <b-button
+              </BFormInvalidFeedback>
+            </BInputGroup>
+            <BButton
               variant="primary"
               type="submit"
               :disabled="!frequencyRequestCurrentToggle"
-              class="mt-3 mb-3"
+              class="mb-3"
               @click="saveFrequencyRequest"
             >
               {{ $t('global.action.save') }}
-            </b-button>
-          </b-form-group>
-        </b-form>
-      </b-col>
-    </b-row>
+            </BButton>
+          </BFormGroup>
+        </BForm>
+      </BCol>
+    </BRow>
   </div>
 </template>
 
-<script>
-import InfoTooltip from '@/components/Global/InfoTooltip';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
-import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
-import VuelidateMixin from '@/components/Mixins/VuelidateMixin.js';
-import { requiredIf, between, numeric } from 'vuelidate/lib/validators';
+<script setup>
+import { computed, defineProps, ref, onBeforeMount } from 'vue';
+import { requiredIf, between, numeric } from '@vuelidate/validators';
+import { SystemParametersStore } from '@/store';
+import { useVuelidate } from '@vuelidate/core';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
+import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
+import useDataFormatterGlobal from '@/components/Composables/useDataFormatterGlobal';
+import useToastComposable from '@/components/Composables/useToastComposable';
+import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
 
-export default {
-  name: 'FrequencyCap',
-  components: { InfoTooltip },
-  mixins: [DataFormatterMixin, LoadingBarMixin, BVToastMixin, VuelidateMixin],
-  props: {
-    safeMode: {
-      type: Boolean,
-      default: null,
-    },
+const { startLoader, endLoader } = useLoadingBar();
+const Toast = useToastComposable();
+const { dataFormatter } = useDataFormatterGlobal();
+const { getValidationState } = useVuelidateComposable();
+const systemParametersStore = SystemParametersStore();
+
+defineProps({
+  safeMode: {
+    type: Boolean,
+    default: null,
   },
-  data() {
-    return {
-      isDisabled: true,
-      frequencyValue: 0,
-    };
+});
+
+const isDisabled = ref(true);
+const frequencyValue = ref(0);
+
+const frequencyMax = computed(() => systemParametersStore.frequencyMaxGetter);
+const frequencyMin = computed(() => systemParametersStore.frequencyMinGetter);
+const frequencyRequestCurrent = computed(
+  () => systemParametersStore.frequencyRequestCurrentGetter,
+);
+const frequencyControl = computed({
+  get() {
+    return frequencyRequestCurrent.value > 0;
   },
-  computed: {
-    frequencyMax() {
-      return this.$store.getters['systemParameters/frequencyMax'];
-    },
-    frequencyMin() {
-      return this.$store.getters['systemParameters/frequencyMin'];
-    },
-    frequencyRequestCurrent() {
-      return this.$store.getters['systemParameters/frequencyRequestCurrent'];
-    },
-    frequencyControl: {
-      get() {
-        return this.frequencyRequestCurrent > 0;
-      },
-      set(newValue) {
-        this.changeFrequencyControl();
-        return newValue;
-      },
-    },
-    frequencyRequestCurrentToggle: {
-      get() {
-        return this.$store.getters[
-          'systemParameters/frequencyRequestCurrentToggle'
-        ];
-      },
-      set(newValue) {
-        return newValue;
-      },
-    },
+  set(newValue) {
+    return newValue;
   },
-  validations() {
-    return {
-      frequencyValue: {
-        requiredIf: requiredIf(this.frequencyRequestCurrentToggle),
-        numeric,
-        between: between(this.frequencyMin, this.frequencyMax),
-      },
-    };
+});
+const frequencyRequestCurrentToggle = computed({
+  get() {
+    return systemParametersStore.frequencyRequestCurrentToggleGetter;
   },
-  created() {
-    this.startLoader();
-    this.$store.dispatch('systemParameters/getFrequencyCap').then(() => {
-      this.frequencyValue =
-        this.$store.getters['systemParameters/frequencyRequest'];
-      this.endLoader();
-    });
+  set(newValue) {
+    return newValue;
   },
-  methods: {
-    changeFrequencyRequestCurrent(state) {
-      if (state) {
-        this.frequencyValue = this.frequencyMax;
-        this.$store
-          .dispatch('systemParameters/saveFrequencyCap', {
-            frequency: this.frequencyMax,
-            state: state,
-          })
-          .then((message) => this.successToast(message))
-          .catch(({ message }) => this.errorToast(message));
-      } else {
-        this.frequencyValue = 0;
-        this.$store
-          .dispatch('systemParameters/saveFrequencyCap', {
-            frequency: 0,
-            state: state,
-          })
-          .then((message) => this.successToast(message))
-          .catch(({ message }) => this.errorToast(message));
-      }
-    },
-    saveFrequencyRequest() {
-      if (this.$v.$invalid) return;
-      this.$store
-        .dispatch(
-          'systemParameters/newFrequencyCapRequest',
-          this.frequencyValue,
-        )
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
-    frequencyRequest(value) {
-      this.frequencyValue = Number(value);
-    },
+});
+const rules = computed(() => ({
+  frequencyValue: {
+    requiredIf: requiredIf(frequencyRequestCurrentToggle),
+    numeric,
+    between: between(frequencyMin, frequencyMax),
   },
+}));
+const v$ = useVuelidate(rules, { frequencyValue });
+
+onBeforeMount(() => {
+  startLoader();
+  systemParametersStore
+    .getFrequencyCap()
+    .then(() => {
+      frequencyValue.value = systemParametersStore.frequencyRequestGetter;
+    })
+    .finally(() => endLoader());
+});
+const changeFrequencyRequestCurrent = (state) => {
+  if (state) {
+    frequencyValue.value = frequencyMax.value;
+    systemParametersStore
+      .saveFrequencyCap({
+        frequency: frequencyMax.value,
+        state: state,
+      })
+      .then((message) => Toast.successToast(message))
+      .catch(({ message }) => Toast.errorToast(message));
+  } else {
+    frequencyValue.value = 0;
+    systemParametersStore
+      .saveFrequencyCap({
+        frequency: 0,
+        state: state,
+      })
+      .then((message) => Toast.successToast(message))
+      .catch(({ message }) => Toast.errorToast(message));
+  }
+};
+const saveFrequencyRequest = () => {
+  if (v$.value.$invalid) {
+    return;
+  }
+  systemParametersStore
+    .newFrequencyCapRequest(frequencyValue.value)
+    .then((message) => Toast.successToast(message))
+    .catch(({ message }) => Toast.errorToast(message));
+};
+const frequencyRequest = (value) => {
+  frequencyValue.value = Number(value);
 };
 </script>
 

@@ -1,59 +1,51 @@
 <template>
-  <b-container fluid="xl">
-    <b-row>
-      <b-col md="8" xl="6">
+  <BContainer fluid="xl">
+    <BRow>
+      <BCol md="8" xl="6">
         <page-title :title="$t('appPageTitle.systemParameters')" />
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
     <lateral-cast-out :is-server-off="isServerOff" />
     <frequency-cap :is-server-off="isServerOff" />
     <aggressive-prefetch :is-server-off="isServerOff" />
     <runtime-processor-diagnostic :is-server-off="isServerOff" />
-  </b-container>
+  </BContainer>
 </template>
 
-<script>
-import PageTitle from '@/components/Global/PageTitle';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
-import LateralCastOut from './LateralCastOut';
-import FrequencyCap from './FrequencyCap';
-import AggressivePrefetch from './AggressivePrefetch';
-import RuntimeProcessorDiagnostic from './RuntimeProcessorDiagnostic';
+<script setup>
+import PageTitle from '@/components/Global/PageTitle.vue';
+import LateralCastOut from './LateralCastOut.vue';
+import FrequencyCap from './FrequencyCap.vue';
+import AggressivePrefetch from './AggressivePrefetch.vue';
+import RuntimeProcessorDiagnostic from './RuntimeProcessorDiagnostic.vue';
+import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
+import { SystemParametersStore, GlobalStore } from '@/store';
+import { onBeforeMount, computed } from 'vue';
+const { startLoader, endLoader } = useLoadingBar();
+const systemParametersStore = SystemParametersStore();
+const global = GlobalStore();
 
-export default {
-  name: 'SystemParameters',
-  components: {
-    PageTitle,
-    LateralCastOut,
-    FrequencyCap,
-    AggressivePrefetch,
-    RuntimeProcessorDiagnostic,
-  },
-  mixins: [LoadingBarMixin, BVToastMixin],
-  computed: {
-    serverStatus() {
-      return this.$store.getters['global/serverStatus'];
-    },
-    isServerOff() {
-      return this.serverStatus === 'off' ? true : false;
-    },
-  },
-  created() {
-    this.startLoader();
-    Promise.all([
-      this.$store.dispatch('systemParameters/getLateralCastOutMode'),
-      this.$store.dispatch('systemParameters/getAggressivePrefetch'),
-      this.$store.dispatch('systemParameters/getImmediateTestRequested'),
-      this.$store.dispatch('systemParameters/getGuardOnError'),
-      this.$store.dispatch('systemParameters/getRpdPolicyOptions'),
-      this.$store.dispatch('systemParameters/getRpdFeatureOptions'),
-      this.$store.dispatch('systemParameters/getRpdPolicy'),
-      this.$store.dispatch('systemParameters/getRpdPolicyCurrent'),
-      this.$store.dispatch('systemParameters/getRpdFeature'),
-      this.$store.dispatch('systemParameters/getRpdScheduledRun'),
-      this.$store.dispatch('systemParameters/getRpdScheduledRunDuration'),
-    ]).finally(() => this.endLoader());
-  },
-};
+const serverStatus = computed(() => {
+  return global.serverStatus;
+});
+const isServerOff = computed(() => {
+  return serverStatus.value === 'off' ? true : false;
+});
+
+onBeforeMount(() => {
+  startLoader();
+  Promise.all([
+    systemParametersStore.getLateralCastOutMode(),
+    systemParametersStore.getAggressivePrefetch(),
+    systemParametersStore.getImmediateTestRequested(),
+    systemParametersStore.getGuardOnError(),
+    systemParametersStore.getRpdPolicyOptions(),
+    systemParametersStore.getRpdFeatureOptions(),
+    systemParametersStore.getRpdPolicy(),
+    systemParametersStore.getRpdPolicyCurrent(),
+    systemParametersStore.getRpdFeature(),
+    systemParametersStore.getRpdScheduledRun(),
+    systemParametersStore.getRpdScheduledRunDuration(),
+  ]).finally(() => endLoader());
+});
 </script>

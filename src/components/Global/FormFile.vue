@@ -43,6 +43,7 @@
 <script setup>
 import { ref, computed, defineEmits } from 'vue';
 import IconClose from '@carbon/icons-vue/es/close/20';
+import eventBus from '@/eventBus';
 
 const emit = defineEmits(['input']);
 
@@ -69,16 +70,18 @@ const props = defineProps({
   },
 });
 
-const file = ref(null);
-
-const isSecondary = computed(() => {
-  return props.variant === 'secondary';
-});
-
 function clearFile() {
   file.value = null;
   emit('input', file.value);
 }
+const file = ref(null);
+const isSecondary = computed(() => {
+  return props.variant === 'secondary';
+});
+
+eventBus.on('clear-file', () => {
+  clearFile();
+});
 </script>
 
 <style lang="scss" scoped>

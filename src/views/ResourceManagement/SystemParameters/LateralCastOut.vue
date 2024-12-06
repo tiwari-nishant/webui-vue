@@ -1,7 +1,7 @@
 <template>
   <div>
-    <b-row class="section-divider">
-      <b-col class="d-flex align-items-center justify-content-between">
+    <BRow class="section-divider">
+      <BCol class="d-flex align-items-center justify-content-between">
         <dl class="mr-3 w-75">
           <dt id="ateral-cast-out-label">
             {{ $t('pageSystemParameters.lateralCastOut') }}
@@ -11,56 +11,51 @@
             {{ $t('pageSystemParameters.lateralCastOutDescription') }}
           </dd>
         </dl>
-        <b-form-checkbox
+        <BFormCheckbox
           id="lateral-cast-out-switch"
-          v-model="lateralCastOutModeState"
+          v-model="systemParametersStore.lateralCastOutMode"
           aria-labelledby="lateral-cast-out-label"
           aria-describedby="lateral-cast-out-description"
           switch
-          @change="changeLateralCastOutState"
+          @update:modelValue="changeLateralCastOutState"
         >
           <span v-if="lateralCastOutModeState">
             {{ $t('global.status.enabled') }}
           </span>
           <span v-else>{{ $t('global.status.disabled') }}</span>
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+        </BFormCheckbox>
+      </BCol>
+    </BRow>
   </div>
 </template>
 
-<script>
-import InfoTooltip from '@/components/Global/InfoTooltip';
-import BVToastMixin from '@/components/Mixins/BVToastMixin';
-import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
+<script setup>
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
+import { SystemParametersStore } from '@/store';
+import { computed, defineProps } from 'vue';
+import useToastComposable from '@/components/Composables/useToastComposable';
+const systemParametersStore = SystemParametersStore();
+const Toast = useToastComposable();
 
-export default {
-  name: 'LateralCastOut',
-  components: { InfoTooltip },
-  mixins: [LoadingBarMixin, BVToastMixin],
-  props: {
-    safeMode: {
-      type: Boolean,
-      default: null,
-    },
+defineProps({
+  safeMode: {
+    type: Boolean,
+    default: null,
   },
-  computed: {
-    lateralCastOutModeState: {
-      get() {
-        return this.$store.getters['systemParameters/lateralCastOutMode'];
-      },
-      set(newValue) {
-        return newValue;
-      },
-    },
+});
+const lateralCastOutModeState = computed({
+  get() {
+    return systemParametersStore.lateralCastOutModeGetter;
   },
-  methods: {
-    changeLateralCastOutState(state) {
-      this.$store
-        .dispatch('systemParameters/saveLateralCastOutMode', state)
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
-    },
+  set(newValue) {
+    return newValue;
   },
+});
+
+const changeLateralCastOutState = (state) => {
+  systemParametersStore
+    .saveLateralCastOutMode(state)
+    .then((message) => Toast.successToast(message))
+    .catch(({ message }) => Toast.errorToast(message));
 };
 </script>
