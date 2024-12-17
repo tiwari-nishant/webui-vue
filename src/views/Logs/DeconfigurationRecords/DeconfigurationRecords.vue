@@ -40,6 +40,9 @@
               :data="batchExportData"
               :file-name="exportFileNameByDate()"
             />
+            <b-button variant="primary" @click="onBatchAction('delete')">
+              <icon-delete /> {{ $t('global.action.delete') }}
+            </b-button>
           </template>
         </table-toolbar>
         <b-table
@@ -55,6 +58,7 @@
           show-empty
           sort-by="id"
           sort-desc.sync="status"
+          :actions="batchActions"
           :fields="fields"
           :items="filteredLogs"
           :empty-text="$t('global.table.emptyMessage')"
@@ -143,13 +147,16 @@
             <p class="mb-0">{{ value | formatDate }}</p>
             <p class="mb-0">{{ value | formatTime }}</p>
           </template>
+          <!-- Severity column -->
           <template #cell(severity)="{ value }">
             {{
               value === 'Critical'
                 ? $t('pageDeconfigurationRecords.severityValues.fatal')
+                : value === 'Spare'
+                ? $t('pageDeconfigurationRecords.severityValues.spare')
                 : value === 'Warning'
                 ? $t('pageDeconfigurationRecords.severityValues.predictive')
-                : value === 'OK'
+                : value === 'Manual'
                 ? $t('pageDeconfigurationRecords.severityValues.manual')
                 : '--'
             }}
@@ -165,6 +172,21 @@
           </template>
           <template #cell(filterByStatus)="{ value }">
             {{ value }}
+          </template>
+          <!-- Actions column -->
+          <template #cell(actions)="row">
+            <table-row-action
+              v-for="(action, index) in batchActions"
+              :key="index"
+              :value="action.value"
+              :title="action.title"
+              :row-data="row.item"
+              @click-table-action="onTableRowAction(action.value, row.item.uri)"
+            >
+              <template #icon>
+                <icon-delete v-if="action.value === 'delete'" />
+              </template>
+            </table-row-action>
           </template>
         </b-table>
       </b-col>
@@ -213,6 +235,7 @@ import TableFilter from '@/components/Global/TableFilter';
 import TableFilterMixin from '@/components/Mixins/TableFilterMixin';
 import TableToolbar from '@/components/Global/TableToolbar';
 import TableToolbarExport from '@/components/Global/TableToolbarExport';
+import TableRowAction from '@/components/Global/TableRowAction';
 
 import BVTableSelectableMixin, {
   selectedRows,
@@ -239,6 +262,7 @@ export default {
     TableFilter,
     TableToolbar,
     TableToolbarExport,
+    TableRowAction,
   },
   mixins: [
     BVPaginationMixin,
@@ -296,6 +320,12 @@ export default {
           label: this.$t('pageDeconfigurationRecords.table.status'),
           sortable: false,
         },
+        {
+          key: 'actions',
+          sortable: false,
+          label: '',
+          tdClass: 'text-right text-nowrap',
+        },
       ],
       tableFilters: [
         {
@@ -314,6 +344,12 @@ export default {
       currentPage: currentPage,
       perPage: perPage,
       itemsPerPageOptions: itemsPerPageOptions,
+      batchActions: [
+        {
+          value: 'delete',
+          title: this.$t('global.action.delete'),
+        },
+      ],
     };
   },
   computed: {
@@ -369,18 +405,11 @@ export default {
           }
         });
     },
-    deleteRecords(uris) {
+    async deleteRecords(uri) {
       this.$store
-        .dispatch('deconfigurationRecords/deleteRecords', uris)
-        .then((messages) => {
-          messages.forEach(({ type, message }) => {
-            if (type === 'success') {
-              this.successToast(message);
-            } else if (type === 'error') {
-              this.errorToast(message);
-            }
-          });
-        });
+        .dispatch('deconfigurationRecords/deleteRecords', uri)
+        .then((message) => this.successToast(message))
+        .catch(({ message }) => this.errorToast(message));
     },
     downloadLog(uri, date) {
       this.startLoader();
@@ -421,7 +450,7 @@ export default {
     onFilterChange({ activeFilters }) {
       this.activeFilters = activeFilters;
     },
-    onTableRowAction(action, { uri }) {
+    onTableRowAction(action, uri) {
       if (action === 'delete') {
         this.$bvModal
           .msgBoxConfirm(
@@ -434,6 +463,31 @@ export default {
           )
           .then((deleteConfirmed) => {
             if (deleteConfirmed) this.deleteRecords([uri]);
+          });
+      }
+    },
+    onBatchAction(action) {
+      if (action === 'delete') {
+        const uris = this.selectedRows.map((row) => row.uri);
+        this.$bvModal
+          .msgBoxConfirm(
+            this.$tc(
+              'pageDeconfigurationRecords.modal.deleteMessage',
+              this.selectedRows.length
+            ),
+            {
+              title: this.$tc(
+                'pageDeconfigurationRecords.modal.deleteTitle',
+                this.selectedRows.length
+              ),
+              okTitle: this.$t('global.action.delete'),
+              cancelTitle: this.$t('global.action.cancel'),
+            }
+          )
+          .then((deleteConfirmed) => {
+            if (deleteConfirmed) {
+              this.deleteRecords(uris);
+            }
           });
       }
     },

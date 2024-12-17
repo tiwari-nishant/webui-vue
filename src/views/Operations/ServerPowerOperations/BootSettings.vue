@@ -129,9 +129,14 @@ export default {
               this.successToast(message);
             }
           }
-          this.$store
-            .dispatch('serverBootSettings/getAttributeValues')
-            .catch((error) => console.log(error));
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              this.$store
+                .dispatch('serverBootSettings/getAttributeValues')
+                .catch((error) => console.log(error))
+                .finally(resolve); // Resolve the promise after the setTimeout logic
+            }, 5000);
+          });
         })
         .catch(({ message }) => {
           this.errorToast(message);

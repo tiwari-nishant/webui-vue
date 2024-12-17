@@ -844,7 +844,9 @@ export default {
   },
   created() {
     this.$store.dispatch('serverBootSettings/getLocationCodes');
-    this.$store.dispatch('resourceMemory/getHmcManaged');
+    setTimeout(() => {
+      this.$store.dispatch('resourceMemory/getHmcManaged');
+    }, 5000);
     this.currentOperatingMode = this.attributeKeys['pvm_system_operating_mode'];
     if (this.currentOperatingMode === this.manualMode) {
       this.onChangeSystemOpsMode(this.manualMode);

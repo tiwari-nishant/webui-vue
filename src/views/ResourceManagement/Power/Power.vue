@@ -27,7 +27,11 @@
     </b-row>
     <power-cap :safe-mode="safeMode" />
     <power-performance-modes :safe-mode="safeMode" />
-    <power-idle-saver :safe-mode="safeMode" />
+    <power-idle-saver
+      :oem-mode="oemMode"
+      :safe-mode="safeMode"
+      :non-idle-power-saver-mode="nonIdlePowerSaverMode"
+    />
   </b-container>
 </template>
 
@@ -61,6 +65,14 @@ export default {
   computed: {
     safeMode() {
       return this.$store.getters['global/safeMode'];
+    },
+    oemMode() {
+      return this.$store.getters['powerControl/oemMode'];
+    },
+    nonIdlePowerSaverMode() {
+      return this.$store.getters['powerControl/idlePowerSaverData']
+        ? false
+        : true;
     },
   },
   created() {

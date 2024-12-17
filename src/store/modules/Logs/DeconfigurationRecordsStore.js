@@ -49,9 +49,8 @@ const DeconfigurationRecordsStore = {
             allMembers.map(async (log) => {
               const {
                 Id,
-                Severity,
+                MessageArgs,
                 Created,
-                Message,
                 Name,
                 AdditionalDataURI,
                 AdditionalData = AdditionalDataURI
@@ -70,7 +69,7 @@ const DeconfigurationRecordsStore = {
               return {
                 additionalDataUri: AdditionalDataURI,
                 date: new Date(Created),
-                description: Message,
+                description: MessageArgs[1],
                 filterByStatus: AdditionalData?.Resolved
                   ? 'Resolved'
                   : 'Unresolved',
@@ -80,7 +79,7 @@ const DeconfigurationRecordsStore = {
                 srcDetails: AdditionalData?.EventId,
                 status: AdditionalData?.Resolved, //true or false
                 uri: log['@odata.id'],
-                severity: Severity,
+                severity: MessageArgs[0],
                 location: LocationCode,
                 eventID: eventId,
               };
@@ -147,6 +146,21 @@ const DeconfigurationRecordsStore = {
           console.log(error);
           throw new Error(
             i18n.t('pageDeconfigurationRecords.toast.errorStartDownload')
+          );
+        });
+    },
+    async deleteRecords({ dispatch }, uris = []) {
+      const promises = uris.map((uri) => api.delete(uri));
+      return await api
+        .all(promises)
+        .then(() => dispatch('getDeconfigurationRecordInfo'))
+        .then(() =>
+          i18n.tc('pageDeconfigurationRecords.toast.successDelete', uris.length)
+        )
+        .catch((error) => {
+          console.log(error);
+          throw new Error(
+            i18n.tc('pageDeconfigurationRecords.toast.errorDelete', uris.length)
           );
         });
     },

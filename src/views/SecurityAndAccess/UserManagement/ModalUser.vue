@@ -195,6 +195,12 @@
                 </b-form-invalid-feedback>
               </input-password-toggle>
             </b-form-group>
+            <b-form-checkbox
+              v-if="(isAdminUser || isServiceUser) && newUser && globalMfaValue"
+              v-model="mfaBypass"
+            >
+              {{ $t('pageUserManagement.table.mfaByPass') }}
+            </b-form-checkbox>
           </b-col>
         </b-row>
       </b-container>
@@ -255,6 +261,7 @@ export default {
   data() {
     return {
       originalUsername: '',
+      mfaBypass: false,
       form: {
         status: true,
         username: '',
@@ -268,6 +275,15 @@ export default {
   computed: {
     editDisabled() {
       return !this.user?.RoleId; // Todo - erase this. Use computed property notService
+    },
+    isAdminUser() {
+      return this.$store.getters['global/isAdminUser'];
+    },
+    isServiceUser() {
+      return this.$store.getters['global/isServiceUser'];
+    },
+    globalMfaValue() {
+      return this.$store.getters['userManagement/isGlobalMfaEnabled'];
     },
     newUser() {
       return this.user ? false : true;
@@ -376,11 +392,16 @@ export default {
         }
       }
 
-      this.$emit('ok', { isNewUser: this.newUser, userData });
+      this.$emit('ok', {
+        isNewUser: this.newUser,
+        userData,
+        mfaBypass: this.mfaBypass,
+      });
       this.closeModal();
     },
     closeModal() {
       this.$nextTick(() => {
+        this.mfaBypass = false;
         this.$refs.modal.hide();
       });
     },

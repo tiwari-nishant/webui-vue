@@ -21,16 +21,16 @@ export default {
       ],
       items: [
         {
-          setting: this.$t('pagePower.selectMode.static'),
-          description: this.$t('pagePower.tableRoles.descStatic'),
-        },
-        {
-          setting: this.$t('pagePower.selectMode.powerSaving'),
-          description: this.$t('pagePower.tableRoles.descPowerSaving'),
-        },
-        {
-          setting: this.$t('pagePower.selectMode.maximumPerformance'),
+          setting: this.$t('pagePower.selectMode.maximumPerformance.primary'),
           description: this.$t('pagePower.tableRoles.descMaximumPerformance'),
+        },
+        {
+          setting: this.$t('pagePower.selectMode.energyEfficient.primary'),
+          description: this.$t('pagePower.tableRoles.descEnergyEfficient'),
+        },
+        {
+          setting: this.$t('pagePower.selectMode.maximumEnergySaver.primary'),
+          description: this.$t('pagePower.tableRoles.descMaximumEnergySaver'),
         },
       ],
     };

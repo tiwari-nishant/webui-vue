@@ -23,6 +23,7 @@ const PowerControlStore = {
     powerPerformanceMode: (state) => state.powerPerformanceMode,
     powerPerformanceModeValues: (state) => state.powerPerformanceModeValues,
     idlePowerSaverData: (state) => state.idlePowerSaverData,
+    oemMode: (state) => state.powerPerformanceMode === 'OEM',
   },
   mutations: {
     setPowerConsumption: (state, powerConsumptionValue) =>

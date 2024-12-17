@@ -2,6 +2,14 @@
   <div>
     <page-section :section-title="$t('pagePower.powerPerformanceModesTitle')">
       <b-row class="mb-3">
+        <b-col md="9" xl="8">
+          <alert v-if="oemMode" variant="info" class="mb-4">
+            <p class="mb-0">
+              <b>{{ $t('pagePower.oemMode.message1') }} </b
+              >{{ $t('pagePower.oemMode.message2') }}
+            </p></alert
+          >
+        </b-col>
         <b-col xl="10">
           <b-button v-b-toggle.collapse-role-table variant="link">
             <icon-chevron />
@@ -24,16 +32,54 @@
               <b-row>
                 <b-col>
                   <b-form-group :label="$t('pagePower.selectModeLabel')">
-                    <b-form-radio-group
-                      id="power-save-modes"
+                    <b-form-radio
                       v-model="powerPerformanceMode"
-                      :options="powerPerformanceModeOptions"
-                      stacked
-                    ></b-form-radio-group>
+                      value="MaximumPerformance"
+                      @change="setPowerPerformanceValue('MaximumPerformance')"
+                      >{{
+                        $t('pagePower.selectMode.maximumPerformance.primary')
+                      }}
+                      <info-tooltip
+                        :title="
+                          $t(
+                            'pagePower.selectMode.maximumPerformance.secondary'
+                          )
+                        "
+                      />
+                    </b-form-radio>
+                    <b-form-radio
+                      v-model="powerPerformanceMode"
+                      value="EfficiencyFavorPower"
+                      @change="setPowerPerformanceValue('EfficiencyFavorPower')"
+                      >{{ $t('pagePower.selectMode.energyEfficient.primary') }}
+                      <info-tooltip
+                        :title="
+                          $t('pagePower.selectMode.energyEfficient.secondary')
+                        "
+                    /></b-form-radio>
+                    <b-form-radio
+                      v-model="powerPerformanceMode"
+                      value="PowerSaving"
+                      @change="setPowerPerformanceValue('PowerSaving')"
+                      >{{
+                        $t('pagePower.selectMode.maximumEnergySaver.primary')
+                      }}
+                      <info-tooltip
+                        :title="
+                          $t(
+                            'pagePower.selectMode.maximumEnergySaver.secondary'
+                          )
+                        "
+                    /></b-form-radio>
                   </b-form-group>
                 </b-col>
               </b-row>
-              <b-button variant="primary" type="submit" form="form-power-saver">
+              <b-button
+                :disabled="powerPerformanceMode === 'OEM'"
+                variant="primary"
+                type="submit"
+                form="form-power-saver"
+              >
                 {{ $t('pagePower.submitButton') }}
               </b-button>
             </b-form-group>
@@ -56,6 +102,8 @@ import BVToastMixin from '@/components/Mixins/BVToastMixin';
 import IconChevron from '@carbon/icons-vue/es/chevron--up/20';
 import ModalPowerPerformanceModes from './ModalPowerPerformanceModes';
 import TablePowerPerformanceModes from './TablePowerPerformanceModes';
+import InfoTooltip from '@/components/Global/InfoTooltip';
+import Alert from '@/components/Global/Alert';
 
 export default {
   components: {
@@ -63,6 +111,8 @@ export default {
     IconChevron,
     ModalPowerPerformanceModes,
     TablePowerPerformanceModes,
+    InfoTooltip,
+    Alert,
   },
   mixins: [BVToastMixin, LoadingBarMixin],
   beforeRouteLeave(to, from, next) {
@@ -99,6 +149,9 @@ export default {
     powerPerformanceModeValues() {
       return this.$store.getters['powerControl/powerPerformanceModeValues'];
     },
+    oemMode() {
+      return this.$store.getters['powerControl/oemMode'];
+    },
   },
   created() {
     this.startLoader();
@@ -120,13 +173,29 @@ export default {
       this.$bvModal.show('modal-power-performance-modes');
     },
     savePowerPerformanceMode() {
+      this.startLoader();
       this.$store
         .dispatch(
           'powerControl/setPowerPerformanceMode',
           this.powerPerformanceMode
         )
-        .then((message) => this.successToast(message))
-        .catch(({ message }) => this.errorToast(message));
+        .then((message) => {
+          this.successToast(message);
+          this.$store.commit(
+            'powerControl/setPowerPerformanceMode',
+            this.powerPerformanceMode
+          );
+        })
+        .then(() => this.$store.dispatch('powerControl/getIdlePowerSaverData'))
+        .catch(({ message }) => {
+          this.errorToast(message);
+          this.$store
+            .dispatch('powerControl/getPowerPerformanceMode')
+            .then(() =>
+              this.setPowerPerformanceValue(this.powerPerformanceModeData)
+            );
+        })
+        .finally(() => this.endLoader());
     },
   },
 };

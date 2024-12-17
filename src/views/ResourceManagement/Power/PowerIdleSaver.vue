@@ -2,11 +2,24 @@
   <div>
     <page-section :section-title="$t('pagePower.idlePower')">
       <b-row>
+        <b-col sm="8" md="8" xl="6">
+          <alert
+            v-if="nonIdlePowerSaverMode && !loading"
+            variant="info"
+            class="mb-4"
+          >
+            <p class="mb-0">
+              {{ $t('pagePower.nonIdlePowerSaverMode') }}
+            </p></alert
+          >
+        </b-col>
+      </b-row>
+      <b-row>
         <b-col sm="8" md="6" xl="12">
           <b-form-group>
             <b-form-checkbox
               v-model="idlePowerSaver.isIdlePowerSaverEnabled"
-              :disabled="loading || safeMode"
+              :disabled="isDisabled"
               data-test-id="power-checkbox-toggleIdlePower"
               name="idle-power-saver"
             >
@@ -22,7 +35,7 @@
         @submit.prevent="saveIdlePowerSaverData"
         @reset.prevent="resetIdlePowerSaverData"
       >
-        <b-form-group :disabled="loading || safeMode">
+        <b-form-group :disabled="isDisabled">
           <div class="font-weight-bold mb-2">{{ $t('pagePower.toEnter') }}</div>
           <b-row>
             <b-col sm="8" md="6" xl="4">
@@ -179,12 +192,14 @@ import PageSection from '@/components/Global/PageSection';
 import LoadingBarMixin, { loading } from '@/components/Mixins/LoadingBarMixin';
 import VuelidateMixin from '@/components/Mixins/VuelidateMixin.js';
 import BVToastMixin from '@/components/Mixins/BVToastMixin';
+import Alert from '@/components/Global/Alert';
 import { between, maxValue, minValue } from 'vuelidate/lib/validators';
 
 export default {
   name: 'Power',
   components: {
     PageSection,
+    Alert,
   },
   mixins: [VuelidateMixin, BVToastMixin, LoadingBarMixin],
   beforeRouteLeave(to, from, next) {
@@ -193,6 +208,14 @@ export default {
   },
   props: {
     safeMode: {
+      type: Boolean,
+      default: null,
+    },
+    oemMode: {
+      type: Boolean,
+      default: null,
+    },
+    nonIdlePowerSaverMode: {
       type: Boolean,
       default: null,
     },
@@ -217,11 +240,20 @@ export default {
     idlePowerSaverData() {
       return this.$store.getters['powerControl/idlePowerSaverData'];
     },
+    isDisabled() {
+      return this.loading || this.safeMode || this.nonIdlePowerSaverMode;
+    },
+  },
+  watch: {
+    idlePowerSaverData: function (newValue) {
+      if (!this.safeMode) {
+        this.setIdlePowerSaveFormValues(newValue);
+      }
+    },
   },
   created() {
     this.startLoader();
     this.$store.dispatch('powerControl/getIdlePowerSaverData').finally(() => {
-      this.setIdlePowerSaveFormValues(this.idlePowerSaverData);
       this.endLoader();
     });
   },
