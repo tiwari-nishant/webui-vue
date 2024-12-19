@@ -8,6 +8,7 @@ const NetworkStore = {
     dchpEnabledState: false,
     ipv6DchpEnabledState: false,
     ipv6AutoConfigEnabled: false,
+    lldpEnabledState: [],
     networkSettings: [],
     selectedInterfaceId: '', // which tab is selected
     selectedInterfaceIndex: 0, // which tab is selected
@@ -15,6 +16,7 @@ const NetworkStore = {
   },
   getters: {
     dchpEnabledState: (state) => state.dchpEnabledState,
+    lldpEnabledState: (state) => state.lldpEnabledState,
     ipv6DchpEnabledState: (state) => state.ipv6DchpEnabledState,
     ipv6AutoConfigEnabled: (state) => state.ipv6AutoConfigEnabled,
     networkSettings: (state) => state.networkSettings,
@@ -42,6 +44,11 @@ const NetworkStore = {
     setSelectedInterfaceIndex: (state, selectedInterfaceIndex) =>
       (state.selectedInterfaceIndex = selectedInterfaceIndex),
     setIsTableBusy: (state, isTableBusy) => (state.isTableBusy = isTableBusy),
+    setLLDPEnabledState: (state, lldpData) =>
+      (state.lldpEnabledState = lldpData.map((data) => {
+        const { LLDPEnabled } = data;
+        return { lldpEnabled: LLDPEnabled };
+      })),
     setNetworkSettings: (state, data) => {
       state.networkSettings = data.map(({ data }) => {
         const {
@@ -98,13 +105,17 @@ const NetworkStore = {
             (ethernetInterface) => ethernetInterface['@odata.id']
           )
         )
-        .then((ethernetInterfaceIds) =>
-          api.all(
-            ethernetInterfaceIds.map((ethernetInterface) =>
-              api.get(ethernetInterface)
-            )
-          )
-        )
+        .then((ethernetInterfaceIds) => {
+          let interfaces = [];
+          ethernetInterfaceIds.map((ethernetInterface) => {
+            if (!ethernetInterface.includes('Ports')) {
+              interfaces.push(ethernetInterface);
+            }
+          });
+          return api.all(
+            interfaces.map((ethernetInterface) => api.get(ethernetInterface))
+          );
+        })
         .then((ethernetInterfaces) => {
           const ethernetData = ethernetInterfaces.map(
             (ethernetInterface) => ethernetInterface.data
@@ -122,6 +133,36 @@ const NetworkStore = {
         })
         .catch((error) => {
           console.log('Network Data:', error);
+        });
+    },
+    async getLLDPData({ commit }) {
+      return await api
+        .get('/redfish/v1/Managers/bmc/EthernetInterfaces')
+        .then((response) =>
+          response.data.Members.map(
+            (ethernetInterface) => ethernetInterface['@odata.id']
+          )
+        )
+        .then((ethernetInterfaceIds) => {
+          let lldpInterfaces = [];
+          ethernetInterfaceIds.map((ethernetInterface) => {
+            if (ethernetInterface.includes('Ports')) {
+              lldpInterfaces.push(ethernetInterface);
+            }
+          });
+
+          return api.all(
+            lldpInterfaces.map((lldpInterface1) => api.get(lldpInterface1))
+          );
+        })
+        .then((lldpIntrfc) => {
+          const lldpData = lldpIntrfc.map(
+            (lldpInterface2) => lldpInterface2?.data?.EthernetProperties
+          );
+          commit('setLLDPEnabledState', lldpData);
+        })
+        .catch((error) => {
+          console.log('Error:', error);
         });
     },
     async getEthernetDataAfterDelay({ commit, dispatch }) {
@@ -246,6 +287,55 @@ const NetworkStore = {
           throw new Error(
             i18n.t('pageNetwork.toast.errorSaveNetworkSettings', {
               setting: i18n.t('pageNetwork.dhcp'),
+            })
+          );
+        });
+    },
+    async saveLLDPState({ commit, state, dispatch }, lldpState) {
+      const lldpData = state.lldpEnabledState.map((item, idx) => {
+        if (idx === state.selectedInterfaceId) {
+          return {
+            ...item,
+            LLDPEnabled: lldpState,
+          };
+        }
+        return item;
+      });
+      commit('setLLDPEnabledState', lldpData);
+      const data = {
+        EthernetProperties: {
+          LLDPEnabled: lldpState,
+        },
+      };
+      return api
+        .patch(
+          `/redfish/v1/Managers/bmc/EthernetInterfaces/Ports/${state.selectedInterfaceId}`,
+          data
+        )
+        .then(() => {
+          dispatch('getLLDPData');
+        })
+        .then(() => {
+          return i18n.t('pageNetwork.toast.successSaveNetworkSettings', {
+            setting: i18n.t('pageNetwork.lldp'),
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+          const lldpData = state.lldpEnabledState.map((item, idx) => {
+            if (idx === state.selectedInterfaceId) {
+              return {
+                ...item,
+                LLDPEnabled: !lldpState,
+              };
+            }
+            return item;
+          });
+          commit('setLLDPEnabledState', lldpData);
+          dispatch('getLLDPData');
+          throw new Error(
+            i18n.t('pageNetwork.toast.errorSaveNetworkSettings', {
+              setting: i18n.t('pageNetwork.lldp'),
             })
           );
         });

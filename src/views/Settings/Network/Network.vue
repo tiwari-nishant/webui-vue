@@ -149,9 +149,10 @@ export default {
   },
   created() {
     this.startLoader();
-    this.$store
-      .dispatch('network/getEthernetData')
-      .finally(() => this.endLoader());
+    Promise.all([
+      this.$store.dispatch('network/getEthernetData'),
+      this.$store.dispatch('network/getLLDPData'),
+    ]).finally(() => this.endLoader());
   },
   methods: {
     getModalInfo() {

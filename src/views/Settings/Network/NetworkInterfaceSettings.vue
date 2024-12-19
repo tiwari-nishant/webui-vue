@@ -54,7 +54,7 @@
             </dd>
           </dl>
         </b-col>
-        <b-col md="3">
+        <b-col md="2">
           <dl>
             <dt>{{ $t('pageNetwork.useNtp') }}</dt>
             <dd>
@@ -67,6 +67,25 @@
                 @change="changeNtpState"
               >
                 <span v-if="useNtpState">
+                  {{ $t('global.status.enabled') }}
+                </span>
+                <span v-else>{{ $t('global.status.disabled') }}</span>
+              </b-form-checkbox>
+            </dd>
+          </dl>
+        </b-col>
+        <b-col lg="2" md="6">
+          <dl>
+            <dt>{{ $t('pageNetwork.lldp') }}</dt>
+            <dd>
+              <b-form-checkbox
+                id="useLLDPSwitch"
+                v-model="lldpState"
+                data-test-id="networkSettings-switch-useNtp"
+                switch
+                @change="changeLLDPState"
+              >
+                <span v-if="lldpState">
                   {{ $t('global.status.enabled') }}
                 </span>
                 <span v-else>{{ $t('global.status.disabled') }}</span>
@@ -114,6 +133,16 @@ export default {
           ? true
           : false;
       return ipv4Dhcp || ipv6Dhcp ? true : false;
+    },
+    lldpState: {
+      get() {
+        return this.$store.getters['network/lldpEnabledState'][
+          this.selectedInterface
+        ]?.lldpEnabled;
+      },
+      set(newValue) {
+        return newValue;
+      },
     },
     useDomainNameState: {
       get() {
@@ -177,6 +206,12 @@ export default {
     changeNtpState(state) {
       this.$store
         .dispatch('network/saveNtpState', state)
+        .then((message) => this.successToast(message))
+        .catch(({ message }) => this.errorToast(message));
+    },
+    changeLLDPState(state) {
+      this.$store
+        .dispatch('network/saveLLDPState', state)
         .then((message) => this.successToast(message))
         .catch(({ message }) => this.errorToast(message));
     },
