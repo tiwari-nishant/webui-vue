@@ -72,7 +72,7 @@ export const SystemStore = defineStore('system', {
     },
     async changeSystemAttentionLedState(ledState) {
       return await api
-        .patch('/api/redfish/v1/Systems/system', {
+        .patch('/redfish/v1/Systems/system', {
           Oem: {
             IBM: {
               PartitionSystemAttentionIndicator: ledState,
