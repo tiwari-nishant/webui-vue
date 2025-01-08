@@ -363,7 +363,12 @@ export const CertificatesStore = defineStore('certificates', {
         )
         //TODO: Success response also throws error so
         // can't accurately show legitimate error in UI
-        .catch((error) => console.log(error));
+        .catch((error) => {
+          console.log(error);
+          throw new Error(
+            i18n.global.t('pageCertificates.toast.errorGenerateCsr')
+          );
+        });
     },
   },
 });

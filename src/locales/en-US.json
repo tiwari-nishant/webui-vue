@@ -382,6 +382,7 @@
       "errorAddCertificate": "Error adding certificate.",
       "errorDeleteCertificate": "Error deleting certificate.",
       "errorReplaceCertificate": "Error replacing certificate.",
+      "errorGenerateCsr": "Error generating CSR.",
       "successAddCertificate": "Successfully added %{certificate}.",
       "successDeleteCertificate": "Successfully deleted %{certificate}.",
       "successReplaceCertificate": "Successfully replaced %{certificate}."
