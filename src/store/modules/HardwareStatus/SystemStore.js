@@ -57,7 +57,7 @@ export const SystemStore = defineStore('system', {
           }
         })
         .catch((error) => {
-          this.setSystemInfo(this.systems[0]);
+          this.getSystem();
           console.log('error', error);
           if (ledState) {
             throw new Error(
@@ -88,7 +88,7 @@ export const SystemStore = defineStore('system', {
           }
         })
         .catch((error) => {
-          this.setSystemInfo(this.systems[0]);
+          this.getSystem();
           console.log('error', error);
           if (!ledState) {
             throw new Error(
@@ -114,7 +114,7 @@ export const SystemStore = defineStore('system', {
           }
         })
         .catch((error) => {
-          this.setSystemInfo(this.systems[0]);
+          this.getSystem();
           console.log('error', error);
           if (lampTestState) {
             throw new Error(
