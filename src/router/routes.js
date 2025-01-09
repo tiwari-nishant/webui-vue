@@ -26,6 +26,7 @@ import Firmware from '@/views/Operations/Firmware';
 import Certificates from '@/views/SecurityAndAccess/Certificates';
 import Inventory from '../views/HardwareStatus/Inventory/Inventory.vue';
 import SystemParameters from '@/views/ResourceManagement/SystemParameters';
+import HardwareDeconfiguration from '../views/Settings/HardwareDeconfiguration/HardwareDeconfiguration.vue';
 
 const roles = {
   administrator: 'Administrator',
@@ -173,6 +174,14 @@ export const routes = [
         component: PowerRestorePolicy,
         meta: {
           title: i18n.global.t('appPageTitle.powerRestorePolicy'),
+        },
+      },
+      {
+        path: '/settings/hardware-deconfiguration',
+        name: 'hardware-deconfiguration',
+        component: HardwareDeconfiguration,
+        meta: {
+          title: i18n.global.t('appPageTitle.deconfigurationHardware'),
         },
       },
       {

@@ -29,6 +29,7 @@ import SystemParametersStore from './modules/ResourceManagement/SystemParameters
 import CertificatesStore from './modules/SecurityAndAccess/CertificatesStore';
 import UserManagementStore from './modules/SecurityAndAccess/UserManagementStore';
 import PcieTopologyStore from './modules/HardwareStatus/PcieTopologyStore.js';
+import HardwareDeconfigurationStore from './modules/Settings/HardwareDeconfigurationStore';
 // ... (export use other stores)
 export {
   EventLogStore,
@@ -60,5 +61,6 @@ export {
   SystemParametersStore,
   CertificatesStore,
   UserManagementStore,
-  PcieTopologyStore
+  PcieTopologyStore,
+  HardwareDeconfigurationStore,
 };

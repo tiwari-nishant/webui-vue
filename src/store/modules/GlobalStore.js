@@ -63,6 +63,8 @@ export const GlobalStore = defineStore('global', {
     currentUserGetter: (state) => state.currentUser,
     isServiceUser: (state) =>
       state.currentUser?.RoleId === 'OemIBMServiceAgent' || !state.currentUser,
+    isReadOnlyUserGetter: (state) =>
+      state.currentUser?.RoleId === 'ReadOnly' || !state.currentUser,
   },
   actions: {
     async getBmcTime() {
