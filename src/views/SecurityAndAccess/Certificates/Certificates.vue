@@ -277,6 +277,7 @@ const initModalDeleteCertificate = (certificate) => {
       modal.value = action.enabled;
     }
   });
+  console.log("modalContent.value",modalContent.value)
 };
 const onModalDelete = (deleteConfirmed) => {
   const certificate = modalCertificate.value;

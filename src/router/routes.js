@@ -26,6 +26,7 @@ import Firmware from '@/views/Operations/Firmware';
 import Certificates from '@/views/SecurityAndAccess/Certificates';
 import Inventory from '../views/HardwareStatus/Inventory/Inventory.vue';
 import SystemParameters from '@/views/ResourceManagement/SystemParameters';
+import Ldap from '../views/SecurityAndAccess/Ldap/Ldap.vue';
 
 const roles = {
   administrator: 'Administrator',
@@ -223,6 +224,14 @@ export const routes = [
           title: i18n.global.t('appPageTitle.pageNotFound'),
         },
       },
+        {
+          path: '/security-and-access/ldap',
+          name: 'ldap',
+          component: Ldap,
+          meta: {
+            title: i18n.global.t('appPageTitle.ldap'),
+          },
+        },
       {
         path: '/notices',
         name: 'notices',
