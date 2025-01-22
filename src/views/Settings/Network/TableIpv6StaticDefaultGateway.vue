@@ -2,45 +2,48 @@
   <div>
     <page-section :section-title="$t('pageNetwork.ipv6StaticDefaultGateway')">
       <b-row>
-        <b-col class="text-right">
-          <b-button
-            variant="primary"
-            :disabled="isTablesDisabled"
-            @click="initIpv6DefaultGatewayModal()"
+        <b-col lg="6">
+          <div class="text-right">
+            <b-button
+              variant="primary"
+              :disabled="isTablesDisabled"
+              @click="initIpv6DefaultGatewayModal()"
+            >
+              <icon-add />
+              {{ $t('pageNetwork.table.addIpv6StaticDefaultGateway') }}
+            </b-button>
+          </div>
+
+          <b-table
+            responsive="md"
+            hover
+            :fields="ipv6DefaultGatewayTableFields"
+            :items="form.ipv6DefaultGatewayTableItems"
+            :empty-text="$t('global.table.emptyMessage')"
+            :busy="isTablesDisabled"
+            class="mb-0"
+            show-empty
           >
-            <icon-add />
-            {{ $t('pageNetwork.table.addIpv6StaticDefaultGateway') }}
-          </b-button>
+            <template #cell(actions)="{ item }">
+              <table-row-action
+                v-for="(action, actionIndex) in item.actions"
+                :key="actionIndex"
+                :value="action.value"
+                :title="action.title"
+                :enabled="action.enabled"
+                @click-table-action="
+                  onIpv6DefaultGatewayTableAction(action, $event, item)
+                "
+              >
+                <template #icon>
+                  <icon-edit v-if="action.value === 'edit'" />
+                  <icon-trashcan v-if="action.value === 'delete'" />
+                </template>
+              </table-row-action>
+            </template>
+          </b-table>
         </b-col>
       </b-row>
-      <b-table
-        responsive="md"
-        hover
-        :fields="ipv6DefaultGatewayTableFields"
-        :items="form.ipv6DefaultGatewayTableItems"
-        :empty-text="$t('global.table.emptyMessage')"
-        :busy="isTablesDisabled"
-        class="mb-0"
-        show-empty
-      >
-        <template #cell(actions)="{ item }">
-          <table-row-action
-            v-for="(action, actionIndex) in item.actions"
-            :key="actionIndex"
-            :value="action.value"
-            :title="action.title"
-            :enabled="action.enabled"
-            @click-table-action="
-              onIpv6DefaultGatewayTableAction(action, $event, item)
-            "
-          >
-            <template #icon>
-              <icon-edit v-if="action.value === 'edit'" />
-              <icon-trashcan v-if="action.value === 'delete'" />
-            </template>
-          </table-row-action>
-        </template>
-      </b-table>
     </page-section>
   </div>
 </template>
@@ -90,10 +93,6 @@ export default {
           key: 'Address',
           label: this.$t('pageNetwork.table.ipAddress'),
         },
-        {
-          key: 'PrefixLength',
-          label: this.$t('pageNetwork.table.prefixLength'),
-        },
         { key: 'actions', label: '', tdClass: 'text-right' },
       ],
     };
@@ -128,7 +127,6 @@ export default {
       this.form.ipv6DefaultGatewayTableItems = addresses.map((ipv6) => {
         return {
           Address: ipv6.Address,
-          PrefixLength: ipv6.PrefixLength,
           actions: [
             {
               value: 'edit',
@@ -161,10 +159,9 @@ export default {
       const newIpv6Array = this.form.ipv6DefaultGatewayTableItems
         .filter((row) => row.Address !== item.Address)
         .map((ipv6) => {
-          const { Address, PrefixLength } = ipv6;
+          const { Address } = ipv6;
           return {
             Address,
-            PrefixLength,
           };
         });
       const addressIp = item.Address;

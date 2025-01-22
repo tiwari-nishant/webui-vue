@@ -56,7 +56,6 @@
       @ok="saveIpv6Address"
     />
     <modal-ipv6-static-default-gateway
-      :prefix-length="prefixLengthIpv6StaticDefaultGateway"
       :ip-address="ipAddressIpv6StaticDefaultGateway"
       :edit-modal="ipAddressIpv6StaticDefaultGateway !== ''"
       @ok="saveIpv6StaticDefaultGatewayAddress"
@@ -65,7 +64,6 @@
     <modal-hostname :hostname="currentHostname" @ok="saveHostname" />
   </b-container>
 </template>
-
 <script>
 import BVToastMixin from '@/components/Mixins/BVToastMixin';
 import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
@@ -83,7 +81,6 @@ import TableIpv4 from './TableIpv4.vue';
 import TableDns from './TableDns.vue';
 import TableIpv6 from './TableIpv6.vue';
 import TableIpv6StaticDefaultGateway from './TableIpv6StaticDefaultGateway.vue';
-
 export default {
   name: 'Network',
   components: {
@@ -113,7 +110,6 @@ export default {
       ipAddress: '',
       ipAddressIpv6: '',
       ipAddressIpv6StaticDefaultGateway: '',
-      prefixLengthIpv6StaticDefaultGateway: 0,
       prefixLength: 0,
       subnet: '',
       loading,
@@ -143,26 +139,24 @@ export default {
       this.ipAddress = item.Address;
       this.ipAddressIpv6StaticDefaultGateway = item.Address;
       this.prefixLength = item.PrefixLength;
-      this.prefixLengthIpv6StaticDefaultGateway = item.PrefixLength;
     });
     this.$store.dispatch('network/setSelectedTabIndex', 0);
   },
   created() {
     this.startLoader();
-    this.$store
-      .dispatch('network/getEthernetData')
-      .finally(() => this.endLoader());
+    Promise.all([
+      this.$store.dispatch('network/getEthernetData'),
+      this.$store.dispatch('network/getLLDPData'),
+    ]).finally(() => this.endLoader());
   },
   methods: {
     getModalInfo() {
       this.defaultGateway = this.$store.getters['network/networkSettings'][
         this.tabIndex
       ].defaultGateway;
-
       this.currentHostname = this.$store.getters['network/networkSettings'][
         this.tabIndex
       ].hostname;
-
       this.currentMacAddress = this.$store.getters['network/networkSettings'][
         this.tabIndex
       ].macAddress;
@@ -245,7 +239,6 @@ export default {
         //Edit selected row
         const selectedRow = {
           Address: this.ipAddressIpv6StaticDefaultGateway,
-          PrefixLength: 0,
         };
         const editRow = modalData.concat(selectedRow);
         this.$store
