@@ -106,14 +106,10 @@ const NetworkStore = {
           )
         )
         .then((ethernetInterfaceIds) => {
-          let interfaces = [];
-          ethernetInterfaceIds.map((ethernetInterface) => {
-            if (!ethernetInterface.includes('Ports')) {
-              interfaces.push(ethernetInterface);
-            }
-          });
           return api.all(
-            interfaces.map((ethernetInterface) => api.get(ethernetInterface))
+            ethernetInterfaceIds.map((ethernetInterface) =>
+              api.get(ethernetInterface)
+            )
           );
         })
         .then((ethernetInterfaces) => {
@@ -137,27 +133,22 @@ const NetworkStore = {
     },
     async getLLDPData({ commit }) {
       return await api
-        .get('/redfish/v1/Managers/bmc/EthernetInterfaces')
+        .get('/redfish/v1/Managers/bmc/DedicatedNetworkPorts')
         .then((response) =>
           response.data.Members.map(
             (ethernetInterface) => ethernetInterface['@odata.id']
           )
         )
         .then((ethernetInterfaceIds) => {
-          let lldpInterfaces = [];
-          ethernetInterfaceIds.map((ethernetInterface) => {
-            if (ethernetInterface.includes('Ports')) {
-              lldpInterfaces.push(ethernetInterface);
-            }
-          });
-
           return api.all(
-            lldpInterfaces.map((lldpInterface1) => api.get(lldpInterface1))
+            ethernetInterfaceIds.map((lldpInterface1) =>
+              api.get(lldpInterface1)
+            )
           );
         })
         .then((lldpIntrfc) => {
           const lldpData = lldpIntrfc.map(
-            (lldpInterface2) => lldpInterface2?.data?.EthernetProperties
+            (lldpInterface2) => lldpInterface2?.data?.Ethernet
           );
           commit('setLLDPEnabledState', lldpData);
         })
@@ -303,13 +294,13 @@ const NetworkStore = {
       });
       commit('setLLDPEnabledState', lldpData);
       const data = {
-        EthernetProperties: {
+        Ethernet: {
           LLDPEnabled: lldpState,
         },
       };
       return api
         .patch(
-          `/redfish/v1/Managers/bmc/EthernetInterfaces/Ports/${state.selectedInterfaceId}`,
+          `/redfish/v1/Managers/bmc/DedicatedNetworkPorts/${state.selectedInterfaceId}`,
           data
         )
         .then(() => {
