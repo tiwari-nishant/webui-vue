@@ -61,7 +61,7 @@
             <b-form-checkbox
               v-model="ldapStore.enabledRoleGroups[row.index].isSelected"
               :disabled="!isServiceEnabled"
-              @change="toggleSelectRow(tableRef, row.index,ldapStore.enabledRoleGroups[row.index].isSelected,row.item)"
+              @change="toggleSelectRowByGroupName(tableRef, row.index,ldapStore.enabledRoleGroups[row.index].isSelected,row.item)"
             >
             </b-form-checkbox>
           </template>
@@ -169,7 +169,7 @@ const {
   tableHeaderCheckboxModel,
   tableHeaderCheckboxIndeterminate,
   onChangeHeaderCheckbox,
-  toggleSelectRow,
+  toggleSelectRowByGroupName,
   onRowSelected,
 } = useTableSelectableComposable();
 const isBusy = ref(true);

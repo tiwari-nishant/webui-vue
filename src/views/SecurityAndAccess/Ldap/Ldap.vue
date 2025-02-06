@@ -55,12 +55,12 @@
                 <dl>
                   <dt>{{ $t('pageLdap.form.caCertificateValidUntil') }}</dt>
                   <dd v-if="caCertificateExpiration">
-                    {{ caCertificateExpiration | formatDate }}
+                    {{ $filters.formatDate(caCertificateExpiration) }}
                   </dd>
                   <dd v-else>--</dd>
                   <dt>{{ $t('pageLdap.form.ldapCertificateValidUntil') }}</dt>
                   <dd v-if="ldapCertificateExpiration">
-                    {{ ldapCertificateExpiration | formatDate }}
+                    {{ $filters.formatDate(ldapCertificateExpiration) }}
                   </dd>
                   <dd v-else>--</dd>
                 </dl>
@@ -444,7 +444,6 @@ function handleSubmit() {
     .finally(() => {
       formLdap.bindPassword = '';
       v$.value.formLdap.$reset();
-      Object.assign(formLdap, initialFormState);
       endLoader();
     });
 }
@@ -472,17 +471,5 @@ function onChangeldapAuthenticationEnabled(event) {
 }
 function updateInputType(passwordType){
   inputType.value=passwordType
-}
-
-// Toggle label based on visibility state
-const togglePasswordLabel = computed(() =>
-  isPasswordVisible.value
-    ? t('global.ariaLabel.showPassword')
-    : t('global.ariaLabel.showPassword')
-);
-
-// Toggle visibility of the password
-function toggleVisibility() {
-  isPasswordVisible.value = !isPasswordVisible.value;
 }
 </script>
