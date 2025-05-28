@@ -43,7 +43,8 @@ import ServiceLogin from '@/views/Operations/ServiceLoginConsoles';
 import ProfileSettings from '@/views/ProfileSettings';
 import Network from '@/views/Settings/Network';
 import Dumps from '@/views/Logs/Dumps';
-import DateTime from '@/views/Settings/DateTime/DateTime.vue'
+import DateTime from '@/views/Settings/DateTime/DateTime.vue';
+import ChangePassword from '@/views/ChangePassword';
 
 const roles = {
   administrator: 'Administrator',
@@ -60,6 +61,15 @@ export const routes = [
         path: '',
         name: 'LoginPage',
         component: LoginPage,
+      },
+      {
+        path: '/change-password',
+        name: 'change-password',
+        component: ChangePassword,
+        meta: {
+          title: i18n.global.t('appPageTitle.changePassword'),
+          requiresAuth: true,
+        },
       },
     ],
   },
