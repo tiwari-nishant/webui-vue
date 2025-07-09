@@ -1,7 +1,8 @@
+require('dotenv').config();
 module.exports = {
   root: true,
   env: {
-    node: true,
+    es2021: true,
   },
   extends: ['plugin:vue/recommended', 'eslint:recommended', '@vue/prettier'],
   rules: {
@@ -17,12 +18,10 @@ module.exports = {
         trailingComma: 'all',
       },
     ],
-    'vue/component-name-in-template-casing': [
-      'error',
-      'PascalCase' | 'kebab-case',
-    ],
+    'vue/component-name-in-template-casing': 'off',
   },
   ignorePatterns: ['*.timestamp-*.mjs'],
+  plugins: ['vitest'],
   overrides: [
     {
       files: [
@@ -30,7 +29,7 @@ module.exports = {
         '**/tests/unit/**/*.spec.{j,t}s?(x)',
       ],
       env: {
-        jest: true,
+        node: true,
       },
     },
   ],
