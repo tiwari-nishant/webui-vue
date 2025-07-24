@@ -20,7 +20,7 @@
           :no-border-collapse="true"
           :items="filteredDimms"
           :fields="fields"
-          :per-page="itemPerPage"
+          :per-page="itemPerPage === 0 ? filteredDimms.length || 1 : itemPerPage"
           :current-page="currentPageNo"
           :filter="searchFilter"
           :empty-text="$t('global.table.emptyMessage')"
@@ -76,8 +76,8 @@
           class="b-pagination"
           first-number
           last-number
-          :per-page="itemPerPage"
-          :total-rows="getTotalRowCount(filteredRows, itemPerPage)"
+          :per-page="itemPerPage === 0 ? filteredDimms.length || 1 : itemPerPage"
+          :total-rows="getTotalRowCount(filteredRows)"
           aria-controls="hardware-deconfiguration"
         />
       </BCol>

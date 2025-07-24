@@ -47,7 +47,7 @@
           :items="filteredLogs"
           :empty-text="$t('global.table.emptyMessage')"
           :empty-filtered-text="$t('global.table.emptySearchMessage')"
-          :per-page="perPageVal"
+          :per-page="perPageVal === 0 ? filteredLogs.length || 1 : perPageVal"
           :current-page="currentPageNo"
           :filter="searchFilterInputVal"
           :busy="isBusy"
@@ -122,8 +122,8 @@
           class="b-pagination"
           first-number
           last-number
-          :per-page="perPageVal"
-          :total-rows="getTotalRowCount(filteredRows, perPageVal)"
+          :per-page="perPageVal === 0 ? filteredLogs.length || 1 : perPageVal"
+          :total-rows="getTotalRowCount(filteredRows)"
           aria-controls="table-post-code-logs"
         />
       </BCol>
