@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="color-tile-container">
-      <div v-for="item in baseColors">
+      <div v-for="item in baseColors" :key="item.variable">
         <div
           :style="{ backgroundColor: item.hex }"
           :class="{ 'color-tile--border': item.border }"
@@ -9,7 +9,7 @@
         ></div>
         <dl class="color-tile-desc">
           <dt>Variable:</dt>
-          <dd>${{ item.name }}</dd>
+          <dd>{{ '$' + item.name }}</dd>
         </dl>
         <dl class="color-tile-desc">
           <dt>Color Variable:</dt>
@@ -20,11 +20,9 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      baseColors: [
+<script setup>
+import { ref } from 'vue';
+const baseColors = ref([
       {
           name: 'blue',
           variable: '$blue-500',
@@ -45,12 +43,9 @@ export default {
           variable: '$yellow-500',
           hex: '#efc100'
         }
-      ]
-    };
-  }
-};
+      ])
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   @import "./colors.scss";
 </style>

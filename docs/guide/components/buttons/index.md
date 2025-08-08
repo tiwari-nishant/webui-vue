@@ -6,8 +6,8 @@ can be themed by setting the `variant` prop on the component to one of the
 [theme-color map keys](/guide/guidelines/colors). To create a button that looks
 like a link, set the variant value to `link`.
 
-[Learn more about Bootstrap-vue
-buttons](https://bootstrap-vue.js.org/docs/components/button)
+[Learn more about Bootstrap-vue-next
+buttons](https://bootstrap-vue-next.github.io/bootstrap-vue-next/docs/components/button.html)
 
 ### Icon only buttons
 Add `btn-icon-only` class to the button and add `title` attribute to get helper
@@ -19,21 +19,21 @@ text on hover over the button.
 
 ```vue
 // Enabled Buttons
-<b-button variant="primary">Primary</b-button>
-<b-button variant="primary">
+<BButton variant="primary">Primary</BButton>
+<BButton variant="primary">
   <icon-add />
   <span>Primary with icon</span>
-</b-button>
-<b-button variant="secondary">Secondary</b-button>
-<b-button variant="danger">Danger</b-button>
-<b-button variant="link">Link Button</b-button>
-<b-button variant="link">
+</BButton>
+<BButton variant="secondary">Secondary</BButton>
+<BButton variant="danger">Danger</BButton>
+<BButton variant="link">Link Button</BButton>
+<BButton variant="link">
   <icon-add />
   <span>Link Button</span>
-</b-button>
-<b-button variant="link" title="Delete" class="btn-icon-only">
+</BButton>
+<BButton variant="link" title="Delete" class="btn-icon-only">
   <icon-trashcan />
-</b-button>
+</BButton>
 ```
 
 ### Disabled buttons
@@ -42,19 +42,19 @@ text on hover over the button.
 
 ```vue
 // Disabled Buttons
-<b-button disabled variant="primary">Primary</b-button>
-<b-button disabled variant="primary">
+<BButton disabled variant="primary">Primary</BButton>
+<BButton disabled variant="primary">
   <icon-add />
   <span>Primary with icon</span>
-</b-button>
-<b-button disabled variant="secondary">Secondary</b-button>
-<b-button disabled variant="danger">Danger</b-button>
-<b-button disabled variant="link">Link Button</b-button>
-<b-button disabled variant="link">
+</BButton>
+<BButton disabled variant="secondary">Secondary</BButton>
+<BButton disabled variant="danger">Danger</BButton>
+<BButton disabled variant="link">Link Button</BButton>
+<BButton disabled variant="link">
   <icon-add />
   <span>Link Button</span>
-</b-button>
-<b-button disabled variant="link" title="Delete" class="btn-icon-only">
+</BButton>
+<BButton disabled variant="link" title="Delete" class="btn-icon-only">
   <icon-trashcan />
-</b-button>
+</BButton>
 ```

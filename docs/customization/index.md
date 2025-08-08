@@ -53,6 +53,7 @@ files are based on these two libraries.
                ├─ _kvm.scss
                ├─ _modal.scss
                ├─ _pagination.scss
+               ├─ _section-divider.scss
                ├─ _sol.scss
                ├─ _tables.scss
                └─ _toasts.scss
@@ -202,7 +203,6 @@ set color highlights for some pseudo-elements like `: hover`.
     &:hover {
       background-color: theme-color-dark('light');
     }
-  }
 }
 
 &.alert-info {
@@ -257,13 +257,13 @@ $exit-easing--expressive: cubic-bezier(0.4, 0.14, 1, 1);
 - [Including Animation In Your Design
   System](https://www.smashingmagazine.com/2019/02/animation-design-system/)
 - [Carbon Design System motion
-  guidelines](https://www.carbondesignsystem.com/guidelines/motion/basics/)
+  guidelines](https://carbondesignsystem.com/elements/motion/overview/)
 
 #### `_variables.scss`
 
 This file contains all the global Sass options. There are Bootstrap option
 overrides, Bootstrap global variable overrides, and custom BMC global variables.
-Read more about these in the [Customization section](/customize/theme).
+Read more about these in the [Customization section](/customization/theme).
 
 ### `bootstrap` Directory
 

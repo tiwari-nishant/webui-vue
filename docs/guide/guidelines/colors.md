@@ -7,7 +7,7 @@ colors to override default styles set by the Bootstrap library.
 
 - [Learn more about theme customization](/customization/theme/)
 - [Open an issue in the OpenBMC webui-vue
-  repo](https://github.com/openbmc/webui-vue/issues/new/choose) to request a
+  repo](https://github.com/ibm-openbmc/webui-vue/tree/1060-vue3) to request a
   change
 - [Learn more about Bootstrap
   colors](https://getbootstrap.com/docs/4.4/getting-started/theming/#theme-colors)

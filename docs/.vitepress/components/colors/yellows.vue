@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="color-tile-container">
-      <div v-for="color in colors">
+      <div v-for="color in colors" :key="color.variable">
         <div
           :style="{ backgroundColor: color.hex }"
           :class="{ 'color-tile--border': color.border }"
@@ -9,7 +9,7 @@
         ></div>
         <dl class="color-tile-desc">
           <dt>Color variable:</dt>
-          <dd>${{ color.variable }}</dd>
+          <dd>{{ '$' + color.variable }}</dd>
         </dl>
         <dl class="color-tile-desc">
           <dt>Hex:</dt>
@@ -21,20 +21,14 @@
 </template>
 
 <script>
-export default {
-  data() {
-    return {
-      colors: [
+const colors = ref([
         {
-          variable: 'red-500',
-          hex: '#da1416'
+          variable: 'yellow-500',
+          hex: '#efc100'
         }
-      ]
-    };
-  }
-};
+      ])
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   @import "./colors.scss";
 </style>

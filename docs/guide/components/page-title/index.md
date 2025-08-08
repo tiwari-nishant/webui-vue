@@ -10,7 +10,7 @@ corresponds with the title property set in the route record's meta field in
     name: 'login',
     component: Login,
     meta: {
-      title: i18n.t('appPageTitle.login'),
+      title: i18n.global.t('appPageTitle.login'),
     },
   },
 ```
@@ -25,4 +25,4 @@ are found in the `src/locales` folder.
 ```
 
 [View the page title component source
-code](https://github.com/openbmc/webui-vue/blob/master/src/components/Global/PageTitle.vue).
+code](https://github.com/ibm-openbmc/webui-vue/blob/1060-vue3/src/components/Global/PageTitle.vue).
