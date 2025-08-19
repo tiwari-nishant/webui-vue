@@ -11,7 +11,7 @@
         <alert v-else variant="warning" class="mb-4">
           <span>
             {{ $t('pagePcieTopology.warning') }}
-            <b-link href="/operations/server-power-operations">{{
+            <b-link to="/operations/server-power-operations">{{
               i18n.global.t("pagePower.alert.message3Link")
             }}</b-link>
           </span>
