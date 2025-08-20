@@ -36,8 +36,12 @@
               :key="value"
               :value="value"
               :data-test-id="`tableFilter-checkbox-${value}`"
+              class="filter-checkbox-keys"
             >
-              <BDropdownItem>
+              <BDropdownItem
+                class="filter-checkbox-labels"
+                @click="toggleCheckbox($event)"
+              >
                 {{ value }}
               </BDropdownItem>
             </BFormCheckbox>
@@ -110,6 +114,15 @@ export default {
       });
       this.$emit('filter-change', { activeFilters });
     },
+    toggleCheckbox(event) {
+      const wrapper = event.target.closest(".form-check");
+      if (!wrapper) return;
+
+      const input = wrapper.querySelector('input[type="checkbox"]');
+      if (input) {
+        input.click();
+      }
+    },
   },
 };
 </script>
@@ -120,5 +133,8 @@ export default {
 }
 .margin-btm {
   margin-bottom: 1rem !important;
+}
+.filter-checkbox-labels {
+  cursor: pointer;
 }
 </style>
