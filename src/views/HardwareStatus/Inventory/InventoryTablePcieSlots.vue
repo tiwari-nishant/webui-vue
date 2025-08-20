@@ -1,7 +1,7 @@
 <template>
   <page-section :section-title="$t('pageInventory.pcieSlots')">
     {{ $t('pageInventory.pcieTopologyLinkDescription') }}
-    <b-link href="/hardware-status/pcie-topology">{{
+    <b-link to="/hardware-status/pcie-topology">{{
       $t('pageInventory.pcieTopologyLink')
     }}</b-link>
     <b-row class="align-items-end">
