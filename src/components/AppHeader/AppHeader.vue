@@ -402,8 +402,8 @@ const setFocus = (event) => {
 .header-logo {
   width: 50px !important;
 }
-// #page-header .container-fluid {
-//   --bs-gutter-x: 0 !important;
-//   justify-content: flex-start;
-// }
+#page-header .container-fluid {
+  --bs-gutter-x: 0 !important;
+  justify-content: flex-start;
+}
 </style>
