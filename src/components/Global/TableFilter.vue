@@ -137,4 +137,13 @@ export default {
 .filter-checkbox-labels {
   cursor: pointer;
 }
+
+.form-check-inline {
+  display: block;
+}
+.form-check {
+  :deep(label.form-check-label) {
+    width: 100%;
+  }
+}
 </style>
