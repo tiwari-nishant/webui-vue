@@ -3,20 +3,8 @@
     <page-title :title="$t('appPageTitle.memory')" />
     <BRow>
       <BCol md="8" xl="6">
-        <alert v-if="!isSectionEditable()" variant="warning" class="mb-4">
-          <div class="font-weight-bold">
-            {{ $t('pageMemory.alert.heading') }}
-          </div>
-          <div>
-            {{
-              $t('pageMemory.alert.message1') +
-              ' ' +
-              $t('pageMemory.alert.message2')
-            }}
-          </div>
-        </alert>
         <alert v-if="isSectionEditable()" variant="warning" class="mb-4">
-          <div class="font-weight-bold">
+          <div class="fw-bold">
             {{ $t('pageMemory.alert.heading') }}
           </div>
           <div>

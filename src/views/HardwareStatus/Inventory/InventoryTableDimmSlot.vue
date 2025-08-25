@@ -26,6 +26,7 @@
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
+      class="table-fixed"
       @filtered="onFiltered"
     >
       <template #head(identifyLed)="row">
@@ -109,7 +110,7 @@
       </template>
       <template #row-details="{ item }">
         <b-container fluid>
-          <BRow style="margin-left: 5px;">
+          <BRow style="margin-left: 5px">
             <BCol sm="6" xl="6">
               <dl>
                 <!-- Part Number -->
@@ -307,5 +308,10 @@ function getStatusTooltip(status) {
   svg {
     transform: rotate(180deg);
   }
+}
+.total-fixed-header ::v-deep thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 </style>

@@ -12,8 +12,6 @@
               :key="index"
               :to="navItem.route"
               :data-test-id="`nav-item-${navItem.id}`"
-              active-class="nav-link--current"
-              exact-active-class="nav-link--current"
               class="nav-nochild"
             >
               <component :is="navItem.icon" />
@@ -72,7 +70,6 @@ import stores from '@/store';
 import eventBus from '@/eventBus';
 
 const navigationItems = AppNavigationData().navigationItems;
-
 const globalStore = stores.GlobalStore();
 const userManagementStore = stores.UserManagementStore();
   const isNavigationOpen = ref(false);
@@ -212,42 +209,10 @@ svg {
     background-color: $secondary !important;
     color: $white !important;
   }
+
   ::v-deep a{
     color: #161616;
   }
-
-//   :deep(a.nav-link--current) {
-//  font-weight: $headings-font-weight;
-//   background-color: $secondary;
-//   color: $light;
-//   cursor: default;
-//   box-shadow: none;
-
-//   &::before {
-//     content: '';
-//     position: relative;
-//     top: 0;
-//     bottom: 0;
-//     left: 0;
-//     width: 4px;
-//     background-color: $primary;
-//   }
-
-//   &:hover,
-//   &:focus {
-//     background-color: $secondary;
-//     color: $light;
-//   }
-// }
-}
-
-.highlighter-nav-nochild{
-  font-weight: 500;
-  background-color: #3f3f3f;
-  color: #f4f4f4;
-  cursor: default;
-  box-shadow: none;
-
 }
 
 .nav-link--current {
@@ -259,7 +224,7 @@ svg {
 
   &::before {
     content: '';
-    position: relative;
+    position: absolute;
     top: 0;
     bottom: 0;
     left: 0;

@@ -4,7 +4,7 @@
     <BRow v-if="selectedDumpType">
       <BCol md="8" xl="6">
         <alert variant="info" class="mb-4">
-          <div class="font-weight-bold">
+          <div class="fw-bold">
             {{ $t(`pageDumps.alert.${selectedDumpType}DumpHeading`) }}
           </div>
           <p>
