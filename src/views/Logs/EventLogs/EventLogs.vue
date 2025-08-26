@@ -68,7 +68,7 @@
           no-select-on-click
           sort-icon-left
           hover
-          sticky-header
+          sticky-header="75vh"
           show-empty
           :sort-by="[{ key: 'id', order: 'asc' }]"
           :fields="fields"
@@ -80,7 +80,6 @@
           :current-page="currentPage"
           :filter="searchFilter"
           :busy="isBusy"
-          :class="table - fixed"
           @filtered="onFiltered"
           @row-selected="onRowSelected($event, filteredLogs.length)"
         >
@@ -782,7 +781,7 @@ export default {
 }
 .margin-style {
   margin-bottom: 23px;
-  margin-left: 10px;
+  margin-left: 1.5rem;
 }
 .container-fluid {
   width: calc(100% - 90px);
@@ -792,8 +791,4 @@ export default {
     transform: rotate(180deg);
   }
 }
-.b-table-sticky-header { 
-  //  overflow-y: visible; 
-  
-  }
 </style>

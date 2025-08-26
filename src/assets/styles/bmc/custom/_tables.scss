@@ -1,8 +1,7 @@
 @use 'sass:math';
 // @import "/node_modules/bootstrap/scss/variables";
 .b-table-sticky-header {
-  max-height: none;
-  overflow-y: visible;
+  max-height: 75vh;
   min-height: 100px;
   border: 1px solid #efefef;
   .table.b-table {
@@ -54,6 +53,13 @@
       }
     }
   }
+}
+
+
+.no-scroll-sticky { 
+  overflow-y: visible  !important; 
+  max-height: none !important;
+  
 }
 
 .table {

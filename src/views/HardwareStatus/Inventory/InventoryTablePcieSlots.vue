@@ -30,6 +30,7 @@
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
+      class="no-scroll-sticky"
       @filtered="onFiltered"
     >
       <template #head(identifyLed)="row">

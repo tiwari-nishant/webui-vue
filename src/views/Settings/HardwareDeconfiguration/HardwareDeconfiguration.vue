@@ -5,6 +5,7 @@
       :description="$t('pageDeconfigurationHardware.description')"
       :link="$t('pageDeconfigurationHardware.link')"
       to="/logs/deconfiguration-records"
+      class="hw-deconfig-title"
     />
     <BRow>
       <BCol md="8" xl="6">
@@ -57,8 +58,15 @@ const { startLoader, hideLoader } = useLoadingBar();
 onBeforeRouteLeave(() => {
   hideLoader();
 });
-onBeforeMount(() =>  {
+onBeforeMount(() => {
   startLoader();
 });
-
 </script>
+
+<style lang="scss" scoped>
+.hw-deconfig-title {
+  ::v-deep a {
+    text-decoration: none;
+  }
+}
+</style>

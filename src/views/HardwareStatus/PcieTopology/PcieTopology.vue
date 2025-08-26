@@ -9,7 +9,7 @@
           </span>
         </alert>
         <alert v-else variant="warning" class="mb-4">
-          <span>
+          <span class="alert-message-link">
             {{ $t('pagePcieTopology.warning') }}
             <b-link to="/operations/server-power-operations">{{
               i18n.global.t("pagePower.alert.message3Link")
@@ -432,6 +432,15 @@ function onFiltered(filteredItems) {
 .rotateSvg {
   svg {
     transform: rotate(180deg);
+  }
+}
+
+.alert-message-link {
+  ::v-deep a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 </style>

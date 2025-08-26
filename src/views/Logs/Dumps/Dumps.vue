@@ -369,7 +369,7 @@ const exportFileName = (row) => {
 }
 .margin-style {
   margin-bottom: 23px;
-  margin-left: 10px;
+  margin-left: 1.5rem;
 }
 .text-right {
   text-align: right;
