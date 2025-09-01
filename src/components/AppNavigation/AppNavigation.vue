@@ -192,26 +192,16 @@ svg {
     color: $white;
   }
 }
-.nav-nochild {
-  color: $secondary !important;
-  &:hover {
-    background-color: shift-color($dark, -84%);
-    color: $dark;
-  }
 
-  &:focus {
-    background-color: $light;
-    box-shadow: inset 0 0 0 2px $primary;
-    color: $dark;
-    outline: 0;
-  }
-  &:active {
+.nav-nochild {
+  ::v-deep a.router-link-exact-active {
     background-color: $secondary !important;
     color: $white !important;
+    cursor: default;
   }
 
-  ::v-deep a{
-    color: #161616;
+  ::v-deep a {
+    color: $secondary;
   }
 }
 
