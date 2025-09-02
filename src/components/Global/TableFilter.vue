@@ -38,12 +38,12 @@
               :data-test-id="`tableFilter-checkbox-${value}`"
               class="filter-checkbox-keys"
             >
-              <BDropdownItem
-                class="filter-checkbox-labels"
+              <span
+                class="filter-checkbox-labels dropdown-item"
                 @click="toggleCheckbox($event)"
               >
                 {{ value }}
-              </BDropdownItem>
+              </span>
             </BFormCheckbox>
           </BFormCheckboxGroup>
         </BFormGroup>
@@ -115,7 +115,8 @@ export default {
       this.$emit('filter-change', { activeFilters });
     },
     toggleCheckbox(event) {
-      const wrapper = event.target.closest(".form-check");
+      event.preventDefault();
+      const wrapper = event.target.closest('.form-check');
       if (!wrapper) return;
 
       const input = wrapper.querySelector('input[type="checkbox"]');
@@ -145,5 +146,9 @@ export default {
   :deep(label.form-check-label) {
     width: 100%;
   }
+}
+.filter-checkbox-labels.dropdown-item:active {
+  background-color: transparent !important;
+  color: inherit !important;
 }
 </style>
