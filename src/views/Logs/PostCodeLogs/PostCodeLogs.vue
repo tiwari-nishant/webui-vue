@@ -17,7 +17,7 @@
           @change-search="onChangeSearchInput"
           @clear-search="onClearSearchInput"
         />
-        <div sm="3" md="3" xl="2" class="cellCountStyle">
+        <div sm="3" md="3" xl="2" class="margin-style">
           <table-cell-count
             :filtered-items-count="filteredRows"
             :total-number-of-cells="allLogs.length"
@@ -326,10 +326,10 @@ import stores from "../../../store";
   .text-right {
     text-align: right;
   }
-  .cellCountStyle {
-    margin-bottom: 22px;
-    margin-left: 15px;
-  }
+.margin-style {
+  margin-bottom: 23px;
+  margin-left: 1.5rem;
+}
   .container-fluid {
     width: calc(100% - 126px);
   }

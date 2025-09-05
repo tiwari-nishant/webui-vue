@@ -5,9 +5,7 @@
       <BRow class="d-flex">
         <BCol class="d-flex flex-column justify-content-end" cols="4">
           <dl class="mb-2" sm="2" md="2">
-            <dt class="d-inline font-weight-bold mr-1">
-              {{ $t('pageKvm.status') }}:
-            </dt>
+            <dt class="d-inline fw-bold mr-1">{{ $t('pageKvm.status') }}:</dt>
             <dd class="d-inline">
               <status-icon :status="serverStatusIcon" />
               <span class="d-none d-md-inline"> {{ serverStatus }}</span>

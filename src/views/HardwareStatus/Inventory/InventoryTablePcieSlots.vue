@@ -1,5 +1,8 @@
 <template>
-  <page-section :section-title="$t('pageInventory.pcieSlots')">
+  <page-section
+    class="no-underline-link"
+    :section-title="$t('pageInventory.pcieSlots')"
+  >
     {{ $t('pageInventory.pcieTopologyLinkDescription') }}
     <b-link to="/hardware-status/pcie-topology">{{
       $t('pageInventory.pcieTopologyLink')
@@ -30,6 +33,7 @@
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
+      class="no-scroll-sticky"
       @filtered="onFiltered"
     >
       <template #head(identifyLed)="row">
@@ -196,3 +200,13 @@ function hasIdentifyLed(identifyLed) {
   return typeof identifyLed === 'boolean';
 }
 </script>
+<style lang="scss" scoped>
+.no-underline-link {
+  ::v-deep a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+</style>

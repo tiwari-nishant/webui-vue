@@ -3,7 +3,7 @@
     <BRow class="d-flex">
       <BCol sm="6" lg="5" xl="4" class="d-flex flex-column justify-content-end">
         <dl class="mb-2" sm="6" md="6">
-          <dt class="d-inline font-weight-bold mr-1">
+          <dt class="d-inline fw-bold me-1">
             {{ $t('pageServiceLoginConsoles.status') }}:
           </dt>
           <dd class="d-inline">

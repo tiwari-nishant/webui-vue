@@ -11,7 +11,7 @@
             <BRow v-if="isInPhypStandby">
               <BCol>
                 <alert variant="info">
-                  <span class="font-weight-bold">
+                  <span class="fw-bold">
                     {{ $t('pageServerPowerOperations.phypStandby') }}
                   </span>
                   <p class="mt-1">

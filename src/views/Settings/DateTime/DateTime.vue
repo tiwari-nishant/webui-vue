@@ -4,7 +4,7 @@
     <BRow>
       <BCol md="8" xl="6">
         <alert variant="info" class="mb-4">
-          <span>
+          <span class="no-underline-link">
             {{ $t('pageDateTime.alert.message') }}
             <BLink to="/profile-settings">
               {{ $t('pageDateTime.alert.link') }}</BLink
@@ -45,7 +45,7 @@
         <BRow
           v-for="(group, rowIndex) in chunkedDhcpNtp"
           :key="rowIndex"
-          class="mt-3 ml-3"
+          class="mt-3 ms-3"
         >
           <BCol
             v-for="(item, colIndex) in group"
@@ -97,7 +97,7 @@
           >
             {{ $t('pageDateTime.form.manual') }}
           </BFormRadio>
-          <BRow class="mt-3 ml-3">
+          <BRow class="mt-3 ms-3">
             <BCol sm="6" lg="4" xl="3">
               <BFormGroup
                 :label="$t('pageDateTime.form.date')"
@@ -162,7 +162,7 @@
           >
             {{ $t('pageDateTime.staticNtp') }}
           </BFormRadio>
-          <BRow class="mt-3 ml-3">
+          <BRow class="mt-3 ms-3">
             <BCol sm="6" lg="4" xl="3">
               <BFormGroup
                 :label="$t('pageDateTime.form.ntpServers.server1')"
@@ -525,5 +525,13 @@ const v$ = useVuelidate(rules, { form });
 }
 .custom-form-group::placeholder {
   color: black !important;
+}
+.no-underline-link {
+  ::v-deep a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 </style>

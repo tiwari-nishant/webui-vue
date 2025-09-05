@@ -27,6 +27,7 @@
       :empty-text="$t('global.table.emptyMessage')"
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
       :busy="isBusy"
+      class="no-scroll-sticky"
       @filtered="onFiltered"
     >
       <template #head(identifyLed)="row">
@@ -303,7 +304,7 @@ function getStatusTooltip(status) {
 }
 .margin-style {
   margin-bottom: 23px;
-  margin-left: 10px;
+  margin-left: 1.5rem;
 }
 .container-fluid {
   width: calc(100% - 90px);

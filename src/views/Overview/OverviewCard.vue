@@ -15,7 +15,7 @@
           <span v-if="downloadButton">{{ $t('global.action.download') }}</span>
           <span v-if="exportButton">{{ $t('global.action.exportAll') }}</span>
         </BButton>
-        <span v-if="exportButton || downloadButton" class="pl-2 pr-2">|</span>
+        <span v-if="exportButton || downloadButton" class="ps-2 pe-2">|</span>
         <BLink :to="to">{{ $t('pageOverview.viewMore') }}</BLink>
       </div>
     </div>
@@ -73,6 +73,10 @@ const href = computed(() => {
 a {
   vertical-align: middle;
   font-size: 14px;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .card {
   min-width: 310px;

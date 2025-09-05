@@ -55,6 +55,13 @@
   }
 }
 
+
+.no-scroll-sticky { 
+  overflow-y: visible  !important; 
+  max-height: none !important;
+  
+}
+
 .table {
   position: relative;
   z-index: $zindex-dropdown;

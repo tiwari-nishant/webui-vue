@@ -4,7 +4,7 @@
     <BRow v-if="selectedDumpType">
       <BCol md="8" xl="6">
         <alert variant="info" class="mb-4">
-          <div class="font-weight-bold">
+          <div class="fw-bold">
             {{ $t(`pageDumps.alert.${selectedDumpType}DumpHeading`) }}
           </div>
           <p>
@@ -369,7 +369,7 @@ const exportFileName = (row) => {
 }
 .margin-style {
   margin-bottom: 23px;
-  margin-left: 10px;
+  margin-left: 1.5rem;
 }
 .text-right {
   text-align: right;

@@ -320,7 +320,7 @@ const downloadEventLogs = async (value) => {
 }
 .margin-style {
   margin-bottom: 23px;
-  margin-left: 10px;
+  margin-left: 1.5rem;
 }
 .container-fluid {
   width: calc(100% - 90px);
