@@ -195,11 +195,27 @@ svg {
 
 .nav-nochild {
   ::v-deep a.router-link-exact-active {
-    background-color: $secondary !important;
-    color: $white !important;
+    position: relative;
+    font-weight: $headings-font-weight;
+    background-color: $secondary;
+    color: $light;
     cursor: default;
+    box-shadow: none;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 4px;
+      background-color: $primary;
+    }
+    &:hover,
+    &:focus {
+      background-color: $secondary;
+      color: $light;
+    }
   }
-
   ::v-deep a {
     color: $secondary;
   }
