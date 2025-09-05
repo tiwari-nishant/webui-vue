@@ -6,6 +6,7 @@
       :section-title="$t('pageOverview.systemInformation')"
       class="mb-1"
     >
+      dddddd
       <BCardGroup deck>
         <overview-server />
         <overview-firmware />

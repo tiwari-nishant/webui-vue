@@ -48,6 +48,7 @@ export const initWebSocket = () => {
     console.error(event);
   };
   ws.onmessage = (event) => {
+    console.log('onmessage');
     var data = JSONbig.parse(event.data);
     const eventInterface = data.interface;
     const path = data.path;
@@ -65,6 +66,7 @@ export const initWebSocket = () => {
     if (eventInterface === 'xyz.openbmc_project.State.Host') {
       const { properties: { CurrentHostState } = {} } = data;
       if (CurrentHostState) {
+        console.log('CurrentHostState');
         globalStore.serverStatus = CurrentHostState;
       }
     } else if (path === '/xyz/openbmc_project/logging') {
