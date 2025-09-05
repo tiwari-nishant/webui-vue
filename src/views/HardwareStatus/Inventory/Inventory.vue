@@ -34,15 +34,19 @@
                       :key="column.id"
                       xl="4"
                     >
-                      <div v-for="item in column" :key="item.id">
-                        <BLink style="text-decoration: none;"
+                      <div
+                        v-for="item in column"
+                        :key="item.id"
+                        class="no-underline-link"
+                      >
+                        <BLink
                           :href="item.href"
                           :data-ref="item.dataRef"
                           @click.prevent="
                             scrollToOffsetInventory($refs, $event, index)
                           "
                         >
-                          <icon-jump-link  /> {{ item.linkText }}
+                          <icon-jump-link /> {{ item.linkText }}
                         </BLink>
                       </div>
                     </b-col>
@@ -413,8 +417,16 @@ onBeforeMount(() => {
   getAllInfo('created');
 });
 </script>
-<style scoped>
-.inventory-container{
+<style lang="scss" scoped>
+.inventory-container {
   min-width: 90%;
+}
+.no-underline-link {
+  ::v-deep a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 </style>
