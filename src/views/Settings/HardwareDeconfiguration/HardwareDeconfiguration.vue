@@ -67,6 +67,9 @@ onBeforeMount(() => {
 .hw-deconfig-title {
   ::v-deep a {
     text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 </style>

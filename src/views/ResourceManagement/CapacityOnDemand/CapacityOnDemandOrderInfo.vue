@@ -2,7 +2,7 @@
   <BRow>
     <BCol>
       <page-section :section-title="$t('pageCapacityOnDemand.orderInfo.title')">
-        <p>
+        <p class="no-underline-link">
           {{ $t('pageCapacityOnDemand.orderInfo.description.message') }}
           <BLink to="/logs/dumps">
             {{ $t('pageCapacityOnDemand.orderInfo.description.link') }}
@@ -233,3 +233,14 @@ const systemAnchor = computed(() => {
       return licenseStore.licensesGetter?.SystemAnchor?.SerialNumber;
     });
 </script>
+
+<style lang="scss" scoped>
+.no-underline-link {
+  ::v-deep a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+</style>
