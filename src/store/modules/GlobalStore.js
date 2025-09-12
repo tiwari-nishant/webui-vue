@@ -10,7 +10,6 @@ export const HOST_STATE = {
 };
 
 export const serverStateMapper = (hostState) => {
-  console.log('state mapper', hostState);
   switch (hostState) {
     case HOST_STATE.on:
     case 'On': // Redfish PowerState
@@ -177,7 +176,6 @@ export const GlobalStore = defineStore('global', {
 
               this.serverStatus = serverStateMapper(State);
             } else {
-              console.log('API PowerState', PowerState);
               this.serverStatus = serverStateMapper(PowerState);
             }
           },
