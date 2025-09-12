@@ -2,14 +2,15 @@
 import api from '@/store/api';
 import { defineStore } from 'pinia';
 
-const HOST_STATE = {
+export const HOST_STATE = {
   on: 'xyz.openbmc_project.State.Host.HostState.Running',
   off: 'xyz.openbmc_project.State.Host.HostState.Off',
   error: 'xyz.openbmc_project.State.Host.HostState.Quiesced',
   diagnosticMode: 'xyz.openbmc_project.State.Host.HostState.DiagnosticMode',
 };
 
-const serverStateMapper = (hostState) => {
+export const serverStateMapper = (hostState) => {
+  console.log('state mapper', hostState);
   switch (hostState) {
     case HOST_STATE.on:
     case 'On': // Redfish PowerState
@@ -113,7 +114,7 @@ export const GlobalStore = defineStore('global', {
           this.currentUser = data;
           localStorage.setItem(
             'storedCurrentUser',
-            JSON.stringify(this.currentUser)
+            JSON.stringify(this.currentUser),
           );
         })
         .catch((error) => {
@@ -136,11 +137,11 @@ export const GlobalStore = defineStore('global', {
     async getHmcManaged() {
       return await api
         .get(
-          '/redfish/v1/Registries/BiosAttributeRegistry/BiosAttributeRegistry'
+          '/redfish/v1/Registries/BiosAttributeRegistry/BiosAttributeRegistry',
         )
         .then(({ data: { RegistryEntries } }) => {
           const hmcMananged = RegistryEntries.Attributes.filter(
-            (Attribute) => Attribute.AttributeName == 'pvm_hmc_managed'
+            (Attribute) => Attribute.AttributeName == 'pvm_hmc_managed',
           );
           let hmcManangedValue = hmcMananged[0].CurrentValue;
           this.hmcManaged = hmcManangedValue;
@@ -176,9 +177,10 @@ export const GlobalStore = defineStore('global', {
 
               this.serverStatus = serverStateMapper(State);
             } else {
+              console.log('API PowerState', PowerState);
               this.serverStatus = serverStateMapper(PowerState);
             }
-          }
+          },
         )
         .catch((error) => {
           console.log(error);
@@ -209,8 +211,8 @@ export const GlobalStore = defineStore('global', {
       });
     },
     setUtcTime(isUtcDisplay) {
-      this.isUtcDisplay = isUtcDisplay
-    }
+      this.isUtcDisplay = isUtcDisplay;
+    },
   },
 });
 
