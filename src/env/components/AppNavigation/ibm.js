@@ -12,7 +12,21 @@ import stores from '@/store'
 import { ref, computed, onMounted } from 'vue';
 
 const AppNavigationData = () => {
-  const navigationData = ref([
+  const globalStore = stores.GlobalStore();
+  const isReady = ref(false);
+
+  const roleId = computed(() => globalStore.currentUserGetter?.RoleId);
+  const systemInfo = computed(() => globalStore.modelTypeGetter);
+  const hmcInfo = computed(() => globalStore.hmcManagedGetter);
+
+  const model = computed(() =>
+    systemInfo.value?.startsWith('9043') || systemInfo.value?.startsWith('8860') ? 'Everest' : 'NotEverest'
+  );
+  const isHmcManged = computed(() =>
+    hmcInfo.value === 'Enabled' ? 'HMCManaged' : 'NonHMCManaged'
+  );
+
+  const baseNavigation = [
         {
           id: 'overview',
           label: i18n.global.t('appNavigation.overview'),
@@ -259,48 +273,39 @@ const AppNavigationData = () => {
           route: '/notices',
           icon: IconDocument,
         },
-  ]);
-  
-  const globalStore = stores.GlobalStore();
-  const roleId = computed(
-    () => globalStore.currentUserGetter?.RoleId,
-  );
-  const systemInfo = computed(() => globalStore.modelTypeGetter);
-  const hmcInfo = computed(() => globalStore.hmcManagedGetter);
+  ];
 
-  const model = computed(() =>
-    systemInfo.value?.startsWith('9043') || systemInfo.value?.startsWith('8860') ? 'Everest' : 'NotEverest',
-  );
-  const isHmcManged = computed(() =>
-    hmcInfo.value === 'Enabled' ? 'HMCManaged' : 'NonHMCManaged',
-  );
+  const navigationData = ref([]);
 
   const navigationItems = computed(() => {
+    if (!isReady.value) return [];
     return navigationData.value.map((section) => {
-      const restrictedPages = [];
-      section.children?.forEach((page) => {
-        if (page.restrictTo.length > 0) {
-          const isPageNeeded = page.restrictTo.some(
-            (requiredRole) =>
-              requiredRole === roleId.value ||
-              requiredRole === model.value ||
-              requiredRole === isHmcManged.value,
-          );
-          if (!isPageNeeded) restrictedPages.push(page);
-        }
-      });
-      if (section?.children && section?.children.length > 0) {
-        const finalSection = section.children.filter(
-          (item) => !restrictedPages.includes(item),
-        );
-        section.children = finalSection;
+      if (!section.children || section.children.length === 0) {
+        return section;
       }
-      return section;
+      const filteredChildren = section.children.filter((page) => {
+        if (!page.restrictTo || page.restrictTo.length === 0) return true;
+        return page.restrictTo.some(
+          (requiredRole) =>
+            requiredRole === roleId.value ||
+            requiredRole === model.value ||
+            requiredRole === isHmcManged.value
+        );
+      });
+      if (filteredChildren.length === section.children.length) {
+        return section;
+      }
+      return {
+        ...section,
+        children: filteredChildren,
+      };
     });
   });
 
-  onMounted(() => {
-    globalStore.getHmcManaged();
+  onMounted(async () => {
+    await globalStore.getHmcManaged();
+    navigationData.value = baseNavigation;
+    isReady.value = true;
   });
 
   return {
@@ -309,6 +314,7 @@ const AppNavigationData = () => {
     model,
     systemInfo,
     isHmcManged,
+    isReady,
   };
 }
 export default AppNavigationData;
