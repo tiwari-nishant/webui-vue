@@ -1,5 +1,6 @@
 import JSONbig from 'json-bigint';
 import stores from '@/store';
+import { serverStateMapper } from '../modules/GlobalStore';
 /**
  * WebSocketPlugin will allow us to get new data from the server
  * without having to poll for changes on the frontend.
@@ -65,7 +66,7 @@ export const initWebSocket = () => {
     if (eventInterface === 'xyz.openbmc_project.State.Host') {
       const { properties: { CurrentHostState } = {} } = data;
       if (CurrentHostState) {
-        globalStore.serverStatus = CurrentHostState;
+        globalStore.serverStatus = serverStateMapper(CurrentHostState);
       }
     } else if (path === '/xyz/openbmc_project/logging') {
       eventLogStore.getEventLogData();
