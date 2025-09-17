@@ -1,5 +1,5 @@
 <template>
-  <b-container fluid="xl" class="inventory-container">
+  <b-container fluid="xl">
     <page-title :title="$t('appPageTitle.inventory')" />
 
     <!-- Service indicators -->
@@ -417,9 +417,6 @@ function currentTabUpdate(index) {
 </script>
 
 <style lang="scss" scoped>
-.inventory-container {
-  min-width: 90%;
-}
 .no-underline-link {
   ::v-deep a {
     text-decoration: none;

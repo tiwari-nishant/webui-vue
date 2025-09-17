@@ -153,7 +153,7 @@ const filteredRows = computed(() => {
 
 const pcieSlots = computed(() => {
   let slotsList = [];
-  const slots = pcieSlotsStore.pcieSlots;
+  const slots = pcieSlotsStore.pcieSlotsGetter;
   slots.map((slot) => {
     if (slot.type !== 'OEM') {
       slotsList.push(slot);
@@ -166,7 +166,7 @@ const pcieSlots = computed(() => {
 const serverStatus = computed(() => {
   if (props.chassis.endsWith('chassis')) {
     return false;
-  } else if (globalStore.serverStatus !== 'on') {
+  } else if (globalStore.serverStatusGetter !== 'on') {
     return true;
   } else {
     return false;

@@ -252,7 +252,7 @@ const filteredRows = computed(() => {
 const serverStatus = computed(() => {
   if (props.chassis.endsWith('chassis')) {
     return false;
-  } else if (globalStore.serverStatus !== 'on') {
+  } else if (globalStore.serverStatusGetter !== 'on') {
     return true;
   } else {
     return false;
@@ -260,7 +260,7 @@ const serverStatus = computed(() => {
 });
 
 const isPoweredOff = computed(() => {
-  if (globalStore.serverStatus === 'off') {
+  if (globalStore.serverStatusGetter === 'off') {
     return true;
   } else {
     return false;

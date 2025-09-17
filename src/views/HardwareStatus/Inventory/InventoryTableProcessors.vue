@@ -241,7 +241,7 @@ const filteredRows = computed(() => {
 });
 
 const processors = computed(() => {
-  return processorStore.processors;
+  return processorStore.processorsGetter;
 });
 
 function onFiltered(filteredItems) {
