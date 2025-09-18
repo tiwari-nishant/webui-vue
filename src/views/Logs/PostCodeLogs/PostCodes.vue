@@ -5,7 +5,9 @@
 </template>
 
 <script>
-import stores from "../../../store";
+import stores from '../../../store';
+import { U64 } from 'n64';
+import { Buffer } from 'buffer';
 export default {
   name: 'PostCodes',
   data() {
@@ -20,7 +22,6 @@ export default {
     postCodes: {
       get() {
         if (this.postCodeValue) {
-          const { U64 } = require('n64');
           let big = U64(this.postCodeValue, 10);
           big.toString();
           let bytearray = big.toLE(Buffer);
