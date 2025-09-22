@@ -127,15 +127,15 @@ const serverStatus = computed(() => {
 });
 
 const powerStatus = computed(() => {
-  let serverStat = serverStatus.value;
+  let serverStatusValue = serverStatus.value;
   if (serverStatus.value === 'unreachable') {
     return `global.status.off`;
   }
   // To check if serverStatus.value returns state from redfish without mapping to on,off etc
-  if (serverStat.includes('xyz.openbmc_project')) {
-    serverStat = serverStateMapper(serverStat);
+  if (serverStatusValue.includes('xyz.openbmc_project')) {
+    serverStatusValue = serverStateMapper(serverStatusValue);
   }
-  return `global.status.${serverStat}`;
+  return `global.status.${serverStatusValue}`;
 });
 
 watch(
