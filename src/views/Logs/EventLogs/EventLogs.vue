@@ -92,7 +92,7 @@
               @change="
                 onChangeHeaderCheckbox($refs.table, tableHeaderCheckboxModel)
               "
-              @update:modelValue="toggleAll"
+              @update:model-value="toggleAll"
             >
             </b-form-checkbox>
           </template>
@@ -471,13 +471,13 @@ export default {
     },
   },
   created() {
-    eventBus.on('clear-selected', () => {
+    (eventBus.on('clear-selected', () => {
       stores.EventLogStore().eventlogsGetter?.map((singleLog) => {
         singleLog.rowSelected = false;
       });
       useTableSelectableComposable().clearSelectedRowsOptions(this.$refs.table);
     }),
-      useLoadingBar().startLoader();
+      useLoadingBar().startLoader());
     stores
       .EventLogStore()
       .initializeLogs()

@@ -153,7 +153,7 @@
           aria-describedby="guard-on-error-description"
           switch
           :disabled="isRpdFeatureCurrentDisabled"
-          @update:modelValue="updateGuardOnErrorState"
+          @update:model-value="updateGuardOnErrorState"
         >
           <span v-if="guardOnErrorState">
             {{ $t('global.status.enabled') }}
@@ -255,7 +255,9 @@ const options = computed(() => {
       value: option,
       text: option,
     }));
-  } else return;
+  } else {
+    return [];
+  }
 });
 const rpdFeatOptions = computed(() => {
   if (systemParametersStore.rpdFeatureOptionsGetter) {
@@ -263,7 +265,9 @@ const rpdFeatOptions = computed(() => {
       value: option,
       text: option,
     }));
-  } else return;
+  } else {
+    return [];
+  }
 });
 const isRpdFeatureCurrentDisabled = computed(() => {
   return systemParametersStore.rpdPolicyCurrent === 'Disabled';
@@ -386,7 +390,7 @@ const updateRpdScheduledRun = (startTime, duration) => {
   const [hours, minutes] = startTime.split(':');
   const totalSeconds = (+hours * 60 + +minutes) * 60;
   systemParametersStore
-    .saveRpdScheduledRun({totalSeconds, duration, startTime})
+    .saveRpdScheduledRun({ totalSeconds, duration, startTime })
     .then((message) => Toast.successToast(message))
     .catch(({ message }) => Toast.errorToast(message))
     .finally(() => {

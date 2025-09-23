@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import useJumpLinkComposable from '@/components/Composables/useJumpLinkComposable';
 import eventBus from '@/eventBus';
 
@@ -13,13 +13,13 @@ const { setFocus } = useJumpLinkComposable();
 
 const main = ref(null);
 
-onMounted(() => { 
-    eventBus.on('skip-navigation', () => {
-      if (main.value){
-        setFocus(main.value)
-      }
-    })
-  })
+onMounted(() => {
+  eventBus.on('skip-navigation', () => {
+    if (main.value) {
+      setFocus(main.value);
+    }
+  });
+});
 </script>
 
 <style lang="scss" scoped>

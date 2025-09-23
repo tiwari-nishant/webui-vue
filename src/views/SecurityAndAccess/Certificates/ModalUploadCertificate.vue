@@ -80,7 +80,7 @@
 <script setup>
 import { required, requiredIf } from '@vuelidate/validators';
 import { useVuelidate } from '@vuelidate/core';
-import { computed, defineProps, reactive, ref, watch, defineEmits } from 'vue';
+import { computed, defineProps, ref, watch, defineEmits } from 'vue';
 import stores from '@/store';
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
 import FormFile from '@/components/Global/FormFile.vue';
@@ -131,14 +131,14 @@ const certificateOptions = computed(() => {
       };
     });
   if (filteredCertificates.length === 1) {
-    form.certificateType === filteredCertificates?.[0]?.value;
+    form.value.certificateType === filteredCertificates?.[0]?.value;
   }
   return filteredCertificates;
 });
 const fileFormat = computed(() => {
   if (
     props.certificate?.certificate === 'ServiceLogin Certificate' ||
-    form.certificateType === 'ServiceLogin Certificate'
+    form.value.certificateType === 'ServiceLogin Certificate'
   ) {
     return '.acf';
   } else {
