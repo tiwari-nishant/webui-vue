@@ -258,16 +258,25 @@ import { useVuelidate } from '@vuelidate/core';
 import useToast from '@/components/Composables/useToastComposable';
 
 const { t } = useI18n();
-const isPasswordVisible = ref(false);
-const inputType = ref('password');
-const ldapStore = stores.LdapStore();
-const certificatesStore = stores.CertificatesStore();
 const { getValidationState } = useVuelidateComposable();
 const { hideLoader, startLoader, endLoader, loading } = useLoadingBar();
 const { successToast, errorToast } = useToast();
 
+const ldapStore = stores.LdapStore();
+const certificatesStore = stores.CertificatesStore();
+
+const isPasswordVisible = ref(false);
+const inputType = ref('password');
+
 onBeforeRouteLeave(() => {
   hideLoader();
+});
+
+onBeforeMount(() => {
+  startLoader();
+  ldapStore.getAccountSettings().finally(() => endLoader());
+  certificatesStore.getCertificates().finally(() => endLoader());
+  setFormValues();
 });
 
 const initialFormState = {
@@ -282,6 +291,7 @@ const initialFormState = {
   groupIdAttribute: '',
 };
 const formLdap = reactive({ ...initialFormState });
+
 const rules = computed(() => ({
   formLdap: {
     ldapAuthenticationEnabled: {},
@@ -348,7 +358,6 @@ const ldapCertificateExpiration = computed(() => {
   if (ldapCertificate === undefined) return null;
   return ldapCertificate.validUntil;
 });
-
 const ldapProtocol = computed(() => {
   return formLdap.secureLdapEnabled ? 'ldaps://' : 'ldap://';
 });
@@ -381,13 +390,6 @@ watch(
     setFormValues();
   },
 );
-
-onBeforeMount(() => {
-  startLoader();
-  ldapStore.getAccountSettings().finally(() => endLoader());
-  certificatesStore.getCertificates().finally(() => endLoader());
-  setFormValues();
-});
 
 function setFormValues(serviceType) {
   if (!serviceType) {
@@ -473,6 +475,7 @@ function updateInputType(passwordType) {
   inputType.value = passwordType;
 }
 </script>
+
 <style lang="scss" scoped>
 .no-underline-link {
   ::v-deep a {

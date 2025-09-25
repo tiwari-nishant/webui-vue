@@ -285,9 +285,11 @@ onBeforeMount(() => {
     isBusy.value = false;
   });
 });
+
 onMounted(() => {
   eventBus.on('updateDumpInfo', updateDumpInfo);
 });
+
 const filteredRows = computed(() => {
   return searchFilterInput.value
     ? searchTotalFilteredRows.value
@@ -360,6 +362,7 @@ const exportFileName = (row) => {
   return filename;
 };
 </script>
+
 <style lang="scss" scoped>
 #table-dumps {
   td .btn-link {

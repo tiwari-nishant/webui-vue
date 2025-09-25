@@ -90,6 +90,7 @@
     </b-row>
   </b-modal>
 </template>
+
 <script setup>
 import { ref, defineProps, watch, computed, nextTick } from 'vue';
 import stores from '../../../store';
@@ -98,15 +99,18 @@ import useToast from '@/components/Composables/useToastComposable';
 import i18n from '@/i18n';
 import eventBus from '@/eventBus';
 
-const pcieTopologyStore = stores.PcieTopologyStore();
 const { dataFormatter } = useDataFormatterGlobal();
+const { successToast, errorToast } = useToast();
+
+const pcieTopologyStore = stores.PcieTopologyStore();
+
 const props = defineProps({
   selectedObj: {
     type: Object,
     default: null,
   },
 });
-const { successToast, errorToast } = useToast();
+
 const openLedModal = ref(false);
 const pcieBridgeLed = ref([]);
 const ioSlotsLed = ref([]);
@@ -197,6 +201,7 @@ const changeLedValue = async (value, type) => {
     });
 };
 </script>
+
 <style scoped>
 .headerStyle {
   font-weight: bold;

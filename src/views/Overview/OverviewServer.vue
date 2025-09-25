@@ -72,6 +72,7 @@ const serviceLoginStatus = ref(null);
 onBeforeRouteLeave(() => {
   hideLoader();
 });
+
 onBeforeMount(() => {
   Promise.all([
     global.getServiceLogin(),

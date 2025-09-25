@@ -57,6 +57,7 @@ import stores from '@/store';
 
 const { scrollToOffset } = useJumpLinkComposable();
 const { startLoader, endLoader, hideLoader } = useLoadingBar();
+
 const global = stores.GlobalStore();
 const licenseStore = stores.LicenseStore();
 const systemStore = stores.SystemStore();
@@ -69,11 +70,6 @@ const refs = {
   orderInfo,
   vetCapabilities,
 };
-
-onBeforeRouteLeave(() => {
-  hideLoader();
-});
-
 const quickLinks = reactive([
   {
     id: 'activation',
@@ -95,8 +91,8 @@ const quickLinks = reactive([
   },
 ]);
 
-const serverStatus = computed(() => {
-  return global.serverStatusGetter;
+onBeforeRouteLeave(() => {
+  hideLoader();
 });
 
 onMounted(() => {
@@ -104,6 +100,10 @@ onMounted(() => {
   Promise.all([licenseStore.getLicenses(), systemStore.getSystem()]).finally(
     () => endLoader(),
   );
+});
+
+const serverStatus = computed(() => {
+  return global.serverStatusGetter;
 });
 </script>
 <style lang="scss" scoped>

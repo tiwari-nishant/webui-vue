@@ -134,8 +134,9 @@ import {
 } from '@vuelidate/validators';
 
 const { getValidationState } = useVuelidateComposable();
+
 const emitUpdate = defineEmits(['ok']);
-const modalSettings = ref(false);
+
 eventBus.on('modal-settings', () => {
   modalSettings.value = true;
   form.value.lockoutThreshold = props.settings?.lockoutThreshold;
@@ -149,11 +150,14 @@ const props = defineProps({
     required: true,
   },
 });
+
+const modalSettings = ref(false);
 const form = ref({
   lockoutThreshold: 0,
   unlockMethod: 0,
   lockoutDuration: null,
 });
+
 const rules = {
   form: {
     lockoutThreshold: {
@@ -193,7 +197,7 @@ function handleSubmit() {
 function onOk(bvModalEvt) {
   bvModalEvt.preventDefault();
   handleSubmit();
-}
+};
 
 const closeModal = () => {
   v$.value.$reset();

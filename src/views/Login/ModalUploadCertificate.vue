@@ -41,6 +41,7 @@ import { reactive } from 'vue';
 import eventBus from '@/eventBus';
 
 const { getValidationState } = useVuelidateComposable();
+
 const modal = ref(false);
 
 const form = reactive({
@@ -52,7 +53,6 @@ const rules = computed(() => ({
     file: modal.value ? { required } : {},
   },
 }));
-
 const v$ = useVuelidate(rules, { form });
 
 eventBus.on('upload-login-certificate', () => {
@@ -73,13 +73,11 @@ function handleSubmit() {
   });
   closeModal();
 }
-
 function closeModal() {
   nextTick(() => {
     modal.value = false;
   });
 }
-
 function resetForm() {
   form.file = null;
   eventBus.emit('clear-file');

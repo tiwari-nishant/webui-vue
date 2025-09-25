@@ -99,6 +99,7 @@
     </BModal>
   </BContainer>
 </template>
+
 <script setup>
 import { ref, onMounted, computed, onBeforeMount } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
@@ -115,14 +116,6 @@ import useTableSelectableComposable from '@/components/Composables/useTableSelec
 import stores from '../../../store';
 import eventBus from '@/eventBus';
 
-const snmpToDelete = ref('');
-const openDeleteModal = ref(false);
-const okTitle = ref('');
-const deleteTitle = ref('');
-const deleteType = ref('');
-const deleteMessage = ref('');
-const tableRef = ref(null);
-const isAllSelected = ref(false);
 const { startLoader, endLoader, hideLoader } = useLoadingBar();
 const { successToast, errorToast } = useToastComposable();
 const {
@@ -134,20 +127,17 @@ const {
   tableHeaderCheckboxModel,
   tableHeaderCheckboxIndeterminate,
 } = useTableSelectableComposable();
+
 const snmpAlertsStore = stores.SnmpAlertsStore();
 
-onBeforeRouteLeave(() => {
-  hideLoader();
-});
-
-onBeforeMount(() => {
-  eventBus.on('clear-selected', () => {
-    snmpAlertsStore?.allSnmpDetailsGetter?.map((singleConnection) => {
-      singleConnection.isSelected = false;
-    });
-    clearSelectedRows(tableRef);
-  });
-});
+const snmpToDelete = ref('');
+const openDeleteModal = ref(false);
+const okTitle = ref('');
+const deleteTitle = ref('');
+const deleteType = ref('');
+const deleteMessage = ref('');
+const tableRef = ref(null);
+const isAllSelected = ref(false);
 
 const fields = ref([
   {
@@ -178,6 +168,24 @@ const tableHeaderCheckboxModelValue = ref(tableHeaderCheckboxModel);
 const tableHeaderCheckboxIndeterminateValue = ref(
   tableHeaderCheckboxIndeterminate,
 );
+
+onBeforeRouteLeave(() => {
+  hideLoader();
+});
+
+onBeforeMount(() => {
+  eventBus.on('clear-selected', () => {
+    snmpAlertsStore?.allSnmpDetailsGetter?.map((singleConnection) => {
+      singleConnection.isSelected = false;
+    });
+    clearSelectedRows(tableRef);
+  });
+});
+
+onMounted(() => {
+  startLoader();
+  snmpAlertsStore.getSnmpDetails().finally(() => endLoader());
+});
 
 const allSnmpDetails = computed(() => {
   return snmpAlertsStore.allSnmpDetailsGetter;
@@ -213,16 +221,14 @@ const tableItems = computed(() => {
     };
   });
 });
-onMounted(() => {
-  startLoader();
-  snmpAlertsStore.getSnmpDetails().finally(() => endLoader());
-});
+
 const onModalOk = ({ ipAddress, port }) => {
   const protocolIpAddress = 'snmp://' + ipAddress;
   const destination = port ? protocolIpAddress + ':' + port : protocolIpAddress;
   const data = {
     Destination: destination,
     SubscriptionType: 'SNMPTrap',
+    DeliveryRetryPolicy: 'TerminateAfterRetries',
     Protocol: 'SNMPv2c',
   };
   startLoader();

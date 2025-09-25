@@ -82,12 +82,17 @@ import stores from '@/store';
 const { getValidationState } = useVuelidateComposable();
 const { successToast, errorToast } = useToast();
 const { startLoader, endLoader } = useLoadingBar();
+
 const global = stores.GlobalStore();
 const licenseStore = stores.LicenseStore();
 
 const licenseKey = ref('');
 const maxLengthVal = ref(34);
 const accessKeyLink = ref('www.ibm.com/servers/eserver/ess');
+
+onMounted(() => {
+  fetchInfo();
+});
 
 const rules = computed(() => ({
   licenseKey: {
@@ -110,10 +115,6 @@ const isActivationDisabled = computed(() => {
   } else {
     return true;
   }
-});
-
-onMounted(() => {
-  fetchInfo();
 });
 
 const submitForm = () => {

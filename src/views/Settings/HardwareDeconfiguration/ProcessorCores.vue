@@ -123,12 +123,9 @@ const { selectedRowsList, clearSelectedRows, onRowSelected } =
   useTableSelectableComposable();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const { getFilteredTableData } = useTableFilterComposable();
+
 const hardwareDeconfigurationStore = stores.HardwareDeconfigurationStore();
 const global = stores.GlobalStore();
-
-onBeforeRouteLeave(() => {
-  hideLoader();
-});
 
 const isBusy = ref(true);
 const tableHardwareDeconfigurationRef = ref(null);
@@ -200,6 +197,18 @@ const tableFilters = ref([
   },
 ]);
 
+onBeforeRouteLeave(() => {
+  hideLoader();
+});
+
+onBeforeMount(() => {
+  startLoader();
+  hardwareDeconfigurationStore.getProcessors().finally(() => {
+    endLoader();
+    isBusy.value = false;
+  });
+});
+
 const allCores = computed(() => {
   return hardwareDeconfigurationStore.coresGetter;
 });
@@ -219,14 +228,6 @@ const isServerOff = computed(() => {
 });
 const isReadOnlyUser = computed(() => {
   return global.isReadOnlyUserGetter;
-});
-
-onBeforeMount(() => {
-  startLoader();
-  hardwareDeconfigurationStore.getProcessors().finally(() => {
-    endLoader();
-    isBusy.value = false;
-  });
 });
 
 const onFilterChange = ({ activeFilters }) => {
@@ -251,6 +252,7 @@ const toggleSettingsSwitch = (row) => {
     });
 };
 </script>
+
 <style lang="scss" scoped>
 .text-right {
   text-align: right;

@@ -173,7 +173,9 @@ const { toggleRowDetails } = useTableRowExpandComposable();
 const { expandRowLabel } = useTableRowExpandComposable();
 const { errorToast } = useToastComposable();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
+
 const postCodeLogsStore = stores.PostCodeLogsStore();
+
 const srcData = ref({});
 const isBusy = ref(true);
 const fields = ref([
@@ -326,6 +328,7 @@ const onClearSearchInput = () => {
   searchFilterInputVal.value = '';
 };
 </script>
+
 <style lang="scss" scoped>
 .text-right {
   text-align: right;

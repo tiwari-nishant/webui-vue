@@ -143,7 +143,6 @@ import IconAdd from '@carbon/icons-vue/es/add--alt/20';
 import IconSettings from '@carbon/icons-vue/es/settings/20';
 import IconChevron from '@carbon/icons-vue/es/chevron--up/20';
 import eventBus from '@/eventBus';
-
 import ModalUser from './ModalUser.vue';
 import ModalSettings from './ModalSettings.vue';
 import PageTitle from '@/components/Global/PageTitle.vue';
@@ -154,7 +153,6 @@ import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableSelectableComposable from '@/components/Composables/useTableSelectableComposable';
 import useToastComposable from '@/components/Composables/useToastComposable';
 import stores from '@/store';
-import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
 
 onBeforeRouteLeave(() => {
   hideLoader();
@@ -169,11 +167,12 @@ const {
   tableHeaderCheckboxModel,
   tableHeaderCheckboxIndeterminate,
 } = useTableSelectableComposable();
+const { hideLoader, startLoader, endLoader } = useLoadingBar();
+const toast = useToastComposable();
 
 const userManagement = stores.UserManagementStore();
 const global = stores.GlobalStore();
-const { hideLoader, startLoader, endLoader } = useLoadingBar();
-const toast = useToastComposable();
+
 const isAllSelected = ref(false);
 const isBusy = ref(true);
 const activeUser = ref(null);
@@ -221,6 +220,7 @@ const tableToolbarActions = ref([
 const selectedRows = ref(selectedRowsList);
 const tableRef = ref(null);
 const userToDelete = ref('');
+
 onBeforeMount(() => {
   eventBus.on('clear-selected', () => {
     userManagement?.allUsersGetter?.map((singleConnection) => {
@@ -231,12 +231,20 @@ onBeforeMount(() => {
   eventBus.on('okUser', handleOkUser);
 });
 
-const handleOkUser = ({ isNewUser, userData }) => {
-  saveUser({ isNewUser, userData });
-};
-
 onBeforeUnmount(() => {
   eventBus.off('okUser', handleOkUser);
+});
+
+onBeforeMount(() => {
+  startLoader();
+  userManagement.getAccountSettings();
+  Promise.all([
+    userManagement.getAccountRoles(),
+    userManagement.getUsers(),
+  ]).finally(() => {
+    endLoader();
+    isBusy.value = false;
+  });
 });
 
 const accountRoles = computed(() => {
@@ -303,18 +311,9 @@ const passwordRequirements = computed(() => {
   }
 });
 
-onBeforeMount(() => {
-  startLoader();
-  userManagement.getAccountSettings();
-  Promise.all([
-    userManagement.getAccountRoles(),
-    userManagement.getUsers(),
-  ]).finally(() => {
-    endLoader();
-    isBusy.value = false;
-  });
-});
-
+const handleOkUser = ({ isNewUser, userData }) => {
+  saveUser({ isNewUser, userData });
+};
 function toggleAll(checked) {
   userManagement?.allUsers?.map((singleUser) => {
     singleUser.isSelected = checked;

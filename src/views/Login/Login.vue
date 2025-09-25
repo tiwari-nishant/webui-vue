@@ -126,23 +126,22 @@ import useToast from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import ModalUploadCertificate from './ModalUploadCertificate.vue';
 
-const passwordType = ref('password');
 const router = useRouter();
-const globalStore = stores.GlobalStore();
 const { getValidationState } = useVuelidateComposable();
-const authenticationStore = stores.AuthenticationStore();
-const certificatesStore = stores.CertificatesStore();
 const { dataFormatter } = useDataFormatterGlobal();
 const { successToast, errorToast } = useToast();
 const { t } = useI18n();
-const userInfo = reactive({ username: null, password: null });
-const rules = { username: { required }, password: { required } };
+const { startLoader, endLoader } = useLoadingBar();
+
+const authenticationStore = stores.AuthenticationStore();
+const certificatesStore = stores.CertificatesStore();
+const globalStore = stores.GlobalStore();
+
+const passwordType = ref('password');
 const acfUploadButton = ref(
   import.meta.env.VITE_APP_ACF_UPLOAD_REQUIRED === 'true',
 );
-const v$ = useVuelidate(rules, userInfo);
 const isBusy = ref(true);
-const { startLoader, endLoader } = useLoadingBar();
 const disableSubmitButton = ref(false);
 const languages = ref([
   {
@@ -151,15 +150,9 @@ const languages = ref([
   },
 ]);
 
-const authError = computed(() => {
-  return authenticationStore.authErrorGetter;
-});
-const unauthError = computed(() => {
-  return authenticationStore.unauthErrorGetter;
-});
-const loginPageDetails = computed(() => {
-  return authenticationStore.loginPageDetailsGetter;
-});
+const userInfo = reactive({ username: null, password: null });
+const rules = { username: { required }, password: { required } };
+const v$ = useVuelidate(rules, userInfo);
 
 onBeforeMount(() => {
   startLoader();
@@ -167,6 +160,18 @@ onBeforeMount(() => {
     endLoader();
     isBusy.value = false;
   });
+});
+
+const authError = computed(() => {
+  return authenticationStore.authErrorGetter;
+});
+
+const unauthError = computed(() => {
+  return authenticationStore.unauthErrorGetter;
+});
+
+const loginPageDetails = computed(() => {
+  return authenticationStore.loginPageDetailsGetter;
 });
 
 const login = () => {

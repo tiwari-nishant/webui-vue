@@ -291,6 +291,11 @@ import stores from '@/store';
 import eventBus from '@/eventBus';
 
 const { getValidationState } = useVuelidateComposable();
+
+const globalStore = stores.GlobalStore();
+const userManagementStore = stores.UserManagementStore();
+const uploadCertificate = stores.CertificatesStore();
+
 const props = defineProps({
   user: {
     type: Object,
@@ -302,11 +307,8 @@ const props = defineProps({
   },
 });
 
-const globalStore = stores.GlobalStore();
-const userManagementStore = stores.UserManagementStore();
-const uploadCertificate = stores.CertificatesStore();
-
 const modalUser = ref(false);
+
 eventBus.on('modal-user', () => {
   modalUser.value = true;
   nextTick(() => {
@@ -320,6 +322,7 @@ eventBus.on('modal-user', () => {
     }
   });
 });
+
 const originalUsername = ref('');
 const form = ref({
   status: true,
@@ -331,10 +334,10 @@ const form = ref({
 });
 const passwordType = ref('password');
 const confirmPasswordType = ref('password');
+
 const certificateTypes = computed(() => {
   return uploadCertificate.availableUploadTypesGetter;
 });
-
 const editDisabled = computed(() => {
   return !props.user?.RoleId;
 });
@@ -479,6 +482,7 @@ function updateConfirmPasswordType(type) {
   confirmPasswordType.value = type;
 }
 </script>
+
 <style lang="scss" scoped>
 .radioButtonStyle {
   margin-bottom: 1rem;

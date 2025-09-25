@@ -284,6 +284,7 @@
     <modal-leds :selected-obj="selectedObj" />
   </b-container>
 </template>
+
 <script setup>
 import Alert from '@/components/Global/Alert.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
@@ -314,13 +315,15 @@ const { searchFilterInput, onChangeSearch, onClearSearch } =
 const { getFilteredTableData } = useTableFilter();
 const { startLoader, endLoader } = useLoadingBar();
 const { dataFormatter } = useDataFormatterGlobal();
+const { successToast, errorToast } = useToast();
+
 const globalStore = stores.GlobalStore();
 const pcieTopologyStore = stores.PcieTopologyStore();
+
 const isBusy = ref(true);
 const resetOption = ref(null);
 const resetLinkUri = ref('');
 const selectedObj = ref({});
-const { successToast, errorToast } = useToast();
 const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
 const fetched = ref(false);
@@ -393,15 +396,23 @@ const batchActions = reactive([
     label: i18n.global.t('global.action.delete'),
   },
 ]);
-
 const searchTotalFilteredRows = ref(0);
+
+onBeforeMount(() => {
+  globalStore.getBootProgress().then(() => {
+    checkIfInPhypStandby();
+  });
+});
+
+onMounted(() => {
+  eventBus.emit('loading-bar-status', true);
+});
 
 const filteredRows = computed(() => {
   return searchFilterInput.value
     ? searchTotalFilteredRows.value
     : filteredEntries.value.length;
 });
-
 const filteredEntries = computed(() => {
   if (pcieTopologyStore.entriesGetter) {
     return getFilteredTableData(
@@ -411,7 +422,6 @@ const filteredEntries = computed(() => {
   }
   return [];
 });
-
 const tableIsBusy = computed(() => {
   if (!globalStore.isInPhypStandby) return false;
   if (fetched.value == true && globalStore.isInPhypStandby) return false;
@@ -422,15 +432,6 @@ const isInPhypStandby = computed(() => {
 });
 const isServiceUser = computed(() => {
   return globalStore.isServiceUser;
-});
-
-onBeforeMount(() => {
-  globalStore.getBootProgress().then(() => {
-    checkIfInPhypStandby();
-  });
-});
-onMounted(() => {
-  eventBus.emit('loading-bar-status', true);
 });
 
 function checkIfInPhypStandby(checkCounter = 0) {
@@ -478,6 +479,7 @@ function onFiltered(filteredItems) {
   searchTotalFilteredRows.value = filteredItems.length;
 }
 </script>
+
 <style lang="scss" scoped>
 .identifyLedStyle {
   color: rgb(1, 80, 230);

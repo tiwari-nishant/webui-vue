@@ -259,14 +259,12 @@ const bootSettingsStore = stores.BootSettingsStore();
 const resourceMemoryStore = stores.ResourceMemoryStore();
 
 const openModal = ref(false);
-
 const phypStandby = ref(false);
 const isUpdated = ref(false);
 const form = ref({
   rebootOption: 'orderly',
   shutdownOption: 'orderly',
 });
-
 const modalMessage = ref('');
 const modalOptions = ref({
   title: '',
@@ -275,6 +273,27 @@ const modalOptions = ref({
   cancelTitle: '',
 });
 const modalOption = ref('');
+
+onBeforeRouteLeave(() => {
+  hideLoader();
+});
+
+onBeforeMount(() => {
+  startLoader();
+  const bootSettingsPromise = new Promise((resolve) => {
+    eventBus.on('server-power-operations-boot-settings-complete', () =>
+      resolve(),
+    );
+  });
+  Promise.all([
+    globalStore.getHmcManaged(),
+    bootSettingsStore.getOperatingModeSettings(),
+    controlStore.fetchLastPowerOperationTime(),
+    bmcStore.getBmcInfo(),
+    globalStore.getBootProgress(),
+    bootSettingsPromise,
+  ]).finally(() => endLoader());
+});
 
 const isInPhypStandby = computed(() => {
   if (!phypStandby.value) {
@@ -503,25 +522,4 @@ function standbyToRuntime() {
     })
     .catch(({ message }) => errorToast(message));
 }
-
-onBeforeRouteLeave(() => {
-  hideLoader();
-});
-
-onBeforeMount(() => {
-  startLoader();
-  const bootSettingsPromise = new Promise((resolve) => {
-    eventBus.on('server-power-operations-boot-settings-complete', () =>
-      resolve(),
-    );
-  });
-  Promise.all([
-    globalStore.getHmcManaged(),
-    bootSettingsStore.getOperatingModeSettings(),
-    controlStore.fetchLastPowerOperationTime(),
-    bmcStore.getBmcInfo(),
-    globalStore.getBootProgress(),
-    bootSettingsPromise,
-  ]).finally(() => endLoader());
-});
 </script>

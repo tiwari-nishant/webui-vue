@@ -1,4 +1,3 @@
-<!-- TODO: Work Requird -->
 <template>
   <BContainer fluid="xl">
     <page-title :title="t('appPageTitle.kvm')" />
@@ -12,6 +11,7 @@
 import PageTitle from '@/components/Global/PageTitle.vue';
 import KvmConsole from './KvmConsole.vue';
 import { ref } from 'vue';
+
 const isFullWindow = ref(false);
 </script>
 

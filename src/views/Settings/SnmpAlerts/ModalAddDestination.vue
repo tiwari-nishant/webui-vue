@@ -70,6 +70,7 @@
     </BForm>
   </BModal>
 </template>
+
 <script setup>
 import { ref, nextTick, computed } from 'vue';
 import { required, minValue, maxValue } from '@vuelidate/validators';
@@ -78,16 +79,20 @@ import useVuelidateComposable from '@/components/Composables/useVuelidateComposa
 import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import eventBus from '@/eventBus';
 
+const { getValidationState } = useVuelidateComposable();
+
 eventBus.on('add-destination', () => {
   modal.value = true;
 });
-const { getValidationState } = useVuelidateComposable();
+
 const emit = defineEmits(['ok']);
+
 const modal = ref(false);
 const form = ref({
   ipaddress: null,
   port: null,
 });
+
 const rules = computed(() => ({
   form: {
     ipAddress: {
@@ -128,6 +133,7 @@ const onOk = (bvModalEvt) => {
   handleSubmit();
 };
 </script>
+
 <style lang="scss" scoped>
 .info-icon {
   width: 20px !important;

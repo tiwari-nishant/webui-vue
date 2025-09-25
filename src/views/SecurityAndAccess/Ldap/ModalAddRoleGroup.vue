@@ -78,15 +78,18 @@ import useVuelidate from '@vuelidate/core';
 import eventBus from '@/eventBus';
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
 import useLoadingBar from '../../../components/Composables/useLoadingBarComposable';
-// import VuelidateMixin from '@/components/Mixins/VuelidateMixin.js';
 
-const userManagementStore = stores.UserManagementStore();
 const { getValidationState } = useVuelidateComposable();
 const { hideLoader, startLoader, endLoader, loading } = useLoadingBar();
+
+const userManagementStore = stores.UserManagementStore();
+
 const modal = ref(false);
+
 eventBus.on('modal-role-group', () => {
   modal.value = true;
 });
+
 const props = defineProps({
   roleGroup: {
     type: Object,
@@ -105,11 +108,13 @@ const form = reactive({
   groupName: null,
   groupPrivilege: null,
 });
+
 const accountRoles = computed(() => {
   return userManagementStore.filteredAccountRoles.filter(
     (role) => role !== 'ServiceAgent' && role !== 'Operator',
   );
 });
+
 watch(
   () => props.roleGroup,
   (value) => {
@@ -128,6 +133,7 @@ const ruless = computed(() => ({
   },
 }));
 const vv$ = useVuelidate(ruless, { form });
+
 const emit = defineEmits(['ok']);
 function handleSubmit() {
   vv$.value.$touch();

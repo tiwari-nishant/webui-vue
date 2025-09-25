@@ -154,6 +154,7 @@ const updateConfirmPasswordType = (passwordType) => {
   confirmPasswordType.value = passwordType;
 };
 </script>
+
 <style lang="scss" scoped>
 .change-password__form-container {
   @include media-breakpoint-up('md') {

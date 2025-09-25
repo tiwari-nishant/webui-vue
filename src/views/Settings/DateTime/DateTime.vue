@@ -309,7 +309,6 @@ import PageSection from '@/components/Global/PageSection.vue';
 import useToastComposable from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useLocalTimezoneLabelComposable from '@/components/Composables/useLocalTimezoneLabelComposable';
-import LocalTimezoneLabelMixin from '@/components/Mixins/LocalTimezoneLabelMixin';
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
 import { useVuelidate } from '@vuelidate/core';
 import InfoTooltip from '@/components/Global/InfoTooltip.vue';
@@ -324,19 +323,23 @@ import {
 } from '@vuelidate/validators';
 
 const { proxy } = getCurrentInstance();
+const { startLoader, hideLoader, endLoader } = useLoadingBar();
+const { getValidationState } = useVuelidateComposable();
+const { localOffset } = useLocalTimezoneLabelComposable();
+const toast = useToastComposable();
+
 const formatDate = proxy.$filters.formatDate;
 const formatTime = proxy.$filters.formatTime;
+
 const notSameAs = (value1, value2) => {
   return value2 ? value1 !== value2 : true;
 };
 const dateTimeStore = stores.DateTimeStore();
 const globalStore = stores.GlobalStore();
-const toast = useToastComposable();
-const { startLoader, hideLoader, endLoader } = useLoadingBar();
-const { getValidationState } = useVuelidateComposable();
-const { localOffset } = useLocalTimezoneLabelComposable();
+
 const isoDateRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
 const isoTimeRegex = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+
 const manualDate = ref('');
 const locale = ref(globalStore.languagePreferenceGetter);
 const form = ref({
@@ -354,6 +357,7 @@ const dhcpNtp = ref([]);
 onBeforeRouteLeave(() => {
   hideLoader();
 });
+
 onMounted(() => {
   startLoader();
   Promise.all([globalStore.getBmcTime(), dateTimeStore.getNtpData()]).finally(
@@ -406,7 +410,6 @@ const chunkedDhcpNtp = computed(() => {
   }
   return result;
 });
-
 const rules = computed(() => ({
   form: {
     manual: {
@@ -553,6 +556,7 @@ const submitForm = () => {
       endLoader();
     });
 };
+
 const getUtcDate = (date, time) => {
   // Split user input string values to create
   // a UTC Date object
@@ -577,6 +581,7 @@ const showCollapse = () => {
   }
 };
 </script>
+
 <style lang="scss" scoped>
 .btn.collapsed {
   svg {

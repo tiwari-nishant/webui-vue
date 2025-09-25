@@ -43,6 +43,7 @@
     </template>
   </b-modal>
 </template>
+
 <script setup>
 import stores from '../../../store';
 import useVuelidate from '@vuelidate/core';
