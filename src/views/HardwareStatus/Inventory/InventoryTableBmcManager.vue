@@ -192,7 +192,7 @@ onBeforeMount(() => {
 });
 
 const bmc = computed(() => {
-  return bmcStore.bmc;
+  return bmcStore.bmcGetter;
 });
 
 const items = computed(() => {

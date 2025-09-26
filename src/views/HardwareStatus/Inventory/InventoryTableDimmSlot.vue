@@ -239,7 +239,7 @@ const filteredRows = computed(() => {
 });
 
 const dimms = computed(() => {
-  return memoryStore.dimms;
+  return memoryStore.dimmsGetter;
 });
 
 function onFiltered(filteredItems) {

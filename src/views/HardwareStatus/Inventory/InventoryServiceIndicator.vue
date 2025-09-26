@@ -101,6 +101,7 @@ import stores from '../../../store';
 import { ref, computed, watch, onBeforeMount } from 'vue';
 import eventBus from '@/eventBus';
 import useToast from '@/components/Composables/useToastComposable';
+import { serverStateMapper } from '../../../store/modules/GlobalStore';
 
 const { successToast, errorToast } = useToast();
 
@@ -122,14 +123,19 @@ const systems = computed(() => {
 });
 
 const serverStatus = computed(() => {
-  return globalStore.serverStatus;
+  return globalStore.serverStatusGetter;
 });
 
 const powerStatus = computed(() => {
+  let serverStatusValue = serverStatus.value;
   if (serverStatus.value === 'unreachable') {
     return `global.status.off`;
   }
-  return `global.status.${serverStatus.value}`;
+  // To check if serverStatus.value returns state from redfish without mapping to on,off etc
+  if (serverStatusValue.includes('xyz.openbmc_project')) {
+    serverStatusValue = serverStateMapper(serverStatusValue);
+  }
+  return `global.status.${serverStatusValue}`;
 });
 
 watch(
@@ -171,5 +177,3 @@ function toggleLampTestSwitch(lampTestState) {
     .catch(({ message }) => errorToast(message));
 }
 </script>
-
-<style lang="scss" scoped></style>

@@ -247,7 +247,7 @@ const filteredRows = computed(() => {
 });
 
 const fans = computed(() => {
-  return fanStore.fans;
+  return fanStore.fansGetter;
 });
 
 const serverStatus = computed(() => {
