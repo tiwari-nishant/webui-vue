@@ -188,7 +188,7 @@ svg {
   }
 }
 .nav-nochild {
-  ::v-deep a.router-link-exact-active {
+  :deep(a.router-link-exact-active) {
     position: relative;
     background-color: $secondary;
     color: $light;
@@ -207,7 +207,7 @@ svg {
     background-color: #dadada;
     color: $light;
   }
-  ::v-deep a {
+  :deep(a) {
     color: $secondary;
   }
 }

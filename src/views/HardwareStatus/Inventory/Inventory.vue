@@ -421,7 +421,7 @@ function currentTabUpdate(index) {
   min-width: 90%;
 }
 .no-underline-link {
-  ::v-deep a {
+  :deep(a) {
     text-decoration: none;
     &:hover {
       text-decoration: underline;
