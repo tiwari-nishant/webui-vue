@@ -136,7 +136,7 @@ const { t } = useI18n();
 
 const systemStore = stores.SystemStore();
 
-const isBusy = ref(true);
+const isBusy = ref(false);
 const fields = reactive([
   {
     key: 'expandRow',

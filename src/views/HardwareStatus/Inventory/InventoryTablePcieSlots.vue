@@ -107,7 +107,7 @@ const props = defineProps({
 });
 
 const searchTotalFilteredRows = ref(0);
-const isBusy = ref(true);
+const isBusy = ref(false);
 const slotListLength = ref(0);
 
 const fields = reactive([

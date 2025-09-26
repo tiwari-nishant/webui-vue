@@ -182,7 +182,7 @@ const { expandRowLabel } = useTableRowExpandComposable();
 
 const processorStore = ProcessorStore();
 
-const isBusy = ref(true);
+const isBusy = ref(false);
 const searchTotalFilteredRows = ref(0);
 
 const fields = reactive([

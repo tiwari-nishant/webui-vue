@@ -181,7 +181,7 @@ const { t } = useI18n();
 const globalStore = stores.GlobalStore();
 const assemblyStore = stores.AssemblyStore();
 
-const isBusy = ref(true);
+const isBusy = ref(false);
 const searchTotalFilteredRows = ref(0);
 
 const fields = reactive([

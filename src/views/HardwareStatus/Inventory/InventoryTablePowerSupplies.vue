@@ -195,7 +195,7 @@ const props = defineProps({
   },
 });
 
-const isBusy = ref(true);
+const isBusy = ref(false);
 const fields = reactive([
   {
     key: 'expandRow',
