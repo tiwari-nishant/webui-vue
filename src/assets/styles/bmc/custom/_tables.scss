@@ -1,4 +1,4 @@
-@use 'sass:math';
+@use "sass:math";
 // @import "/node_modules/bootstrap/scss/variables";
 .b-table-sticky-header {
   max-height: 75vh;
@@ -55,11 +55,9 @@
   }
 }
 
-
-.no-scroll-sticky { 
-  overflow-y: visible  !important; 
+.no-scroll-sticky {
+  overflow-y: visible !important;
   max-height: none !important;
-  
 }
 
 .table {
@@ -182,7 +180,7 @@
     border: 1px solid $gray-300;
 
     tr {
-      &:not(:first-child) > td[aria-colindex='1'] {
+      &:not(:first-child) > td[aria-colindex="1"] {
         border-top: 1px solid $gray-300;
         padding-top: 0.625rem;
       }
@@ -199,14 +197,14 @@
         }
 
         &:before {
-          content: '';
+          content: "";
           background-color: $gray-200;
           width: 40%;
           border-right: 1px solid $gray-300;
         }
 
         &:after {
-          content: '';
+          content: "";
           right: 0;
           width: 60%;
         }

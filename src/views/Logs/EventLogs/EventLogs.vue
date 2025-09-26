@@ -80,6 +80,9 @@
           :current-page="currentPage"
           :filter="searchFilter"
           :busy="isBusy"
+          :class="{ sorted: isSorted }"
+          @update:sort-by="isSorted = true"
+          @update:sort-desc="isSorted = true"
           @filtered="onFiltered"
           @row-selected="onRowSelected($event, filteredLogs.length)"
         >
@@ -356,6 +359,7 @@ export default {
       deleteTitle: '',
       deleteType: '',
       uris: [],
+      isSorted: false,
       isBusy: true,
       fields: [
         {
@@ -790,5 +794,11 @@ export default {
   svg {
     transform: rotate(180deg);
   }
+}
+
+:deep(.sorted) th[aria-sort='ascending'] ~ th[aria-sort='none'] svg,
+:deep(.sorted) th[aria-sort='descending'] ~ th[aria-sort='none'] svg,
+:deep(.sorted) th[aria-sort='none'] ~ th[aria-sort='none'] svg {
+  display: none;
 }
 </style>
