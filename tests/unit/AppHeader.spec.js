@@ -5,30 +5,30 @@ import stores from '@/store';
 import AppHeader from '@/components/AppHeader/AppHeader.vue';
 import eventBus from '@/eventBus';
 
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-  }),
-}));
+vi.mock('vue-router', async () => {
+  const actual = await vi.importActual('vue-router');
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: vi.fn(),
+    }),
+  };
+});
 
 describe('AppHeader.vue', () => {
   let wrapper;
   let globalStore;
   let eventLogStore;
   let authStore;
-
   beforeEach(() => {
     const pinia = createPinia();
     setActivePinia(pinia);
-
     globalStore = stores.GlobalStore();
     eventLogStore = stores.EventLogStore();
     authStore = stores.AuthenticationStore();
-
     globalStore.getSystemInfo = vi.fn();
     eventLogStore.getEventLogData = vi.fn();
     authStore.resetStoreState = vi.fn();
-
     wrapper = mount(AppHeader, {
       global: {
         plugins: [pinia],
@@ -84,7 +84,6 @@ describe('AppHeader.vue', () => {
       wrapper.vm.getSystemInfo();
       expect(globalStore.getSystemInfo).toHaveBeenCalled();
     });
-
     it('getEvents should dispatch eventLog/getEventLogData', () => {
       wrapper.vm.getEvents();
       expect(eventLogStore.getEventLogData).toHaveBeenCalled();
