@@ -30,9 +30,10 @@
       :fields="fields"
       :sort-desc="false"
       :filter="searchFilterInput"
-      :empty-text="$t('global.table.emptyMessage')"
+      :empty-text="
+        isBusy ? $t('global.table.loading') : $t('global.table.emptyMessage')
+      "
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
-      :busy="isBusy"
       class="no-scroll-sticky"
       @filtered="onFiltered"
     >
@@ -79,14 +80,7 @@
 <script setup>
 import PageSection from '@/components/Global/PageSection.vue';
 import TableCellCount from '@/components/Global/TableCellCount.vue';
-import {
-  defineProps,
-  reactive,
-  ref,
-  computed,
-  watch,
-  onBeforeMount,
-} from 'vue';
+import { reactive, ref, computed, watch, onBeforeMount } from 'vue';
 
 import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
@@ -114,7 +108,7 @@ const props = defineProps({
 });
 
 const searchTotalFilteredRows = ref(0);
-const isBusy = ref(true);
+const isBusy = ref(false);
 const slotListLength = ref(0);
 
 const fields = reactive([
@@ -139,6 +133,7 @@ const fields = reactive([
 ]);
 
 onBeforeMount(() => {
+  isBusy.value = true;
   pcieSlotsStore.getPcieSlotsInfo({ uri: props.chassis }).finally(() => {
     eventBus.emit('hardware-status-pcie-slots-complete');
     isBusy.value = false;
@@ -176,6 +171,7 @@ const serverStatus = computed(() => {
 watch(
   () => props.chassis,
   (value) => {
+    isBusy.value = true;
     pcieSlotsStore.getPcieSlotsInfo({ uri: value }).finally(() => {
       eventBus.emit('hardware-status-pcie-slots-complete');
       isBusy.value = false;
@@ -210,7 +206,7 @@ function hasIdentifyLed(identifyLed) {
 
 <style lang="scss" scoped>
 .no-underline-link {
-  ::v-deep a {
+  :deep(a) {
     text-decoration: none;
     &:hover {
       text-decoration: underline;

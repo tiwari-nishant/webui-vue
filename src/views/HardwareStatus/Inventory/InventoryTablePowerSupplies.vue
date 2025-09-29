@@ -23,9 +23,10 @@
       :fields="fields"
       :sort-desc="false"
       :filter="searchFilterInput"
-      :empty-text="$t('global.table.emptyMessage')"
+      :empty-text="
+        isBusy ? $t('global.table.loading') : $t('global.table.emptyMessage')
+      "
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
-      :busy="isBusy"
       class="no-scroll-sticky"
       @filtered="onFiltered"
     >
@@ -170,14 +171,7 @@ import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import Search from '@/components/Global/Search.vue';
 import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
-import {
-  defineProps,
-  ref,
-  reactive,
-  computed,
-  watch,
-  onBeforeMount,
-} from 'vue';
+import { ref, reactive, computed, watch, onBeforeMount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import stores from '../../../store';
 import eventBus from '@/eventBus';
@@ -252,6 +246,7 @@ const filteredRows = computed(() => {
 });
 
 onBeforeMount(() => {
+  isBusy.value = true;
   powerSupplyStore.getAllPowerSupplies({ uri: props.chassis }).finally(() => {
     // Emit initial data fetch complete to parent component
     eventBus.emit('hardware-status-power-supplies-complete');
@@ -289,6 +284,7 @@ const powerSupplies = computed(() => {
 watch(
   () => props.chassis,
   (value) => {
+    isBusy.value = true;
     powerSupplyStore.getAllPowerSupplies({ uri: value }).finally(() => {
       // Emit initial data fetch complete to parent component
       eventBus.emit('hardware-status-power-supplies-complete');

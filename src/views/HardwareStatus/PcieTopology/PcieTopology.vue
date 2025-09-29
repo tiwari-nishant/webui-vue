@@ -66,9 +66,12 @@
           sticky-header="75vh"
           sort-by="id"
           :fields="fields"
-          :busy="tableIsBusy"
           :filter="searchFilterInput"
-          :empty-text="$t('global.table.emptyMessage')"
+          :empty-text="
+            tableIsBusy
+              ? $t('global.table.loading')
+              : $t('global.table.emptyMessage')
+          "
           :empty-filtered-text="$t('global.table.emptySearchMessage')"
           :items="filteredEntries"
           :per-page="
@@ -517,7 +520,7 @@ function onFiltered(filteredItems) {
 }
 
 .alert-message-link {
-  ::v-deep a {
+  :deep(a) {
     text-decoration: none;
     &:hover {
       text-decoration: underline;

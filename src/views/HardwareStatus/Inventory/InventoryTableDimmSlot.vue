@@ -23,9 +23,10 @@
       :fields="fields"
       :sort-desc="false"
       :filter="searchFilterInput"
-      :empty-text="$t('global.table.emptyMessage')"
+      :empty-text="
+        isBusy ? $t('global.table.loading') : $t('global.table.emptyMessage')
+      "
       :empty-filtered-text="$t('global.table.emptySearchMessage')"
-      :busy="isBusy"
       @filtered="onFiltered"
     >
       <template #head(identifyLed)="row">
@@ -225,6 +226,7 @@ const fields = reactive([
 ]);
 
 onBeforeMount(() => {
+  isBusy.value = true;
   memoryStore.getDimms().finally(() => {
     // Emit initial data fetch complete to parent component
     eventBus.emit('hardware-status-dimm-slot-complete');
@@ -308,7 +310,7 @@ function getStatusTooltip(status) {
     transform: rotate(180deg);
   }
 }
-.total-fixed-header ::v-deep thead th {
+.total-fixed-header :deep(thead th) {
   position: sticky;
   top: 0;
   z-index: 1;

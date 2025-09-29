@@ -9,7 +9,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
 import IconInfo from '@carbon/icons-vue/es/information--filled/20';
 import IconSuccess from '@carbon/icons-vue/es/checkmark--filled/20';
 import IconWarning from '@carbon/icons-vue/es/warning--filled/20';
@@ -38,7 +37,7 @@ defineProps({
     color: $danger;
   }
   &.secondary {
-    color: gray('600');
+    color: $gray-600;
     transform: rotate(-45deg);
   }
   &.warning {
