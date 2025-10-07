@@ -370,15 +370,18 @@ const privilegeTypes = computed(() => {
   );
 });
 
-watch(props.user, (value) => {
-  if (value.length) {
-    if (value === null) return;
-    originalUsername.value = value.username;
-    form.value.username = value.username;
-    form.value.status = value.Enabled;
-    form.value.privilege = value.privilege;
-  }
-});
+watch(
+  () => props.user,
+  (value) => {
+    if (value.length) {
+      if (value === null) return;
+      originalUsername.value = value.username;
+      form.value.username = value.username;
+      form.value.status = value.Enabled;
+      form.value.privilege = value.privilege;
+    }
+  },
+);
 
 const rules = computed(() => ({
   form: {

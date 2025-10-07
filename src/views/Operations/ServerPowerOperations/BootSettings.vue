@@ -93,11 +93,17 @@ watch(biosAttributes, function (value) {
   form.value.attributes = value;
 });
 
-watch(props.isUpdated, function (newValue) {
-  if (newValue) {
-    handleSubmit();
-  }
-});
+watch(
+  () => props.isUpdated,
+  (newValue) => {
+    console.log('inside watch');
+    console.log('newValue', newValue);
+    if (newValue) {
+      console.log('inside if');
+      handleSubmit();
+    }
+  },
+);
 
 function updateAttributeKeys(attributeKeys) {
   form.value.attributes = attributeKeys;
@@ -108,6 +114,7 @@ function linuxKvmValue(value) {
 }
 
 function handleSubmit() {
+  console.log('inside submit');
   startLoader();
   let settings;
   let biosSettings = form.value.attributes;
