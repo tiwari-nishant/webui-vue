@@ -96,10 +96,7 @@ watch(biosAttributes, function (value) {
 watch(
   () => props.isUpdated,
   (newValue) => {
-    console.log('inside watch');
-    console.log('newValue', newValue);
     if (newValue) {
-      console.log('inside if');
       handleSubmit();
     }
   },
@@ -114,7 +111,6 @@ function linuxKvmValue(value) {
 }
 
 function handleSubmit() {
-  console.log('inside submit');
   startLoader();
   let settings;
   let biosSettings = form.value.attributes;
