@@ -609,7 +609,10 @@ export default {
             }
           });
         })
-        .finally(() => (this.openModal = false));
+        .finally(() => {
+          eventBus.emit('clear-selected');
+          this.openModal = false;
+        });
     },
     onFilterChange({ activeFilters }) {
       this.activeFilters = activeFilters;
@@ -618,6 +621,9 @@ export default {
       if (key === 'severity') {
         return useTableSortComposable().sortStatus(a, b, key);
       }
+      if (a[key] < b[key]) return -1;
+      if (a[key] > b[key]) return 1;
+      return 0;
     },
     onTableRowAction(action, { uri }) {
       if (action === 'delete') {
