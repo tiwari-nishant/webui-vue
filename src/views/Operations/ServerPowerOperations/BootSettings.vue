@@ -53,6 +53,8 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits('update-standby');
+
 const componentKey = ref(0);
 const isLinuxKvmValid = ref(true);
 const form = ref({
@@ -178,7 +180,7 @@ function handleSubmit() {
     })
     .finally(() => {
       if (props.isUpdated) {
-        eventBus.emit('update-standby', props.isUpdated);
+        emit('update-standby', props.isUpdated);
       }
       endLoader();
     });
