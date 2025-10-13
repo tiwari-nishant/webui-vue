@@ -609,7 +609,10 @@ export default {
             }
           });
         })
-        .finally(() => (this.openModal = false));
+        .finally(() => {
+          eventBus.emit('clear-selected');
+          this.openModal = false;
+        });
     },
     onFilterChange({ activeFilters }) {
       this.activeFilters = activeFilters;
