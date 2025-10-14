@@ -53,6 +53,8 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits('update-standby');
+
 const componentKey = ref(0);
 const isLinuxKvmValid = ref(true);
 const form = ref({
@@ -93,11 +95,14 @@ watch(biosAttributes, function (value) {
   form.value.attributes = value;
 });
 
-watch(props.isUpdated, function (newValue) {
-  if (newValue) {
-    handleSubmit();
-  }
-});
+watch(
+  () => props.isUpdated,
+  (newValue) => {
+    if (newValue) {
+      handleSubmit();
+    }
+  },
+);
 
 function updateAttributeKeys(attributeKeys) {
   form.value.attributes = attributeKeys;
@@ -175,7 +180,7 @@ function handleSubmit() {
     })
     .finally(() => {
       if (props.isUpdated) {
-        eventBus.emit('update-standby', props.isUpdated);
+        emit('update-standby', props.isUpdated);
       }
       endLoader();
     });
