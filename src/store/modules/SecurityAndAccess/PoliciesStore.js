@@ -68,17 +68,17 @@ export const PoliciesStore = defineStore('policies', {
         .get('/redfish/v1/Systems/system/Bios')
         .then((response) => {
           this.rtadEnabled =
-            response.data.Attributes.pvm_rtad === 'Enabled' ? 'true' : 'false';
+            response.data.Attributes.pvm_rtad === 'Enabled' ? true : false;
           this.vtpmEnabled =
-            response.data.Attributes.pvm_vtpm === 'Enabled' ? 'true' : 'false';
+            response.data.Attributes.pvm_vtpm === 'Enabled' ? true : false;
           this.svleEnabled =
             response.data.Attributes.hb_secure_ver_lockin_enabled === 'Enabled'
-              ? 'true'
-              : 'false';
+              ? true
+              : false;
           this.hostUsbEnabled =
             response.data.Attributes.hb_host_usb_enablement === 'Enabled'
-              ? 'true'
-              : 'false';
+              ? true
+              : false;
         })
         .catch((error) => console.log(error));
     },
@@ -238,11 +238,11 @@ export const PoliciesStore = defineStore('policies', {
         });
     },
     async saveRtadState(updatedRtad) {
-      this.rtadEnabled = updatedRtad;
+      this.rtadEnabled = updatedRtad === 'Enabled' ? true : false;
       return await api
         .patch('/redfish/v1/Systems/system/Bios/Settings', {
           Attributes: {
-            pvm_rtad: updatedRtad === true ? 'Enabled' : 'Disabled',
+            pvm_rtad: updatedRtad,
           },
         })
         .then(() => {
@@ -252,7 +252,7 @@ export const PoliciesStore = defineStore('policies', {
         })
         .catch((error) => {
           console.log(error);
-          this.rtadEnabled = updatedRtad === 'Enabled' ? 'Disabled' : 'Enabled';
+          this.rtadEnabled = updatedRtad === 'Enabled' ? false : true;
           throw new Error(
             i18n.global.t('pagePolicies.toast.errorNetworkPolicyUpdate', {
               policy: i18n.global.t('pagePolicies.rtad'),
@@ -261,11 +261,11 @@ export const PoliciesStore = defineStore('policies', {
         });
     },
     async saveVtpmState(updatedVtpm) {
-      this.vtpmEnabled = updatedVtpm;
+      this.vtpmEnabled = updatedVtpm === 'Enabled' ? true : false;
       return await api
         .patch('/redfish/v1/Systems/system/Bios/Settings', {
           Attributes: {
-            pvm_vtpm: updatedVtpm === true ? 'Enabled' : 'Disabled',
+            pvm_vtpm: updatedVtpm,
           },
         })
         .then(() => {
@@ -278,7 +278,7 @@ export const PoliciesStore = defineStore('policies', {
         })
         .catch((error) => {
           console.log(error);
-          this.vtpmEnabled = updatedVtpm === 'Enabled' ? 'Disabled' : 'Enabled';
+          this.vtpmEnabled = updatedVtpm === 'Enabled' ? false : true;
           throw new Error(
             i18n.global.t('pagePolicies.toast.errorNetworkPolicyUpdate', {
               policy: i18n.global.t('pagePolicies.vtpm'),
@@ -287,7 +287,7 @@ export const PoliciesStore = defineStore('policies', {
         });
     },
     async saveSvleState(updatedSvle) {
-      this.svleEnabled = updatedSvle;
+      this.svleEnabled = updatedSvle === 'Enabled' ? true : false;
       return await api
         .patch('/redfish/v1/Systems/system/Bios/Settings', {
           Attributes: {
@@ -305,7 +305,7 @@ export const PoliciesStore = defineStore('policies', {
         })
         .catch((error) => {
           console.log(error);
-          this.svleEnabled = !updatedSvle;
+          this.svleEnabled = updatedSvle === 'Enabled' ? false : true;
           throw new Error(
             i18n.global.t('pagePolicies.toast.errorNetworkPolicyUpdate', {
               policy: i18n.global.t('pagePolicies.secureVersion'),
@@ -314,12 +314,11 @@ export const PoliciesStore = defineStore('policies', {
         });
     },
     async saveHostUsbEnabled(updatedHostUsb) {
-      this.hostUsbEnabled = updatedHostUsb;
+      this.hostUsbEnabled = updatedHostUsb === 'Enabled' ? true : false;
       return await api
         .patch('/redfish/v1/Systems/system/Bios/Settings', {
           Attributes: {
-            hb_host_usb_enablement:
-              updatedHostUsb === true ? 'Enabled' : 'Disabled',
+            hb_host_usb_enablement: updatedHostUsb,
           },
         })
         .then(() => {
@@ -329,7 +328,7 @@ export const PoliciesStore = defineStore('policies', {
         })
         .catch((error) => {
           console.log(error);
-          this.hostUsbEnabled = !updatedHostUsb;
+          this.hostUsbEnabled = updatedHostUsb === 'Enabled' ? false : true;
           throw new Error(
             i18n.global.t('pagePolicies.toast.errorNetworkPolicyUpdate', {
               policy: i18n.global.t('pagePolicies.hostUsb'),
