@@ -333,7 +333,7 @@ const changeUsbFirmwareUpdatePolicyState = (state) => {
     });
 };
 const changeHostUsbState = (state) => {
-  Policies.saveHostUsbEnabled(state)
+  Policies.saveHostUsbEnabled(state ? 'Enabled' : 'Disabled')
     .then((message) => {
       Toast.successToast(message);
     })
@@ -355,7 +355,7 @@ const changeIpmiProtocolState = (state) => {
     });
 };
 const changeRtadState = (state) => {
-  Policies.saveRtadState(state)
+  Policies.saveRtadState(state ? 'Enabled' : 'Disabled')
     .then((message) => {
       Toast.successToast(message);
     })
@@ -364,7 +364,7 @@ const changeRtadState = (state) => {
     });
 };
 const changeVtpmState = (state) => {
-  Policies.saveVtpmState(state)
+  Policies.saveVtpmState(state ? 'Enabled' : 'Disabled')
     .then((message) => {
       Toast.successToast(message);
     })
@@ -373,7 +373,7 @@ const changeVtpmState = (state) => {
     });
 };
 const changeSvleState = (state) => {
-  Policies.saveSvleState(state)
+  Policies.saveSvleState(state ? 'Enabled' : 'Disabled')
     .then((message) => {
       Toast.successToast(message);
     })
