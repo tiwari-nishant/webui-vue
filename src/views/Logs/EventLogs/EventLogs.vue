@@ -73,7 +73,6 @@
           :sort-by="[{ key: 'id', order: 'asc' }]"
           :fields="fields"
           :items="filteredLogs"
-          :sort-compare="onSortCompare"
           :empty-text="
             isBusy
               ? $t('global.table.loading')
@@ -616,14 +615,6 @@ export default {
     },
     onFilterChange({ activeFilters }) {
       this.activeFilters = activeFilters;
-    },
-    onSortCompare(a, b, key) {
-      if (key === 'severity') {
-        return useTableSortComposable().sortStatus(a, b, key);
-      }
-      if (a[key] < b[key]) return -1;
-      if (a[key] > b[key]) return 1;
-      return 0;
     },
     onTableRowAction(action, { uri }) {
       if (action === 'delete') {
