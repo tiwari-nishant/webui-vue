@@ -11,6 +11,9 @@ export const UserManagementStore = defineStore('userManagment', {
     accountLockoutThreshold: null,
     accountMinPasswordLength: null,
     accountMaxPasswordLength: null,
+    isGlobalMfaEnabled: false,
+    isCurrentUserMfaBypassed: false,
+    secretKeyInfo: null,
   }),
   getters: {
     allUsersGetter(state) {
@@ -33,6 +36,15 @@ export const UserManagementStore = defineStore('userManagment', {
         minLength: state.accountMinPasswordLength,
         maxLength: state.accountMaxPasswordLength,
       };
+    },
+    isGlobalMfaEnabledGetter(state) {
+      return state.isGlobalMfaEnabled;
+    },
+    isCurrentUserMfaBypassedGetter(state) {
+      return state.isCurrentUserMfaBypassed;
+    },
+    secretKeyInfoGetter(state) {
+      return state.secretKeyInfo;
     },
   },
   actions: {
@@ -76,6 +88,8 @@ export const UserManagementStore = defineStore('userManagment', {
           this.accountLockoutThreshold = data.AccountLockoutThreshold;
           this.accountMinPasswordLength = data.MinPasswordLength;
           this.accountMaxPasswordLength = data.MaxPasswordLength;
+          this.isGlobalMfaEnabled =
+            data.MultiFactorAuth?.GoogleAuthenticator?.Enabled;
         })
         .catch((error) => {
           console.log(error);
@@ -413,6 +427,161 @@ export const UserManagementStore = defineStore('userManagment', {
             'pageUserManagement.toast.errorSaveSettings',
           );
           throw new Error(message);
+        });
+    },
+
+    async updateGlobalMfa({ globalMfa }) {
+      this.isGlobalMfaEnabled = globalMfa;
+      const requestBody = {
+        MultiFactorAuth: {
+          GoogleAuthenticator: {
+            Enabled: globalMfa,
+          },
+        },
+      };
+      return await api
+        .patch('/redfish/v1/AccountService', requestBody)
+        .then(() => {
+          this.getUsers();
+          if (globalMfa) {
+            return i18n.global.t('pageUserManagement.toast.successEnableMfa');
+          } else {
+            return i18n.global.t('pageUserManagement.toast.successDisableMfa');
+          }
+        })
+        .catch((error) => {
+          this.isGlobalMfaEnabled = !globalMfa;
+          console.log('error', error);
+          this.getAccountSettings();
+          if (globalMfa) {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorEnableMfa'),
+            );
+          } else {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorDisableMfa'),
+            );
+          }
+        });
+    },
+
+    async clearSetSecretKey(mfaObject) {
+      return await api
+        .post(mfaObject['@odata.id'] + '/Actions/ManagerAccount.ClearSecretKey')
+        .then(() => {
+          this.getUsers();
+          return i18n.global.t(
+            'pageUserManagement.toast.successClearSecretKey',
+          );
+        })
+        .catch((error) => {
+          this.getUsers();
+          console.log('error', error);
+          throw new Error(
+            i18n.global.t('pageUserManagement.toast.errorClearSecretKey'),
+          );
+        });
+    },
+    async updateMfaBypass(mfaObject) {
+      const requestBody = {
+        MFABypass: {
+          BypassTypes: mfaObject.mfa ? ['GoogleAuthenticator'] : ['None'],
+        },
+      };
+      return await api
+        .patch(mfaObject['@odata.id'], requestBody)
+        .then(() => {
+          if (mfaObject.mfa) {
+            return i18n.global.t(
+              'pageUserManagement.toast.successEnableMfaBypass',
+            );
+          } else {
+            return i18n.global.t(
+              'pageUserManagement.toast.successDisableMfaBypass',
+            );
+          }
+        })
+        .catch((error) => {
+          this.getUsers();
+          console.log('error', error);
+          if (mfaObject.mfa) {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorEnableMfaBypass'),
+            );
+          } else {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorDisableMfaBypass'),
+            );
+          }
+        });
+    },
+    async updateMfaBypassNewUser({ userData, mfaBypass }) {
+      const requestBody = {
+        MFABypass: {
+          BypassTypes: mfaBypass ? ['GoogleAuthenticator'] : ['None'],
+        },
+      };
+      return await api
+        .patch(
+          `/redfish/v1/AccountService/Accounts/${userData.username}`,
+          requestBody,
+        )
+        .then(() => this.getUsers())
+        .catch((error) => {
+          console.log('error', error);
+          if (mfaBypass) {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorEnableMfaBypass'),
+            );
+          } else {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorDisableMfaBypass'),
+            );
+          }
+        });
+    },
+    async checkCurrentUserMfaBypassed({ uri }) {
+      api.get(uri).then(({ data }) => {
+        this.isCurrentUserMfaBypassed = data?.MFABypass?.BypassTypes.includes(
+          'GoogleAuthenticator',
+        );
+      });
+    },
+    async clearSecretKey() {
+      this.secretKeyInfo = null;
+      return;
+    },
+    async generateSecretKey() {
+      const currentUsername = localStorage.getItem('storedUsername');
+      return api
+        .post(
+          `redfish/v1/AccountService/Accounts/${currentUsername}/Actions/ManagerAccount.GenerateSecretKey`,
+        )
+        .then(({ data }) => {
+          this.secretKeyInfo = data?.SecretKey;
+        })
+        .catch((error) => {
+          console.log('error', error);
+          throw new Error(error);
+        });
+    },
+
+    async verifyRegisterTotp({ otpValue }) {
+      const requestBody = {
+        TimeBasedOneTimePassword: otpValue,
+      };
+      const currentUsername = localStorage.getItem('storedUsername');
+      return await api
+        .post(
+          `/redfish/v1/AccountService/Accounts/${currentUsername}/Actions/ManagerAccount.VerifyTimeBasedOneTimePassword`,
+          requestBody,
+        )
+        .then(() => {
+          this.getUsers();
+          return i18n.global.t('pageUserManagement.toast.successEnableMfa');
+        })
+        .catch(() => {
+          throw new Error(i18n.global.t('pageUserManagement.toast.errorOtp'));
         });
     },
   },

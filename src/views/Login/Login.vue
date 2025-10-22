@@ -63,6 +63,15 @@
           </BFormInvalidFeedback>
         </input-password-toggle>
       </div>
+      <div v-if="isGlobalMfaEnabled" class="login-form__section mb-3">
+        <label>TOTP</label>
+        <info-tooltip class="ml-1" :title="$t('pageLogin.totpTooltip')">
+        </info-tooltip>
+        <b-form-group>
+          <b-form-input v-model="otpValue" data-test-id="login-input-totp">
+          </b-form-input>
+        </b-form-group>
+      </div>
       <BButton
         class="mt-4 w-100"
         type="submit"
@@ -105,6 +114,7 @@
 
     <!-- Modals -->
     <modal-upload-certificate @ok="onModalOk" />
+    <modal-otp-generate></modal-otp-generate>
   </div>
 </template>
 
@@ -135,6 +145,7 @@ const { startLoader, endLoader } = useLoadingBar();
 
 const authenticationStore = stores.AuthenticationStore();
 const certificatesStore = stores.CertificatesStore();
+const userManagementStore = stores.UserManagementStore();
 const globalStore = stores.GlobalStore();
 
 const passwordType = ref('password');
@@ -149,6 +160,10 @@ const languages = ref([
     text: 'English',
   },
 ]);
+
+const isGlobalMfaEnabled = computed(() => {
+  return authenticationStore.isGlobalMfaEnabledGetter;
+});
 
 const userInfo = reactive({ username: null, password: null });
 const rules = { username: { required }, password: { required } };
@@ -193,18 +208,27 @@ const login = async () => {
       if (passwordChangeRequired) {
         router.push('/change-password');
       } else {
-        globalStore.getCurrentUser(userInfo.username);
-        await globalStore
-          .getSystemInfo()
-          .then(() => {
-            router.push('/');
-          })
-          .catch(() => {
-            Promise.all([
-              authenticationStore.unauthlogin(),
-              authenticationStore.logout(),
-            ]);
+        let otpGenerateRequired = authenticationStore.isGenerateOtpRequired;
+        if (otpGenerateRequired) {
+          userManagementStore.clearSecretKey().finally(() => {
+            userManagementStore.generateSecretkey().then(() => {
+              eventBus.emit('otp-generate');
+            });
           });
+        } else {
+          globalStore.getCurrentUser(userInfo.username);
+          await globalStore
+            .getSystemInfo()
+            .then(() => {
+              router.push('/');
+            })
+            .catch(() => {
+              Promise.all([
+                authenticationStore.unauthlogin(),
+                authenticationStore.logout(),
+              ]);
+            });
+        }
       }
     })
     .catch((error) => console.log(error))

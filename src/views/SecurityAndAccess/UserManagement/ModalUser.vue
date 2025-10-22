@@ -250,6 +250,12 @@
                 </BFormInvalidFeedback>
               </input-password-toggle>
             </BFormGroup>
+            <b-form-checkbox
+              v-if="(isAdminUser || isServiceUser) && newUser && globalMfaValue"
+              v-model="mfaBypass"
+            >
+              {{ $t('pageUserManagement.table.mfaByPass') }}
+            </b-form-checkbox>
           </BCol>
         </BRow>
       </BContainer>
@@ -309,6 +315,7 @@ eventBus.on('modal-user', () => {
 });
 
 const originalUsername = ref('');
+const mfaByPass = ref('');
 const form = ref({
   status: true,
   username: '',
@@ -322,6 +329,10 @@ const confirmPasswordType = ref('password');
 
 const certificateTypes = computed(() => {
   return uploadCertificate.availableUploadTypesGetter;
+});
+
+const globalMfaValue = computed(() => {
+  return userManagementStore.isGlobalMfaEnabledGetter;
 });
 const editDisabled = computed(() => {
   return !props.user?.RoleId;
@@ -440,11 +451,18 @@ function handleSubmit() {
     }
   }
 
-  eventBus.emit('okUser', { isNewUser: newUser.value, userData });
+  eventBus.emit('okUser', {
+    isNewUser: newUser.value,
+    userData,
+    mfaByPass: mfaByPass.value,
+  });
   closeModal();
 }
 function closeModal() {
-  modalUser.value = false;
+  nextTick(() => {
+    mfaByPass.value = false;
+    modalUser.value = false;
+  });
 }
 function resetForm() {
   form.value.originalUsername = '';
