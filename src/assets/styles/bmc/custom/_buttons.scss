@@ -79,6 +79,11 @@
   z-index: $zindex-dropdown + 1;
 }
 
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+}
+
 // Contain input buttons within input
 .btn-datepicker .dropdown-toggle,
 .input-action-btn {
