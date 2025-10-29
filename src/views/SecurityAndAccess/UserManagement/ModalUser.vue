@@ -337,6 +337,14 @@ const globalMfaValue = computed(() => {
 const editDisabled = computed(() => {
   return !props.user?.RoleId;
 });
+const isAdminUser = computed(() => {
+  return globalStore.isAdminUser;
+});
+
+const isServiceUser = computed(() => {
+  return globalStore.isServiceUser;
+});
+
 const newUser = computed(() => {
   return props.user ? false : true;
 });

@@ -56,12 +56,12 @@
             @input="v$.password.$touch()"
           >
           </BFormInput>
-          <BFormInvalidFeedback id="password-required" role="alert">
-            <template v-if="v$.password.required">
-              {{ t('global.form.fieldRequired') }}
-            </template>
-          </BFormInvalidFeedback>
         </input-password-toggle>
+        <BFormInvalidFeedback id="password-required" role="alert">
+          <template v-if="v$.password.required">
+            {{ t('global.form.fieldRequired') }}
+          </template>
+        </BFormInvalidFeedback>
       </div>
       <div v-if="isGlobalMfaEnabled" class="login-form__section mb-3">
         <label>TOTP</label>
@@ -135,6 +135,7 @@ import useDataFormatterGlobal from '../../components/Composables/useDataFormatte
 import useToast from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import ModalUploadCertificate from './ModalUploadCertificate.vue';
+import ModalOtpGenerate from './ModalOtpGenerate.vue';
 
 const router = useRouter();
 const { getValidationState } = useVuelidateComposable();
@@ -211,8 +212,8 @@ const login = async () => {
         let otpGenerateRequired = authenticationStore.isGenerateOtpRequired;
         if (otpGenerateRequired) {
           userManagementStore.clearSecretKey().finally(() => {
-            userManagementStore.generateSecretkey().then(() => {
-              eventBus.emit('otp-generate');
+            userManagementStore.generateSecretKey().then(() => {
+              eventBus.emit('otp-generate-modal');
             });
           });
         } else {

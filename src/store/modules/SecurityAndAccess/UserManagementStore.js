@@ -57,13 +57,16 @@ export const UserManagementStore = defineStore('userManagment', {
         .then((userIds) => {
           api
             .all(userIds.map((user) => api.get(user)))
-            .then((users) => {
-              const userData = users.map((user) => user.data);
-              this.allUsers = userData;
-              this.allUsers.map((user) => {
-                user.isSelected = false;
-              });
-            })
+            .then(
+              (users) => {
+                const userData = users.map((user) => user.data);
+                this.allUsers = userData;
+                this.allUsers.map((user) => {
+                  user.isSelected = false;
+                });
+              },
+              console.log('allusers', this.allUsers),
+            )
             .catch((error) => {
               console.log(error);
               const message = i18n.global.t(

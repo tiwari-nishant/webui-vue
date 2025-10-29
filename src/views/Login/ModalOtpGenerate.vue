@@ -27,7 +27,7 @@
           />
           <div v-else class="emptyQrStyle"></div>
         </b-row>
-        <b-row>
+        <b-row class="secret-key-button">
           <b-col>
             <b-button
               v-b-toggle.collapse-2
@@ -109,7 +109,7 @@
 <script setup>
 import { required } from '@vuelidate/validators';
 import { ref, computed, watch, nextTick } from 'vue';
-import Alert from '@/components/Global/Alert';
+import Alert from '@/components/Global/Alert.vue';
 import IconCopy from '@carbon/icons-vue/es/copy/16';
 import IconCheckmark from '@carbon/icons-vue/es/checkmark/16';
 import QrcodeVue from 'qrcode.vue';
@@ -119,6 +119,7 @@ import GlobalStore from '../../store/modules/GlobalStore';
 import AuthenticationStore from '../../store/modules/Authentication/AuthenticationStore';
 import { useRouter } from 'vue-router';
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
+import useDataFormatterGlobal from '../../components/Composables/useDataFormatterGlobal';
 import useToast from '@/components/Composables/useToastComposable';
 import useVuelidate from '@vuelidate/core';
 import eventBus from '@/eventBus';
@@ -126,6 +127,7 @@ import eventBus from '@/eventBus';
 const modal = ref(false);
 const issuer = ref('bmc');
 const router = useRouter();
+const { dataFormatter } = useDataFormatterGlobal();
 const accountName = ref(localStorage.getItem('storedUsername'));
 const otpValue = ref(null);
 const secretKeyCopied = ref(false);
@@ -142,28 +144,28 @@ const secretKey = computed(() => {
   return userManagementStore.secretKeyInfoGetter;
 });
 
-const v$ = useVuelidate(rules, { otpValue });
-
 const rules = computed(() => ({
-  otpValue: {
-    required,
-  },
+  otpValue: modal.value
+    ? {
+        required,
+      }
+    : {},
 }));
 
+const v$ = useVuelidate(rules, { otpValue });
+
 eventBus.on('otp-generate-modal', () => {
+  console.log('event catched');
   modal.value = true;
 });
 
-watch(
-  () => secretKey,
-  (newValue) => {
-    if (newValue === null) {
-      qrValue.value = null;
-    } else {
-      qrValue.value = `otpauth://totp/${issuer.value}:${accountName.value}?secret=${newValue}&issuer=${issuer.value}`;
-    }
-  },
-);
+watch(secretKey, (newValue) => {
+  if (newValue === null) {
+    qrValue.value = null;
+  } else {
+    qrValue.value = `otpauth://totp/${issuer.value}:${accountName.value}?secret=${newValue}&issuer=${issuer.value}`;
+  }
+});
 
 function copySecretKey() {
   navigator.clipboard.writeText(secretKey.value).then(() => {
@@ -182,12 +184,12 @@ function okFormSubmit(event) {
 
 function resetForm() {
   otpValue.value = null;
-  this.v$.$reset();
+  v$.value.$reset();
 }
 
 function handleSubmit() {
-  this.v$.$touch();
-  if (this.v$.$invalid) return;
+  v$.value.$touch();
+  if (v$.value.$invalid) return;
   userManagementStore
     .verifyRegisterTotp({ otpValue: otpValue.value })
     .then(() => {
@@ -231,6 +233,7 @@ function closeModal() {
 }
 .buttonStyle {
   margin-left: 0px !important;
+  width: auto;
 }
 .btn {
   svg {
@@ -241,5 +244,8 @@ function closeModal() {
   svg {
     transform: rotate(180deg);
   }
+}
+.secret-key-button {
+  width: auto !important;
 }
 </style>

@@ -305,7 +305,7 @@ const fields = ref([
   {
     key: 'actions',
     label: '',
-    tdClass: 'text-right text-nowrap',
+    class: 'text-right text-nowrap empty-column',
   },
 ]);
 const tableToolbarActions = ref([
@@ -437,6 +437,7 @@ const tableItems = computed(() => {
     };
   });
 });
+
 const settings = computed(() => {
   return userManagement.accountSettingsGetter;
 });
@@ -518,7 +519,7 @@ function clearSecretKey(value) {
 }
 
 function disableMFA() {
-  globalMfaRef.value.checked=false;
+  globalMfaRef.value.checked = false;
 }
 
 async function updateGlobalMfa(state) {
@@ -750,5 +751,8 @@ function saveAccountSettings(settings) {
 }
 .text-right {
   text-align: right;
+}
+:deep(.empty-column) {
+  z-index: 0 !important;
 }
 </style>
