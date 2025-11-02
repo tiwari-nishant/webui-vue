@@ -10,6 +10,7 @@
           :title="$t('pageUserManagement.enableMfaInfo')"
         >
         </info-tooltip>
+        {{ globalMfaValue }}
         <b-form-checkbox
           v-if="currentUser"
           id="switch"
@@ -124,6 +125,7 @@
             v-if="currentUser && (isAdminUser || isServiceUser)"
             #cell(mfa)="row"
           >
+            {{ row.item.mfa }}
             <b-form-checkbox
               v-if="row.item.privilege !== 'Service agent'"
               v-model="row.item.mfa"
@@ -249,6 +251,7 @@ import PageTitle from '@/components/Global/PageTitle.vue';
 import TableRoles from './TableRoles.vue';
 import TableToolbar from '@/components/Global/TableToolbar.vue';
 import TableRowAction from '@/components/Global/TableRowAction.vue';
+import RegisterOtpModal from './RegisterOtpModal.vue';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableSelectableComposable from '@/components/Composables/useTableSelectableComposable';
 import useToastComposable from '@/components/Composables/useToastComposable';
@@ -374,7 +377,7 @@ const globalMfaValue = computed({
     return userManagement.isGlobalMfaEnabled;
   },
   set(newValue) {
-    return newValue;
+    return userManagement.isGlobalMfaEnabled=newValue;
   },
 });
 
@@ -401,42 +404,35 @@ const allUsers = computed(() => {
 const currentUser = computed(() => {
   return global.currentUserGetter;
 });
-const tableItems = computed(() => {
-  // transform user data to table data
-  return allUsers.value.map((user) => {
-    return {
-      username: user.UserName,
-      privilege:
-        user.Description === 'Administrator'
-          ? i18n.global.t('pageUserManagement.table.administrator')
-          : user.Description === 'ReadOnly'
-            ? i18n.global.t('pageUserManagement.table.readOnly')
-            : user.Description === 'ServiceAgent'
-              ? i18n.global.t('pageUserManagement.table.serviceAgent')
-              : user.Description,
-      status: user.Locked
-        ? i18n.global.t('global.status.locked')
-        : user.Enabled
-          ? i18n.global.t('global.status.enabled')
-          : i18n.global.t('global.status.disabled'),
-      mfa: user?.MFABypass?.BypassTypes.includes('GoogleAuthenticator')
-        ? true
-        : false,
-      secretKey: user?.SecretKeySet,
-      actions: [
-        {
-          value: 'edit',
-          enabled: true,
-        },
-        {
-          value: 'delete',
-          enabled: user.RoleId !== 'OemIBMServiceAgent',
-        },
-      ],
-      ...user,
-    };
-  });
+
+const tableItems = ref([]);
+
+watch(allUsers, (users) => {
+  tableItems.value = users.map((user) => ({
+    username: user.UserName,
+    privilege:
+      user.Description === 'Administrator'
+        ? i18n.global.t('pageUserManagement.table.administrator')
+        : user.Description === 'ReadOnly'
+          ? i18n.global.t('pageUserManagement.table.readOnly')
+          : user.Description === 'ServiceAgent'
+            ? i18n.global.t('pageUserManagement.table.serviceAgent')
+            : user.Description,
+    status: user.Locked
+      ? i18n.global.t('global.status.locked')
+      : user.Enabled
+        ? i18n.global.t('global.status.enabled')
+        : i18n.global.t('global.status.disabled'),
+    mfa: user?.MFABypass?.BypassTypes.includes('GoogleAuthenticator'),
+    secretKey: user?.SecretKeySet,
+    actions: [
+      { value: 'edit', enabled: true },
+      { value: 'delete', enabled: user.RoleId !== 'OemIBMServiceAgent' },
+    ],
+    ...user,
+  }));
 });
+
 
 const settings = computed(() => {
   return userManagement.accountSettingsGetter;
@@ -456,38 +452,35 @@ const handleOkUser = ({ isNewUser, userData }) => {
   saveUser({ isNewUser, userData });
 };
 
-watch(
-  () => secretKey,
-  (value) => {
-    if (value !== null && beforeMfa.value) {
-      const { otp } = TOTP.generate(value, { digits: 6 });
-      userManagement
-        .verifyRegisterTotp({ otpValue: otp.toString() })
-        .then(() => {
-          userManagement
-            .updateGlobalMfa({
-              globalMfa: true,
-            })
-            .then((message) => {
-              toast.successToast(message);
-              if (!currentMfaBypassed.value) {
-                authenticationStore.logout();
-              }
-            })
-            .catch(({ message }) => toast.errorToast(message));
-        })
-        .catch(() => {
-          toast.errorToast(
-            i18n.global.t('pageUserManagement.toast.errorEnableMfaAuto'),
-          );
-          eventBus.emit('otp-generate-modal');
-        })
-        .finally(() => {
-          beforeMfa.value = false;
-        });
-    }
-  },
-);
+watch(secretKey, (value) => {
+  if (value !== null && beforeMfa.value) {
+    const { otp } = TOTP.generate(value, { digits: 6 });
+    userManagement
+      .verifyRegisterTotp({ otpValue: otp.toString() })
+      .then(() => {
+        userManagement
+          .updateGlobalMfa({
+            globalMfa: true,
+          })
+          .then((message) => {
+            toast.successToast(message);
+            if (!currentMfaBypassed.value) {
+              authenticationStore.logout();
+            }
+          })
+          .catch(({ message }) => toast.errorToast(message));
+      })
+      .catch(() => {
+        toast.errorToast(
+          i18n.global.t('pageUserManagement.toast.errorEnableMfaAuto'),
+        );
+        eventBus.emit('otp-register-modal');
+      })
+      .finally(() => {
+        beforeMfa.value = false;
+      });
+  }
+});
 
 function addMfaBypass() {
   if (currentUser.value && (isAdminUser.value || isServiceUser)) {
@@ -544,7 +537,7 @@ async function updateGlobalMfa(state) {
         toast.errorToast(
           i18n.global.t('pageUserManagement.toast.errorEnableMfaAuto'),
         );
-        eventBus.emit('otp-generate-modal');
+        eventBus.emit('otp-register-modal');
       });
   } else {
     userManagement

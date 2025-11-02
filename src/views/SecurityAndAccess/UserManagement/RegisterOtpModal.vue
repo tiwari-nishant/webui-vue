@@ -41,6 +41,7 @@
               {{ dataFormatter(secretKey) }}
             </b-collapse>
           </b-col>
+          <b-col class="m-1">
           <b-button @click="copySecretKey">
             <template v-if="secretKeyCopied">
               <icon-checkmark title="Copied" />
@@ -49,6 +50,7 @@
               <icon-copy title="Copy Secret key" />
             </template>
           </b-button>
+          </b-col>
         </b-row>
       </b-col>
       <b-col>
@@ -123,23 +125,28 @@
 import { required } from '@vuelidate/validators';
 import IconCopy from '@carbon/icons-vue/es/copy/16';
 import IconCheckmark from '@carbon/icons-vue/es/checkmark/16';
-import Alert from '@/components/Global/Alert';
+import Alert from '@/components/Global/Alert.vue';
 import QrcodeVue from 'qrcode.vue';
-import InfoTooltip from '@/components/Global/InfoTooltip';
+import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--up/20';
 import GlobalStore from '../../../store/modules/GlobalStore';
 import useToast from '@/components/Composables/useToastComposable';
+import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
+import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
 import UserManagementStore from '../../../store/modules/SecurityAndAccess/UserManagementStore';
 import AuthenticationStore from '../../../store/modules/Authentication/AuthenticationStore';
 import { ref, computed, watch, nextTick } from 'vue';
 import useVuelidate from '@vuelidate/core';
 import i18n from '@/i18n';
+import eventBus from '@/eventBus';
 
 const modal = ref(false);
 const issuer = ref('bmc');
 const globalStore = GlobalStore();
 const userManagementStore = UserManagementStore();
 const authenticationStore = AuthenticationStore();
+const { dataFormatter } = useDataFormatterGlobal();
+const { getValidationState } = useVuelidateComposable();
 const accountName = ref(localStorage.getItem('storedUsername'));
 const otpValue = ref(null);
 const secretKeyCopied = ref(false);
@@ -160,8 +167,12 @@ const formattedTooltip = computed(() => {
 
 const emit = defineEmits('disable-mfa');
 
+eventBus.on('otp-register-modal', () => {
+  modal.value = true;
+});
+
 const bmcTime = computed(() => {
-  return globalStore.bmcTime();
+  return globalStore.bmcTimeGetter;
 });
 
 const currentMfaBypassed = computed(() => {
@@ -176,9 +187,7 @@ const secretKey = computed(() => {
   return userManagementStore.secretKeyInfoGetter;
 });
 
-watch(
-  () => secretKey,
-  (newValue) => {
+watch(secretKey,(newValue) => {
     globalStore.getBmcTime();
     if (newValue === null) {
       qrValue.value = null;
@@ -188,13 +197,17 @@ watch(
   },
 );
 
-const v$ = useVuelidate(rules, { otpValue });
 
 const rules = computed(() => ({
-  otpValue: {
-    required,
-  },
+  otpValue: modal.value
+    ? {
+        required,
+      }
+    : {},
 }));
+
+const v$ = useVuelidate(rules, { otpValue });
+
 
 function copySecretKey() {
   navigator.clipboard.writeText(secretKey.value).then(() => {
@@ -215,17 +228,17 @@ function okFormSubmit(bvModalEvt) {
 function resetMfa() {
   emit('disable-mfa');
   otpValue.value = null;
-  this.v$.$reset();
+  v$.value.$reset();
 }
 
 function resetForm() {
   otpValue.value = null;
-  this.v$.$reset();
+  v$.value.$reset();
 }
 
 function handleSubmit() {
-  this.v$.$touch();
-  if (this.v$.$invalid) return;
+  v$.value.$touch();
+  if (v$.value.$invalid) return;
   userManagementStore
     .verifyRegisterTotp({ otpValue: otpValue.value })
     .then(() => {

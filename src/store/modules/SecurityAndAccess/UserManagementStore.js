@@ -54,19 +54,17 @@ export const UserManagementStore = defineStore('userManagment', {
         .then((response) =>
           response.data.Members.map((user) => user['@odata.id']),
         )
-        .then((userIds) => {
-          api
+        .then(async (userIds) => {
+          return await api
             .all(userIds.map((user) => api.get(user)))
-            .then(
-              (users) => {
-                const userData = users.map((user) => user.data);
-                this.allUsers = userData;
-                this.allUsers.map((user) => {
-                  user.isSelected = false;
-                });
-              },
-              console.log('allusers', this.allUsers),
-            )
+            .then((users) => {
+              console.log('then called', users);
+              const userData = users.map((user) => user.data);
+              this.allUsers = userData;
+              this.allUsers.map((user) => {
+                user.isSelected = false;
+              });
+            })
             .catch((error) => {
               console.log(error);
               const message = i18n.global.t(

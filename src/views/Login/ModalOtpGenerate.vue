@@ -27,7 +27,7 @@
           />
           <div v-else class="emptyQrStyle"></div>
         </b-row>
-        <b-row class="secret-key-button">
+        <b-row>
           <b-col>
             <b-button
               v-b-toggle.collapse-2
@@ -41,14 +41,16 @@
               {{ dataFormatter(secretKey) }}
             </b-collapse>
           </b-col>
-          <b-button @click="copySecretKey">
-            <template v-if="secretKeyCopied">
-              <icon-checkmark title="Copied" />
-            </template>
-            <template v-else>
-              <icon-copy title="Copy Secret key" />
-            </template>
-          </b-button>
+          <b-col class="m-1">
+            <b-button @click="copySecretKey">
+              <template v-if="secretKeyCopied">
+                <icon-checkmark title="Copied" />
+              </template>
+              <template v-else>
+                <icon-copy title="Copy Secret key" />
+              </template>
+            </b-button>
+          </b-col>
         </b-row>
       </b-col>
       <b-col>
@@ -155,7 +157,6 @@ const rules = computed(() => ({
 const v$ = useVuelidate(rules, { otpValue });
 
 eventBus.on('otp-generate-modal', () => {
-  console.log('event catched');
   modal.value = true;
 });
 
@@ -244,8 +245,5 @@ function closeModal() {
   svg {
     transform: rotate(180deg);
   }
-}
-.secret-key-button {
-  width: auto !important;
 }
 </style>
