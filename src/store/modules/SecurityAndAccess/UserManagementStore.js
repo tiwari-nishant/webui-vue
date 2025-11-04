@@ -58,7 +58,6 @@ export const UserManagementStore = defineStore('userManagment', {
           return await api
             .all(userIds.map((user) => api.get(user)))
             .then((users) => {
-              console.log('then called', users);
               const userData = users.map((user) => user.data);
               this.allUsers = userData;
               this.allUsers.map((user) => {
@@ -75,9 +74,17 @@ export const UserManagementStore = defineStore('userManagment', {
         })
         .catch((error) => {
           console.log(error);
-          const message = i18n.global.t(
-            'pageUserManagement.toast.errorLoadUsers',
-          );
+          let message = '';
+          if (
+            error.response.data['@Message.ExtendedInfo'] &&
+            error.response.data['@Message.ExtendedInfo'][0].MessageId.endsWith(
+              'GenerateSecretKeyRequired',
+            )
+          ) {
+            message = 'otpRequired';
+          } else {
+            message = i18n.global.t('pageUserManagement.toast.errorLoadUsers');
+          }
           throw new Error(message);
         });
     },
@@ -233,7 +240,6 @@ export const UserManagementStore = defineStore('userManagment', {
       if (locked !== undefined) data.Locked = locked;
       return await api
         .patch(`/redfish/v1/AccountService/Accounts/${originalUsername}`, data)
-        .then(() => this.getUsers())
         .then(() =>
           i18n.global.t('pageUserManagement.toast.successUpdateUser', {
             username: originalUsername,

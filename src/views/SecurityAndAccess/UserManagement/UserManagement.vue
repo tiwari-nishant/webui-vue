@@ -20,7 +20,7 @@
           switch
           data-test-id="global-mfa"
           class="mt-1"
-          @change="updateGlobalMfa"
+          @update:model-value="updateGlobalMfa"
         >
           <span v-if="globalMfaValue">
             {{ $t('global.status.enabled') }}
@@ -374,10 +374,10 @@ const isServiceUser = computed(() => {
 
 const globalMfaValue = computed({
   get() {
-    return userManagement.isGlobalMfaEnabled;
+    return userManagement.isGlobalMfaEnabledGetter;
   },
   set(newValue) {
-    return userManagement.isGlobalMfaEnabled=newValue;
+    return (userManagement.isGlobalMfaEnabled = newValue);
   },
 });
 
@@ -432,7 +432,6 @@ watch(allUsers, (users) => {
     ...user,
   }));
 });
-
 
 const settings = computed(() => {
   return userManagement.accountSettingsGetter;
@@ -512,14 +511,14 @@ function clearSecretKey(value) {
 }
 
 function disableMFA() {
-  globalMfaRef.value.checked = false;
+  globalMfaValue.value = false;
 }
 
 async function updateGlobalMfa(state) {
   await userManagement.checkCurrentUserMfaBypassed({
     uri: currentUser.value['@odata.id'],
   });
-  if (!globalMfaValue.value) {
+  if (globalMfaValue.value) {
     beforeMfa.value = true;
     userManagement
       .clearSecretKey()

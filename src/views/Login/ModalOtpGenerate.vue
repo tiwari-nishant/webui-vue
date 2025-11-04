@@ -16,7 +16,7 @@
   >
     <b-row>
       <b-col>
-        <b-row>
+        <div class="qr-wrapper">
           <qrcode-vue
             v-if="qrValue"
             class="qrcode-styling"
@@ -26,9 +26,9 @@
             render-as="canvas"
           />
           <div v-else class="emptyQrStyle"></div>
-        </b-row>
-        <b-row>
-          <b-col>
+        </div>
+        <div class="secret-key-buttons-container">
+          <div>
             <b-button
               v-b-toggle.collapse-2
               class="m-1 buttonStyle"
@@ -40,18 +40,16 @@
             <b-collapse id="collapse-2" data-test-id="modal-secret-key-value">
               {{ dataFormatter(secretKey) }}
             </b-collapse>
-          </b-col>
-          <b-col class="m-1">
-            <b-button @click="copySecretKey">
-              <template v-if="secretKeyCopied">
-                <icon-checkmark title="Copied" />
-              </template>
-              <template v-else>
-                <icon-copy title="Copy Secret key" />
-              </template>
-            </b-button>
-          </b-col>
-        </b-row>
+          </div>
+          <b-button class="m-1" @click="copySecretKey">
+            <template v-if="secretKeyCopied">
+              <icon-checkmark title="Copied" />
+            </template>
+            <template v-else>
+              <icon-copy title="Copy Secret key" />
+            </template>
+          </b-button>
+        </div>
       </b-col>
       <b-col>
         <b-form
@@ -134,7 +132,7 @@ const accountName = ref(localStorage.getItem('storedUsername'));
 const otpValue = ref(null);
 const secretKeyCopied = ref(false);
 const qrValue = ref(null);
-const size = ref(350);
+const size = ref(355);
 const { errorToast } = useToast();
 
 const globalStore = GlobalStore();
@@ -215,6 +213,7 @@ function handleSubmit() {
 }
 function closeModal() {
   nextTick(() => {
+    v$.value.$reset();
     modal.value = false;
   });
 }
@@ -222,7 +221,10 @@ function closeModal() {
 <style lang="scss" scoped>
 .qrcode-styling {
   margin-left: 15px;
-  max-width: 350px;
+}
+
+.qr-wrapper {
+  max-width: none !important;
 }
 .row {
   margin-left: 0px;
@@ -245,5 +247,9 @@ function closeModal() {
   svg {
     transform: rotate(180deg);
   }
+}
+.secret-key-buttons-container {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

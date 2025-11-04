@@ -78,6 +78,7 @@
           </b-button>
         </div>
       </b-form>
+      <modal-otp-generate />
     </div>
   </div>
 </template>
@@ -92,6 +93,8 @@ import Alert from '@/components/Global/Alert.vue';
 import InfoTooltipPassword from '@/components/Global/InfoTooltipPassword.vue';
 import InputPasswordToggle from '@/components/Global/InputPasswordToggle.vue';
 import { useRouter } from 'vue-router';
+import ModalOtpGenerate from '../Login/ModalOtpGenerate.vue';
+import eventBus from '@/eventBus';
 
 const global = stores.GlobalStore();
 const userManagementStore = stores.UserManagementStore();
@@ -141,10 +144,19 @@ const changePassword = () => {
         userManagementStore.getUsers(),
         global.getCurrentUser(username.value),
         global.getSystemInfo(),
-      ]);
+      ])
+        .then(() => router.push('/'))
+        .catch((error) => {
+          if (error?.message?.endsWith('otpRequired')) {
+            userManagementStore.clearSecretKey().finally(() => {
+              userManagementStore.generateSecretKey().then(() => {
+                eventBus.emit('otp-generate-modal');
+              });
+            });
+          }
+        });
       v$.value.$reset();
     })
-    .then(() => router.push('/'))
     .catch(() => (changePasswordError.value = true));
 };
 const updatePasswordType = (passwordType) => {

@@ -16,7 +16,7 @@
   >
     <b-row>
       <b-col>
-        <b-row>
+        <div class="qr-wrapper">
           <qrcode-vue
             v-if="qrValue"
             class="qrcode-styling"
@@ -26,9 +26,9 @@
             render-as="canvas"
           />
           <div v-else class="emptyQrStyle"></div>
-        </b-row>
-        <b-row>
-          <b-col>
+        </div>
+        <div class="secret-key-buttons-container">
+          <div>
             <b-button
               v-b-toggle.collapse-2
               class="m-1 buttonStyle"
@@ -40,9 +40,8 @@
             <b-collapse id="collapse-2" data-test-id="secret-key-value">
               {{ dataFormatter(secretKey) }}
             </b-collapse>
-          </b-col>
-          <b-col class="m-1">
-          <b-button @click="copySecretKey">
+          </div>
+          <b-button class="m-1" @click="copySecretKey">
             <template v-if="secretKeyCopied">
               <icon-checkmark title="Copied" />
             </template>
@@ -50,8 +49,7 @@
               <icon-copy title="Copy Secret key" />
             </template>
           </b-button>
-          </b-col>
-        </b-row>
+        </div>
       </b-col>
       <b-col>
         <b-form
@@ -151,7 +149,7 @@ const accountName = ref(localStorage.getItem('storedUsername'));
 const otpValue = ref(null);
 const secretKeyCopied = ref(false);
 const qrValue = ref(null);
-const size = ref(350);
+const size = ref(355);
 
 const { errorToast, successToast } = useToast();
 
@@ -187,16 +185,14 @@ const secretKey = computed(() => {
   return userManagementStore.secretKeyInfoGetter;
 });
 
-watch(secretKey,(newValue) => {
-    globalStore.getBmcTime();
-    if (newValue === null) {
-      qrValue.value = null;
-    } else {
-      qrValue.value = `otpauth://totp/${issuer.value}:${accountName.value}?secret=${newValue}&issuer=${issuer.value}`;
-    }
-  },
-);
-
+watch(secretKey, (newValue) => {
+  globalStore.getBmcTime();
+  if (newValue === null) {
+    qrValue.value = null;
+  } else {
+    qrValue.value = `otpauth://totp/${issuer.value}:${accountName.value}?secret=${newValue}&issuer=${issuer.value}`;
+  }
+});
 
 const rules = computed(() => ({
   otpValue: modal.value
@@ -207,7 +203,6 @@ const rules = computed(() => ({
 }));
 
 const v$ = useVuelidate(rules, { otpValue });
-
 
 function copySecretKey() {
   navigator.clipboard.writeText(secretKey.value).then(() => {
@@ -268,7 +263,9 @@ function closeModal() {
 <style lang="scss" scoped>
 .qrcode-styling {
   margin-left: 15px;
-  max-width: 350px;
+}
+.qr-wrapper {
+  max-width: none !important;
 }
 .row {
   margin-left: 0px;
@@ -290,5 +287,10 @@ function closeModal() {
   svg {
     transform: rotate(180deg);
   }
+}
+
+.secret-key-buttons-container {
+  display: flex;
+  justify-content: space-between;
 }
 </style>
