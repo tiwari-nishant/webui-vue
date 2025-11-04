@@ -185,7 +185,8 @@ export const UserManagementStore = defineStore('userManagment', {
     }) {
       const data = {};
       const notReadOnly =
-        privilege !== 'ReadOnly' && currentUser.RoleId !== 'ReadOnly';
+        privilege !== 'ReadOnly' &&
+        (currentUser ? currentUser.RoleId !== 'ReadOnly' : true);
       if (username) data.UserName = username;
       if (password) data.Password = password;
       if (privilege && notReadOnly) {
@@ -193,7 +194,7 @@ export const UserManagementStore = defineStore('userManagment', {
       } else if (
         privilege &&
         privilege === 'ReadOnly' &&
-        currentUser.RoleId !== 'ReadOnly'
+        (currentUser ? currentUser.RoleId !== 'ReadOnly' : true)
       ) {
         data.RoleId = privilege;
       }
