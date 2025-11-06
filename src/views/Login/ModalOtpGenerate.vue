@@ -1,5 +1,5 @@
 <template>
-  <b-modal
+  <BModal
     id="modal-otp-generate"
     v-model="modal"
     size="lg"
@@ -14,8 +14,8 @@
     @cancel="resetForm"
     @hidden="resetForm"
   >
-    <b-row>
-      <b-col>
+    <BRow>
+      <BCol>
         <div class="qr-wrapper">
           <qrcode-vue
             v-if="qrValue"
@@ -29,36 +29,36 @@
         </div>
         <div class="secret-key-buttons-container">
           <div>
-            <b-button
+            <BButton
               v-b-toggle.collapse-2
               class="m-1 buttonStyle"
               data-test-id="modal-secret-key"
             >
               <icon-chevron />
-              {{ $t('pageUserManagement.modal.secretKey') }}</b-button
+              {{ $t('pageUserManagement.modal.secretKey') }}</BButton
             >
-            <b-collapse id="collapse-2" data-test-id="modal-secret-key-value">
+            <BCollapse id="collapse-2" data-test-id="modal-secret-key-value">
               {{ dataFormatter(secretKey) }}
-            </b-collapse>
+            </BCollapse>
           </div>
-          <b-button class="m-1" @click="copySecretKey">
+          <BButton class="m-1" @click="copySecretKey">
             <template v-if="secretKeyCopied">
               <icon-checkmark title="Copied" />
             </template>
             <template v-else>
               <icon-copy title="Copy Secret key" />
             </template>
-          </b-button>
+          </BButton>
         </div>
-      </b-col>
-      <b-col>
-        <b-form
+      </BCol>
+      <BCol>
+        <BForm
           id="otp-generate-form"
           style="margin-top: 45px"
           novalidate
           @submit.prevent
         >
-          <b-container fluid="xl">
+          <BContainer fluid="xl">
             <div class="login-form__section mb-3">
               <alert variant="info" class="mb-4">
                 <dt>{{ $t('pageUserManagement.modal.helptext') }}:</dt>
@@ -72,29 +72,29 @@
             </div>
             <div class="login-form__section mb-3">
               <label>{{ $t('pageUserManagement.modal.otp') }}</label>
-              <b-form-group>
-                <b-form-input
+              <BFormGroup>
+                <BFormInput
                   v-model="otpValue"
                   :state="getValidationState(v$.otpValue)"
                   data-test-id="modal-totp-value"
                   @input="v$.otpValue.$touch()"
                 />
-                <b-form-invalid-feedback role="alert">
+                <BFormInvalidFeedback role="alert">
                   <template v-if="!v$.otpValue.required">
                     {{ $t('global.form.fieldRequired') }}
                   </template>
-                </b-form-invalid-feedback>
-              </b-form-group>
+                </BFormInvalidFeedback>
+              </BFormGroup>
             </div>
-          </b-container>
-        </b-form>
-      </b-col>
-    </b-row>
+          </BContainer>
+        </BForm>
+      </BCol>
+    </BRow>
     <template #modal-footer="{ ok, cancel }">
-      <b-button variant="secondary" size="sm" @click="cancel()">
+      <BButton variant="secondary" size="sm" @click="cancel()">
         {{ $t('pageServerPowerOperations.modal.networkSettings.cancel') }}
-      </b-button>
-      <b-button
+      </BButton>
+      <BButton
         form="otp-generate-form"
         type="submit"
         variant="primary"
@@ -102,9 +102,9 @@
         @click="ok()"
       >
         {{ $t('pageLogin.modal.login') }}
-      </b-button>
+      </BButton>
     </template>
-  </b-modal>
+  </BModal>
 </template>
 <script setup>
 import { required } from '@vuelidate/validators';

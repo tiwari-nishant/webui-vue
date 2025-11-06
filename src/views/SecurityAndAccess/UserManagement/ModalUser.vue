@@ -250,12 +250,12 @@
                 </BFormInvalidFeedback>
               </input-password-toggle>
             </BFormGroup>
-            <b-form-checkbox
+            <BFormCheckbox
               v-if="(isAdminUser || isServiceUser) && newUser && globalMfaValue"
               v-model="mfaBypass"
             >
               {{ $t('pageUserManagement.table.mfaByPass') }}
-            </b-form-checkbox>
+            </BFormCheckbox>
           </BCol>
         </BRow>
       </BContainer>

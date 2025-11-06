@@ -1,8 +1,8 @@
 <template>
   <BContainer fluid="xl">
     <page-title :title="$t('appPageTitle.userManagement')" />
-    <b-row v-if="currentUser && (isAdminUser || isServiceUser)">
-      <b-col>
+    <BRow v-if="currentUser && (isAdminUser || isServiceUser)">
+      <BCol>
         <span>{{ $t('pageUserManagement.mfaTotpAuthentication') }}</span>
         <info-tooltip
           v-if="!globalMfaValue && !currentMfaBypassed"
@@ -10,7 +10,7 @@
           :title="$t('pageUserManagement.enableMfaInfo')"
         >
         </info-tooltip>
-        <b-form-checkbox
+        <BFormCheckbox
           v-if="currentUser"
           id="switch"
           ref="globalMfaRef"
@@ -25,30 +25,30 @@
             {{ $t('global.status.enabled') }}
           </span>
           <span v-else>{{ $t('global.status.disabled') }}</span>
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
-    <b-row v-if="currentUser && (isAdminUser || isServiceUser)" class="mt-2">
-      <b-col xl="9">
+        </BFormCheckbox>
+      </BCol>
+    </BRow>
+    <BRow v-if="currentUser && (isAdminUser || isServiceUser)" class="mt-2">
+      <BCol xl="9">
         <alert variant="info" class="mb-2">
           <div>
             {{ $t('pageUserManagement.modal.hmcWarning') }}
           </div>
         </alert>
-      </b-col>
-    </b-row>
-    <b-row
+      </BCol>
+    </BRow>
+    <BRow
       v-if="currentUser && isAdminUser && globalMfaValue && currentMfaBypassed"
       class="mt-2"
     >
-      <b-col xl="9">
+      <BCol xl="9">
         <alert variant="warning" class="mb-4">
           <div>
             {{ $t('pageUserManagement.disableMfaBypassWarning') }}
           </div>
         </alert>
-      </b-col>
-    </b-row>
+      </BCol>
+    </BRow>
     <BRow>
       <BCol xl="9" class="text-right">
         <BButton variant="link" :disabled="isBusy" @click="initModalSettings()">
@@ -124,7 +124,7 @@
             v-if="currentUser && (isAdminUser || isServiceUser)"
             #cell(mfa)="row"
           >
-            <b-form-checkbox
+            <BFormCheckbox
               v-if="row.item.privilege !== 'Service agent'"
               v-model="row.item.mfa"
               b-form-checkbox
@@ -132,7 +132,7 @@
               :data-test-id="`${row.item.username}-mfa-bypass`"
               @change="updateMfaBypassVal(row.item)"
             >
-            </b-form-checkbox>
+            </BFormCheckbox>
           </template>
           <template v-if="currentUser" #head(secretKey)="row">
             {{ row.label }}
@@ -197,9 +197,9 @@
           <icon-chevron />
           {{ $t('pageUserManagement.viewPrivilegeRoleDescriptions') }}
         </BButton>
-        <b-collapse id="collapse-role-table" class="mt-3">
+        <BCollapse id="collapse-role-table" class="mt-3">
           <table-roles />
-        </b-collapse>
+        </BCollapse>
       </BCol>
     </BRow>
     <!-- Modals -->
@@ -343,7 +343,6 @@ onBeforeUnmount(() => {
 
 onBeforeMount(() => {
   startLoader();
-  console.log('currentUser', currentUser);
   userManagement.getAccountSettings();
   addMfaBypass();
   Promise.all([
