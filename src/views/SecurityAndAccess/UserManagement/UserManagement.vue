@@ -10,7 +10,6 @@
           :title="$t('pageUserManagement.enableMfaInfo')"
         >
         </info-tooltip>
-        {{ globalMfaValue }}
         <b-form-checkbox
           v-if="currentUser"
           id="switch"
@@ -125,7 +124,6 @@
             v-if="currentUser && (isAdminUser || isServiceUser)"
             #cell(mfa)="row"
           >
-            {{ row.item.mfa }}
             <b-form-checkbox
               v-if="row.item.privilege !== 'Service agent'"
               v-model="row.item.mfa"
