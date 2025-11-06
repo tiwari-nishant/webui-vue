@@ -53,7 +53,6 @@
           hover
           show-empty
           sticky-header="75vh"
-          :sort-by="[{ key: 'id', order: 'asc' }]"
           sort-desc.sync="status"
           :fields="fields"
           :items="filteredLogs"
@@ -337,6 +336,7 @@ const openModal = ref(false);
 const isAllSelected = ref(false);
 
 onBeforeRouteLeave(() => {
+  eventBus.emit('clear-selected');
   isBusy.value = false;
   hideLoader();
 });
