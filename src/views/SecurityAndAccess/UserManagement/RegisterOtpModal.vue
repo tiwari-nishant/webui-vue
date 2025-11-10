@@ -10,6 +10,7 @@
     no-close-on-esc
     no-close-on-backdrop
     hide-header-close
+    :ok-title="$t('pageUserManagement.modal.validate')"
     @ok="okFormSubmit"
     @cancel="resetMfa"
     @hidden="resetForm"
@@ -93,9 +94,7 @@
                   @input="v$.otpValue.$touch()"
                 />
                 <BFormInvalidFeedback role="alert">
-                  <template v-if="!v$.otpValue.required">
-                    {{ $t('global.form.fieldRequired') }}
-                  </template>
+                  {{ $t('global.form.fieldRequired') }}
                 </BFormInvalidFeedback>
               </BFormGroup>
             </div>

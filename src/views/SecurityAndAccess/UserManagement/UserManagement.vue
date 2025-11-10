@@ -444,8 +444,8 @@ const passwordRequirements = computed(() => {
   }
 });
 
-const handleOkUser = ({ isNewUser, userData }) => {
-  saveUser({ isNewUser, userData });
+const handleOkUser = ({ isNewUser, userData, mfaByPass }) => {
+  saveUser({ isNewUser, userData, mfaByPass });
 };
 
 watch(secretKey, (value) => {
@@ -483,7 +483,7 @@ function addMfaBypass() {
     fields.value.splice(4, 0, {
       key: 'mfa',
       label: i18n.global.t('pageUserManagement.table.mfaByPass'),
-      class: 'text-center',
+      class: 'mfa-toggle',
     });
     fields.value.splice(5, 0, {
       key: 'secretKey',
@@ -613,7 +613,7 @@ function handleOk(value) {
 function initModalSettings() {
   eventBus.emit('modal-settings');
 }
-function saveUser({ isNewUser, userData, mfaBypass }) {
+function saveUser({ isNewUser, userData, mfaByPass }) {
   if (isNewUser !== undefined && userData !== undefined) {
     startLoader();
     isBusy.value = true;
@@ -622,10 +622,10 @@ function saveUser({ isNewUser, userData, mfaBypass }) {
         .createUser(userData)
         .then(async (success) => {
           toast.successToast(success);
-          if (mfaBypass) {
+          if (mfaByPass) {
             await userManagement.updateMfaBypassNewUser({
               userData,
-              mfaBypass,
+              mfaByPass,
             });
           }
         })
@@ -740,6 +740,9 @@ function saveAccountSettings(settings) {
 }
 .text-right {
   text-align: right;
+}
+.mfa-toggle div {
+  padding-left: 4rem;
 }
 :deep(.empty-column) {
   z-index: 0 !important;

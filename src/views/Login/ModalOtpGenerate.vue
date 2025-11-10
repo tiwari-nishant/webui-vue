@@ -10,6 +10,7 @@
     no-close-on-esc
     hide-header-close
     no-close-on-backdrop
+    :ok-title="$t('pageLogin.modal.login')"
     @ok="okFormSubmit"
     @cancel="resetForm"
     @hidden="resetForm"
@@ -80,9 +81,7 @@
                   @input="v$.otpValue.$touch()"
                 />
                 <BFormInvalidFeedback role="alert">
-                  <template v-if="!v$.otpValue.required">
-                    {{ $t('global.form.fieldRequired') }}
-                  </template>
+                  {{ $t('global.form.fieldRequired') }}
                 </BFormInvalidFeedback>
               </BFormGroup>
             </div>
@@ -185,6 +184,13 @@ function resetForm() {
   otpValue.value = null;
   v$.value.$reset();
 }
+
+watch(modal, (newValue) => {
+  if (newValue) {
+    v$.value.$reset();
+    otpValue.value = null;
+  }
+});
 
 function handleSubmit() {
   v$.value.$touch();

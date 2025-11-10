@@ -155,6 +155,7 @@ const acfUploadButton = ref(
 );
 const isBusy = ref(true);
 const disableSubmitButton = ref(false);
+const otpValue = ref('');
 const languages = ref([
   {
     value: 'en-US',
@@ -196,8 +197,9 @@ const login = async () => {
   disableSubmitButton.value = true;
   const username = userInfo.username;
   const password = userInfo.password;
+  const otpInfo = otpValue.value;
   authenticationStore
-    .login({ username, password })
+    .login({ username, password, otpInfo })
     .then(() => {
       localStorage.setItem('storedLanguage', i18n.global.locale.value);
       localStorage.setItem('storedUsername', username);

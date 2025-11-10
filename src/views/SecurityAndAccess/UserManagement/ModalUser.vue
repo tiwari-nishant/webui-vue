@@ -252,7 +252,7 @@
             </BFormGroup>
             <BFormCheckbox
               v-if="(isAdminUser || isServiceUser) && newUser && globalMfaValue"
-              v-model="mfaBypass"
+              v-model="mfaByPass"
             >
               {{ $t('pageUserManagement.table.mfaByPass') }}
             </BFormCheckbox>
@@ -315,7 +315,7 @@ eventBus.on('modal-user', () => {
 });
 
 const originalUsername = ref('');
-const mfaByPass = ref('');
+const mfaByPass = ref(false);
 const form = ref({
   status: true,
   username: '',
@@ -377,8 +377,8 @@ const privilegeTypes = computed(() => {
 watch(
   () => props.user,
   (value) => {
+    if (value === null) return;
     if (value.length) {
-      if (value === null) return;
       originalUsername.value = value.username;
       form.value.username = value.username;
       form.value.status = value.Enabled;

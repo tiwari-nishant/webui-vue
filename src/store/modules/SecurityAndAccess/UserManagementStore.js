@@ -523,10 +523,10 @@ export const UserManagementStore = defineStore('userManagment', {
           }
         });
     },
-    async updateMfaBypassNewUser({ userData, mfaBypass }) {
+    async updateMfaBypassNewUser({ userData, mfaByPass }) {
       const requestBody = {
         MFABypass: {
-          BypassTypes: mfaBypass ? ['GoogleAuthenticator'] : ['None'],
+          BypassTypes: mfaByPass ? ['GoogleAuthenticator'] : ['None'],
         },
       };
       return await api
@@ -537,7 +537,7 @@ export const UserManagementStore = defineStore('userManagment', {
         .then(() => this.getUsers())
         .catch((error) => {
           console.log('error', error);
-          if (mfaBypass) {
+          if (mfaByPass) {
             throw new Error(
               i18n.global.t('pageUserManagement.toast.errorEnableMfaBypass'),
             );
