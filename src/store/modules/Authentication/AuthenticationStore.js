@@ -11,6 +11,8 @@ export const AuthenticationStore = defineStore('authentication', {
     unauthError: false,
     xsrfCookie: cookies.get('XSRF-TOKEN'),
     isAuthenticatedCookie: cookies.get('IsAuthenticated'),
+    isGenerateOtpRequired: false,
+    isGlobalMfaEnabled: false,
   }),
   getters: {
     loginPageDetailsGetter: (state) => state.loginPageDetails,
@@ -20,6 +22,8 @@ export const AuthenticationStore = defineStore('authentication', {
       //Change null to undefined once the cookies value able to get
       return state.xsrfCookie !== null || state.isAuthenticatedCookie == 'true';
     },
+    isGlobalMfaEnabledGetter: (state) => state.isGlobalMfaEnabled,
+    isGenerateOtpRequiredGetter: (state) => state.isGenerateOtpRequired,
     token: (state) => state.xsrfCookie,
   },
   actions: {
@@ -39,12 +43,33 @@ export const AuthenticationStore = defineStore('authentication', {
       this.xsrfCookie = null;
       this.isAuthenticatedCookie = undefined;
     },
-    login({ username, password }) {
+    login({ username, password, otpInfo }) {
+      this.isGenerateOtpRequired = false;
       this.authError = false;
       this.unauthError = false;
+      let requestBody = {};
+      if (otpInfo === '') {
+        requestBody = { UserName: username, Password: password };
+      } else {
+        requestBody = {
+          UserName: username,
+          Password: password,
+          Token: otpInfo,
+        };
+      }
       return api
-        .post('/login', { data: [username, password] })
-        .then(() => this.authSuccess())
+        .post('/redfish/v1/SessionService/Sessions', requestBody)
+        .then((response) => {
+          if (
+            response.data['@Message.ExtendedInfo'] &&
+            response.data['@Message.ExtendedInfo'][0].MessageId.endsWith(
+              'GenerateSecretKeyRequired',
+            )
+          ) {
+            this.isGenerateOtpRequired = true;
+          }
+          this.authSuccess();
+        })
         .catch((error) => {
           this.authError = true;
           throw new Error(error);
@@ -100,6 +125,7 @@ export const AuthenticationStore = defineStore('authentication', {
             acfWindowActive: data.ACFWindowActive,
           };
           this.setLoginPageDetails(loginPageDetails);
+          this.isGlobalMfaEnabled = data.MultiFactorAuthEnabled;
         })
         .catch((error) => console.log(error));
     },

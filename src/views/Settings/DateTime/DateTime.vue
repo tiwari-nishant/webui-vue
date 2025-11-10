@@ -77,6 +77,11 @@
               {{ $t('pageDateTime.alert.messagePowerOff') }}
             </span>
           </alert>
+          <alert v-if="globalMfaValue" variant="info" class="mb-2">
+            <span>
+              {{ $t('pageDateTime.alert.mfaMessage') }}
+            </span>
+          </alert>
           <alert variant="info" class="mb-4">
             <span>
               {{ $t('pageDateTime.alert.messageNtp') }}
@@ -321,9 +326,11 @@ import {
   sameAs,
   not,
 } from '@vuelidate/validators';
+import UserManagementStore from '../../../store/modules/SecurityAndAccess/UserManagementStore';
 
 const { proxy } = getCurrentInstance();
 const { startLoader, hideLoader, endLoader } = useLoadingBar();
+const userManagementStore = UserManagementStore();
 const { getValidationState } = useVuelidateComposable();
 const { localOffset } = useLocalTimezoneLabelComposable();
 const toast = useToastComposable();
@@ -339,6 +346,15 @@ const globalStore = stores.GlobalStore();
 
 const isoDateRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
 const isoTimeRegex = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+
+const globalMfaValue = computed({
+  get() {
+    return userManagementStore.isGlobalMfaEnabledGetter;
+  },
+  set(newValue) {
+    return newValue;
+  },
+});
 
 const manualDate = ref('');
 const locale = ref(globalStore.languagePreferenceGetter);
@@ -360,13 +376,15 @@ onBeforeRouteLeave(() => {
 
 onMounted(() => {
   startLoader();
-  Promise.all([globalStore.getBmcTime(), dateTimeStore.getNtpData()]).finally(
-    () => {
-      showCollapse();
-      setInitialNtpValues();
-      endLoader();
-    },
-  );
+  Promise.all([
+    globalStore.getBmcTime(),
+    dateTimeStore.getNtpData(),
+    userManagementStore.getAccountSettings(),
+  ]).finally(() => {
+    showCollapse();
+    setInitialNtpValues();
+    endLoader();
+  });
 });
 
 const ntpServers = computed(() => {

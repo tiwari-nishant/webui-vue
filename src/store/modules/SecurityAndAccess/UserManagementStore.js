@@ -11,6 +11,9 @@ export const UserManagementStore = defineStore('userManagment', {
     accountLockoutThreshold: null,
     accountMinPasswordLength: null,
     accountMaxPasswordLength: null,
+    isGlobalMfaEnabled: false,
+    isCurrentUserMfaBypassed: false,
+    secretKeyInfo: null,
   }),
   getters: {
     allUsersGetter(state) {
@@ -34,6 +37,15 @@ export const UserManagementStore = defineStore('userManagment', {
         maxLength: state.accountMaxPasswordLength,
       };
     },
+    isGlobalMfaEnabledGetter(state) {
+      return state.isGlobalMfaEnabled;
+    },
+    isCurrentUserMfaBypassedGetter(state) {
+      return state.isCurrentUserMfaBypassed;
+    },
+    secretKeyInfoGetter(state) {
+      return state.secretKeyInfo;
+    },
   },
   actions: {
     async getUsers() {
@@ -42,8 +54,8 @@ export const UserManagementStore = defineStore('userManagment', {
         .then((response) =>
           response.data.Members.map((user) => user['@odata.id']),
         )
-        .then((userIds) => {
-          api
+        .then(async (userIds) => {
+          return await api
             .all(userIds.map((user) => api.get(user)))
             .then((users) => {
               const userData = users.map((user) => user.data);
@@ -62,9 +74,17 @@ export const UserManagementStore = defineStore('userManagment', {
         })
         .catch((error) => {
           console.log(error);
-          const message = i18n.global.t(
-            'pageUserManagement.toast.errorLoadUsers',
-          );
+          let message = '';
+          if (
+            error.response.data['@Message.ExtendedInfo'] &&
+            error.response.data['@Message.ExtendedInfo'][0].MessageId.endsWith(
+              'GenerateSecretKeyRequired',
+            )
+          ) {
+            message = 'otpRequired';
+          } else {
+            message = i18n.global.t('pageUserManagement.toast.errorLoadUsers');
+          }
           throw new Error(message);
         });
     },
@@ -76,6 +96,8 @@ export const UserManagementStore = defineStore('userManagment', {
           this.accountLockoutThreshold = data.AccountLockoutThreshold;
           this.accountMinPasswordLength = data.MinPasswordLength;
           this.accountMaxPasswordLength = data.MaxPasswordLength;
+          this.isGlobalMfaEnabled =
+            data.MultiFactorAuth?.GoogleAuthenticator?.Enabled;
         })
         .catch((error) => {
           console.log(error);
@@ -163,7 +185,8 @@ export const UserManagementStore = defineStore('userManagment', {
     }) {
       const data = {};
       const notReadOnly =
-        privilege !== 'ReadOnly' && currentUser.RoleId !== 'ReadOnly';
+        privilege !== 'ReadOnly' &&
+        (currentUser ? currentUser.RoleId !== 'ReadOnly' : true);
       if (username) data.UserName = username;
       if (password) data.Password = password;
       if (privilege && notReadOnly) {
@@ -171,7 +194,7 @@ export const UserManagementStore = defineStore('userManagment', {
       } else if (
         privilege &&
         privilege === 'ReadOnly' &&
-        currentUser.RoleId !== 'ReadOnly'
+        (currentUser ? currentUser.RoleId !== 'ReadOnly' : true)
       ) {
         data.RoleId = privilege;
       }
@@ -218,7 +241,6 @@ export const UserManagementStore = defineStore('userManagment', {
       if (locked !== undefined) data.Locked = locked;
       return await api
         .patch(`/redfish/v1/AccountService/Accounts/${originalUsername}`, data)
-        .then(() => this.getUsers())
         .then(() =>
           i18n.global.t('pageUserManagement.toast.successUpdateUser', {
             username: originalUsername,
@@ -413,6 +435,161 @@ export const UserManagementStore = defineStore('userManagment', {
             'pageUserManagement.toast.errorSaveSettings',
           );
           throw new Error(message);
+        });
+    },
+
+    async updateGlobalMfa({ globalMfa }) {
+      this.isGlobalMfaEnabled = globalMfa;
+      const requestBody = {
+        MultiFactorAuth: {
+          GoogleAuthenticator: {
+            Enabled: globalMfa,
+          },
+        },
+      };
+      return await api
+        .patch('/redfish/v1/AccountService', requestBody)
+        .then(() => {
+          this.getUsers();
+          if (globalMfa) {
+            return i18n.global.t('pageUserManagement.toast.successEnableMfa');
+          } else {
+            return i18n.global.t('pageUserManagement.toast.successDisableMfa');
+          }
+        })
+        .catch((error) => {
+          this.isGlobalMfaEnabled = !globalMfa;
+          console.log('error', error);
+          this.getAccountSettings();
+          if (globalMfa) {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorEnableMfa'),
+            );
+          } else {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorDisableMfa'),
+            );
+          }
+        });
+    },
+
+    async clearSetSecretKey(mfaObject) {
+      return await api
+        .post(mfaObject['@odata.id'] + '/Actions/ManagerAccount.ClearSecretKey')
+        .then(() => {
+          this.getUsers();
+          return i18n.global.t(
+            'pageUserManagement.toast.successClearSecretKey',
+          );
+        })
+        .catch((error) => {
+          this.getUsers();
+          console.log('error', error);
+          throw new Error(
+            i18n.global.t('pageUserManagement.toast.errorClearSecretKey'),
+          );
+        });
+    },
+    async updateMfaBypass(mfaObject) {
+      const requestBody = {
+        MFABypass: {
+          BypassTypes: mfaObject.mfa ? ['GoogleAuthenticator'] : ['None'],
+        },
+      };
+      return await api
+        .patch(mfaObject['@odata.id'], requestBody)
+        .then(() => {
+          if (mfaObject.mfa) {
+            return i18n.global.t(
+              'pageUserManagement.toast.successEnableMfaBypass',
+            );
+          } else {
+            return i18n.global.t(
+              'pageUserManagement.toast.successDisableMfaBypass',
+            );
+          }
+        })
+        .catch((error) => {
+          this.getUsers();
+          console.log('error', error);
+          if (mfaObject.mfa) {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorEnableMfaBypass'),
+            );
+          } else {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorDisableMfaBypass'),
+            );
+          }
+        });
+    },
+    async updateMfaBypassNewUser({ userData, mfaByPass }) {
+      const requestBody = {
+        MFABypass: {
+          BypassTypes: mfaByPass ? ['GoogleAuthenticator'] : ['None'],
+        },
+      };
+      return await api
+        .patch(
+          `/redfish/v1/AccountService/Accounts/${userData.username}`,
+          requestBody,
+        )
+        .then(() => this.getUsers())
+        .catch((error) => {
+          console.log('error', error);
+          if (mfaByPass) {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorEnableMfaBypass'),
+            );
+          } else {
+            throw new Error(
+              i18n.global.t('pageUserManagement.toast.errorDisableMfaBypass'),
+            );
+          }
+        });
+    },
+    async checkCurrentUserMfaBypassed({ uri }) {
+      api.get(uri).then(({ data }) => {
+        this.isCurrentUserMfaBypassed = data?.MFABypass?.BypassTypes.includes(
+          'GoogleAuthenticator',
+        );
+      });
+    },
+    async clearSecretKey() {
+      this.secretKeyInfo = null;
+      return;
+    },
+    async generateSecretKey() {
+      const currentUsername = localStorage.getItem('storedUsername');
+      return api
+        .post(
+          `redfish/v1/AccountService/Accounts/${currentUsername}/Actions/ManagerAccount.GenerateSecretKey`,
+        )
+        .then(({ data }) => {
+          this.secretKeyInfo = data?.SecretKey;
+        })
+        .catch((error) => {
+          console.log('error', error);
+          throw new Error(error);
+        });
+    },
+
+    async verifyRegisterTotp({ otpValue }) {
+      const requestBody = {
+        TimeBasedOneTimePassword: otpValue,
+      };
+      const currentUsername = localStorage.getItem('storedUsername');
+      return await api
+        .post(
+          `/redfish/v1/AccountService/Accounts/${currentUsername}/Actions/ManagerAccount.VerifyTimeBasedOneTimePassword`,
+          requestBody,
+        )
+        .then(() => {
+          this.getUsers();
+          return i18n.global.t('pageUserManagement.toast.successEnableMfa');
+        })
+        .catch(() => {
+          throw new Error(i18n.global.t('pageUserManagement.toast.errorOtp'));
         });
     },
   },

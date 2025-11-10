@@ -250,6 +250,12 @@
                 </BFormInvalidFeedback>
               </input-password-toggle>
             </BFormGroup>
+            <BFormCheckbox
+              v-if="(isAdminUser || isServiceUser) && newUser && globalMfaValue"
+              v-model="mfaByPass"
+            >
+              {{ $t('pageUserManagement.table.mfaByPass') }}
+            </BFormCheckbox>
           </BCol>
         </BRow>
       </BContainer>
@@ -309,6 +315,7 @@ eventBus.on('modal-user', () => {
 });
 
 const originalUsername = ref('');
+const mfaByPass = ref(false);
 const form = ref({
   status: true,
   username: '',
@@ -323,9 +330,21 @@ const confirmPasswordType = ref('password');
 const certificateTypes = computed(() => {
   return uploadCertificate.availableUploadTypesGetter;
 });
+
+const globalMfaValue = computed(() => {
+  return userManagementStore.isGlobalMfaEnabledGetter;
+});
 const editDisabled = computed(() => {
   return !props.user?.RoleId;
 });
+const isAdminUser = computed(() => {
+  return globalStore.isAdminUser;
+});
+
+const isServiceUser = computed(() => {
+  return globalStore.isServiceUser;
+});
+
 const newUser = computed(() => {
   return props.user ? false : true;
 });
@@ -358,8 +377,8 @@ const privilegeTypes = computed(() => {
 watch(
   () => props.user,
   (value) => {
+    if (value === null) return;
     if (value.length) {
-      if (value === null) return;
       originalUsername.value = value.username;
       form.value.username = value.username;
       form.value.status = value.Enabled;
@@ -440,11 +459,18 @@ function handleSubmit() {
     }
   }
 
-  eventBus.emit('okUser', { isNewUser: newUser.value, userData });
+  eventBus.emit('okUser', {
+    isNewUser: newUser.value,
+    userData,
+    mfaByPass: mfaByPass.value,
+  });
   closeModal();
 }
 function closeModal() {
-  modalUser.value = false;
+  nextTick(() => {
+    mfaByPass.value = false;
+    modalUser.value = false;
+  });
 }
 function resetForm() {
   form.value.originalUsername = '';

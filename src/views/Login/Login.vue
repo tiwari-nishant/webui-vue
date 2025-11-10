@@ -41,7 +41,7 @@
           </template>
         </BFormInvalidFeedback>
       </BFormGroup>
-      <div class="login-form__section mb-3">
+      <div class="login-form__section password-style">
         <label for="password">{{ t('pageLogin.password') }}</label>
         <input-password-toggle @update-pass-view="updatePasswordType">
           <BFormInput
@@ -56,12 +56,21 @@
             @input="v$.password.$touch()"
           >
           </BFormInput>
-          <BFormInvalidFeedback id="password-required" role="alert">
-            <template v-if="v$.password.required">
-              {{ t('global.form.fieldRequired') }}
-            </template>
-          </BFormInvalidFeedback>
         </input-password-toggle>
+        <BFormInvalidFeedback id="password-required" role="alert">
+          <template v-if="v$.password.required">
+            {{ t('global.form.fieldRequired') }}
+          </template>
+        </BFormInvalidFeedback>
+      </div>
+      <div v-if="isGlobalMfaEnabled" class="login-form__section mb-3">
+        <label>TOTP</label>
+        <info-tooltip class="ml-1" :title="$t('pageLogin.totpTooltip')">
+        </info-tooltip>
+        <BFormGroup>
+          <BFormInput v-model="otpValue" data-test-id="login-input-totp">
+          </BFormInput>
+        </BFormGroup>
       </div>
       <BButton
         class="mt-4 w-100"
@@ -105,6 +114,7 @@
 
     <!-- Modals -->
     <modal-upload-certificate @ok="onModalOk" />
+    <modal-otp-generate></modal-otp-generate>
   </div>
 </template>
 
@@ -125,6 +135,7 @@ import useDataFormatterGlobal from '../../components/Composables/useDataFormatte
 import useToast from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import ModalUploadCertificate from './ModalUploadCertificate.vue';
+import ModalOtpGenerate from './ModalOtpGenerate.vue';
 
 const router = useRouter();
 const { getValidationState } = useVuelidateComposable();
@@ -135,6 +146,7 @@ const { startLoader, endLoader } = useLoadingBar();
 
 const authenticationStore = stores.AuthenticationStore();
 const certificatesStore = stores.CertificatesStore();
+const userManagementStore = stores.UserManagementStore();
 const globalStore = stores.GlobalStore();
 
 const passwordType = ref('password');
@@ -143,12 +155,17 @@ const acfUploadButton = ref(
 );
 const isBusy = ref(true);
 const disableSubmitButton = ref(false);
+const otpValue = ref('');
 const languages = ref([
   {
     value: 'en-US',
     text: 'English',
   },
 ]);
+
+const isGlobalMfaEnabled = computed(() => {
+  return authenticationStore.isGlobalMfaEnabledGetter;
+});
 
 const userInfo = reactive({ username: null, password: null });
 const rules = { username: { required }, password: { required } };
@@ -180,8 +197,9 @@ const login = async () => {
   disableSubmitButton.value = true;
   const username = userInfo.username;
   const password = userInfo.password;
+  const otpInfo = otpValue.value;
   authenticationStore
-    .login({ username, password })
+    .login({ username, password, otpInfo })
     .then(() => {
       localStorage.setItem('storedLanguage', i18n.global.locale.value);
       localStorage.setItem('storedUsername', username);
@@ -193,18 +211,27 @@ const login = async () => {
       if (passwordChangeRequired) {
         router.push('/change-password');
       } else {
-        globalStore.getCurrentUser(userInfo.username);
-        await globalStore
-          .getSystemInfo()
-          .then(() => {
-            router.push('/');
-          })
-          .catch(() => {
-            Promise.all([
-              authenticationStore.unauthlogin(),
-              authenticationStore.logout(),
-            ]);
+        let otpGenerateRequired = authenticationStore.isGenerateOtpRequired;
+        if (otpGenerateRequired) {
+          userManagementStore.clearSecretKey().finally(() => {
+            userManagementStore.generateSecretKey().then(() => {
+              eventBus.emit('otp-generate-modal');
+            });
           });
+        } else {
+          globalStore.getCurrentUser(userInfo.username);
+          await globalStore
+            .getSystemInfo()
+            .then(() => {
+              router.push('/');
+            })
+            .catch(() => {
+              Promise.all([
+                authenticationStore.unauthlogin(),
+                authenticationStore.logout(),
+              ]);
+            });
+        }
       }
     })
     .catch((error) => console.log(error))
@@ -230,3 +257,9 @@ const addNewCertificate = (file) => {
     .catch(({ message }) => errorToast(message));
 };
 </script>
+
+<style lang="css" scoped>
+.password-style {
+  margin-bottom: 2rem;
+}
+</style>
