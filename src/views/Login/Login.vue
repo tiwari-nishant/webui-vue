@@ -41,7 +41,7 @@
           </template>
         </BFormInvalidFeedback>
       </BFormGroup>
-      <div class="login-form__section mb-3">
+      <div class="login-form__section password-style">
         <label for="password">{{ t('pageLogin.password') }}</label>
         <input-password-toggle @update-pass-view="updatePasswordType">
           <BFormInput
@@ -257,3 +257,9 @@ const addNewCertificate = (file) => {
     .catch(({ message }) => errorToast(message));
 };
 </script>
+
+<style lang="css" scoped>
+.password-style {
+  margin-bottom: 2rem;
+}
+</style>

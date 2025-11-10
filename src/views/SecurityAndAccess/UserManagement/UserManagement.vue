@@ -479,7 +479,7 @@ watch(secretKey, (value) => {
 });
 
 function addMfaBypass() {
-  if (currentUser.value && (isAdminUser.value || isServiceUser)) {
+  if (currentUser.value && (isAdminUser.value || isServiceUser.value)) {
     fields.value.splice(4, 0, {
       key: 'mfa',
       label: i18n.global.t('pageUserManagement.table.mfaByPass'),
@@ -639,7 +639,10 @@ function saveUser({ isNewUser, userData, mfaByPass }) {
         .updateUserfromUserManagement(userData)
         .then((success) => toast.successToast(success))
         .catch(({ message }) => toast.errorToast(message))
-        .finally(() => endLoader());
+        .finally(() => {
+          isBusy.value = false;
+          endLoader();
+        });
     }
   }
 }

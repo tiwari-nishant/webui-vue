@@ -1139,7 +1139,7 @@
     "username": "Username",
     "alert": {
       "unauthorizedMessage": "User unauthorized",
-      "message": "Invalid username or password"
+      "message": "Invalid credentials"
     },
     "modal": {
       "addNewAcfCertificate": "Add new ACF certificate",
