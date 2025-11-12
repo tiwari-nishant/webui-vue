@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import api from '@/store/api';
 import { useCookies } from 'vue3-cookies';
 import Cookies from 'js-cookie';
+import router from '@/router';
 const { cookies } = useCookies();
 
 export const AuthenticationStore = defineStore('authentication', {
@@ -72,6 +73,7 @@ export const AuthenticationStore = defineStore('authentication', {
         })
         .then(() => {
           this.logoutRemove();
+          router.replace('/login');
         })
         .catch((error) => {
           console.log(error);
