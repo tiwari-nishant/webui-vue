@@ -146,6 +146,12 @@ const openTerminal = (selectedConsole = props.consoleType) => {
   term.open(panel.value);
   fitAddon.fit();
 
+  const xtermElement = panel.value.querySelector('.terminal.xterm');
+  if (xtermElement) {
+    xtermElement.setAttribute('role', 'application');
+    xtermElement.setAttribute('aria-label', 'host-console');
+  }
+
   resizeConsoleWindow.value = throttle(() => {
     fitAddon.fit();
   }, 1000);

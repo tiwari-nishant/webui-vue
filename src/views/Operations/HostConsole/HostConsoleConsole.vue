@@ -19,7 +19,7 @@
         </BButton>
       </BCol>
     </BRow>
-    <div id="terminal" ref="panel"></div>
+    <div id="terminal" ref="panel" role="log"></div>
   </div>
 </template>
 
@@ -125,6 +125,12 @@ function openTerminal() {
 
   term.open(panel.value);
   fitAddon.fit();
+
+  const xtermElement = panel.value.querySelector('.terminal.xterm');
+  if (xtermElement) {
+    xtermElement.setAttribute('role', 'application');
+    xtermElement.setAttribute('aria-label', 'host-console');
+  }
 
   resizeConsoleWindow.value = throttle(() => {
     fitAddon.fit();
