@@ -26,6 +26,7 @@
             <BFormSelect
               id="bios-option-sysOp-mode"
               v-model="attributeKeys[key]"
+              aria-label="bios-option-sysOp-mode"
               :options="attriValuesArr"
               :disabled="disabled"
             >
@@ -56,6 +57,7 @@
                 <BCol sm="5">
                   <BFormRadio
                     v-for="values of attriValuesArr"
+                    :id="values.value"
                     :key="values.value"
                     v-model="attributeKeys[key]"
                     :value="values.value"
@@ -200,10 +202,11 @@
               <template v-for="(values, keys) of attriValuesArr">
                 <template v-if="key === 'pvm_system_power_off_policy'">
                   <BFormRadio
+                    :id="spaceFilter(values.value)"
                     :key="values.value"
                     v-model="attributeKeys[key]"
                     :value="values.value"
-                    :aria-describedby="values.value"
+                    :aria-describedby="spaceFilter(values.value)"
                     :disabled="disabled"
                   >
                     <template v-if="values.value === 'Power Off'">{{
@@ -281,6 +284,7 @@
             <BFormSelect
               id="bios-option-sysOp-mode"
               v-model="taggedSetting.settingValue"
+              aria-label="bios-option-sysOp-mode"
               :options="taggedSettingsOptions"
               :disabled="!isAtleastPhypInStandby || disabled"
               @input="
@@ -524,11 +528,13 @@ import { ref, computed, onBeforeMount, watch } from 'vue';
 import i18n from '@/i18n';
 import Alert from '@/components/Global/Alert.vue';
 import IconChevron from '@carbon/icons-vue/es/chevron--up/20';
+import utilitiesFunctions from '../../../components/Global/UtilitiesFunction';
 import stores from '@/store';
 
 const globalStore = stores.GlobalStore();
 const bootSettingsStore = stores.BootSettingsStore();
 const resourceMemoryStore = stores.ResourceMemoryStore();
+const { spaceFilter } = utilitiesFunctions();
 
 defineProps({
   attributeValues: {

@@ -24,6 +24,23 @@ const constructUrl = (path) => {
   }
 };
 
+api.interceptors.request.use(
+  (config) => {
+    const authenticationStore = stores.AuthenticationStore();
+    const isAuthRequest =
+      config.url?.includes('/login') || config.url?.includes('/logout');
+    if (!isAuthRequest && authenticationStore) {
+      const controller = authenticationStore.createAbortController();
+      config.signal = controller.signal;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
 api.interceptors.response.use(undefined, (error) => {
   const globalStore = stores.GlobalStore();
   const authenticationStore = stores.AuthenticationStore();
