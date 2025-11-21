@@ -341,7 +341,9 @@ const updateImmediateTestRequestedState = (value) => {
     systemParametersStore.saveImmediateTestRequested({
       value: value ? 'Enabled' : 'Disabled',
     }),
-    systemParametersStore.getRpdScheduledRun,
+    setTimeout(() => {
+      systemParametersStore.getBiosAttributesRegistry;
+    }, 5000),
   ])
     .then((message) => {
       if (value && isServerOff.value) {

@@ -9,13 +9,11 @@ export const FirmwareStore = defineStore('firmware', {
     bmcActiveFirmwareId: null,
     hostActiveFirmwareId: null,
     applyTime: null,
-    tftpAvailable: false,
     firmwareBootSide: null,
     lowestSupportedFirmwareVersion: '',
     showAlert: false,
   }),
   getters: {
-    isTftpUploadAvailable: (state) => state.tftpAvailable,
     isSingleFileUploadEnabled: (state) => state.hostFirmware.length === 0,
     activeBmcFirmware: (state) => {
       return state.bmcFirmware.find(
@@ -133,14 +131,7 @@ export const FirmwareStore = defineStore('firmware', {
         .then(({ data }) => {
           const applyTime =
             data.HttpPushUriOptions.HttpPushUriApplyTime.ApplyTime;
-          const allowableActions =
-            data?.Actions?.['#UpdateService.SimpleUpdate']?.[
-              'TransferProtocol@Redfish.AllowableValues'
-            ];
           this.applyTime = applyTime;
-          if (allowableActions?.includes('TFTP')) {
-            this.tftpAvailable = true;
-          }
         })
         .catch((error) => console.log(error));
     },
@@ -169,31 +160,9 @@ export const FirmwareStore = defineStore('firmware', {
         await this.setApplyTimeImmediate();
       }
       return await api
-        .post('/redfish/v1/UpdateService', image, {
+        .post('/redfish/v1/UpdateService/update', image, {
           headers: { 'Content-Type': 'application/octet-stream' },
         })
-        .catch((error) => {
-          console.log(error);
-          throw new Error(
-            i18n.global.t('pageFirmware.toast.errorUpdateFirmware'),
-          );
-        });
-    },
-    async uploadFirmwareTFTP(fileAddress) {
-      const data = {
-        TransferProtocol: 'TFTP',
-        ImageURI: fileAddress,
-      };
-      if (this.applyTime !== 'Immediate') {
-        // ApplyTime must be set to Immediate before making
-        // request to update firmware
-        await this.setApplyTimeImmediate();
-      }
-      return await api
-        .post(
-          '/redfish/v1/UpdateService/Actions/UpdateService.SimpleUpdate',
-          data,
-        )
         .catch((error) => {
           console.log(error);
           throw new Error(

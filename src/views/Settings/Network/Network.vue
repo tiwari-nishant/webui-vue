@@ -81,7 +81,6 @@
       @ok="saveIpv6Address"
     />
     <modal-ipv6-static-default-gateway
-      :prefix-length="prefixLengthIpv6StaticDefaultGateway"
       :ip-address="ipAddressIpv6StaticDefaultGateway"
       :edit-modal="ipAddressIpv6StaticDefaultGateway !== ''"
       @ok="saveIpv6StaticDefaultGatewayAddress"
@@ -123,7 +122,6 @@ const defaultGateway = ref('');
 const ipAddress = ref('');
 const ipAddressIpv6 = ref('');
 const ipAddressIpv6StaticDefaultGateway = ref('');
-const prefixLengthIpv6StaticDefaultGateway = ref(0);
 const prefixLength = ref(0);
 const subnet = ref('');
 const tabIndex = ref(0);
@@ -144,7 +142,6 @@ onMounted(() => {
     ipAddress.value = item.Address;
     ipAddressIpv6StaticDefaultGateway.value = item.Address;
     prefixLength.value = item.PrefixLength;
-    prefixLengthIpv6StaticDefaultGateway.value = item.PrefixLength;
   });
   networkStore.setSelectedTabIndex(0);
   networkStore.getLLDPData();
@@ -259,7 +256,6 @@ const saveIpv6StaticDefaultGatewayAddress = (modalFormData) => {
     //Edit selected row
     const selectedRow = {
       Address: ipAddressIpv6StaticDefaultGateway.value,
-      PrefixLength: 0,
     };
     const editRow = modalData.concat(selectedRow);
     networkStore
