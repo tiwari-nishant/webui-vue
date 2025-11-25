@@ -88,6 +88,7 @@
           <template #head(checkbox)>
             <b-form-checkbox
               v-model="tableHeaderCheckboxModel"
+              aria-label="checkbox-head"
               data-test-id="eventLogs-checkbox-selectAll"
               :indeterminate="tableHeaderCheckboxIndeterminate"
               @change="
@@ -100,6 +101,7 @@
           <template #cell(checkbox)="row">
             <b-form-checkbox
               v-model="row.item.rowSelected"
+              aria-label="checkbox"
               :data-test-id="`eventLogs-checkbox-selectRow-${row.index}`"
               @change="
                 toggleSelectRow(
@@ -247,8 +249,14 @@
               @click-table-action="onTableRowAction($event, row.item)"
             >
               <template #icon>
-                <icon-download v-if="action.value === 'download'" />
-                <icon-trashcan v-if="action.value === 'delete'" />
+                <icon-download
+                  v-if="action.value === 'download'"
+                  aria-label="download"
+                />
+                <icon-trashcan
+                  v-if="action.value === 'delete'"
+                  aria-label="delete"
+                />
               </template>
             </table-row-action>
           </template>
@@ -323,6 +331,7 @@ import useDataFormatterGlobal from '../../../components/Composables/useDataForma
 import useTableSortComposable from '../../../components/Composables/useTableSortComposable';
 import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
+import { nextTick } from 'vue';
 import eventBus from '@/eventBus';
 
 import stores from '../../../store';
@@ -364,42 +373,58 @@ export default {
           key: 'expandRow',
           label: '',
           tdClass: 'table-row-expand',
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
         {
           key: 'checkbox',
           sortable: false,
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
         {
           key: 'id',
           label: this.$t('pageEventLogs.table.id'),
           sortable: true,
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
         {
           key: 'severity',
           label: this.$t('pageEventLogs.table.severity'),
           sortable: true,
           tdClass: 'text-nowrap',
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
         {
           key: 'date',
           label: this.$t('pageEventLogs.table.date'),
           sortable: true,
           tdClass: 'text-nowrap',
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
         {
           key: 'description',
           label: this.$t('pageEventLogs.table.description'),
           tdClass: 'text-break',
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
         {
           key: 'status',
           label: this.$t('pageEventLogs.table.status'),
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
         {
           key: 'actions',
           sortable: false,
           label: '',
           tdClass: 'text-right text-nowrap',
+          thAttr: { scope: 'col' },
+          tdAttr: { scope: null },
         },
       ],
       tableFilters: [
@@ -489,6 +514,17 @@ export default {
         });
       }
       return data;
+    },
+  },
+  watch: {
+    filteredLogs: function () {
+      this.$nextTick(() => {
+        document
+          .querySelectorAll('.b-table-sortable-column svg')
+          .forEach((svg) => {
+            svg.setAttribute('aria-hidden', 'true');
+          });
+      });
     },
   },
   created() {
