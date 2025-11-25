@@ -97,7 +97,7 @@
         <b-form-checkbox
           v-if="hasIdentifyLed(row.item.identifyLed)"
           v-model="row.item.identifyLed"
-          name="switch"
+          :name="'switch-' + row.item.id"
           switch
           @change="toggleIdentifyLedValue(row.item)"
         >
@@ -170,7 +170,7 @@ import useDataFormatterGlobal from '../../../components/Composables/useDataForma
 import { useI18n } from 'vue-i18n';
 import eventBus from '@/eventBus';
 import useToast from '@/components/Composables/useToastComposable';
-import { ref, reactive, computed, onBeforeMount } from 'vue';
+import { ref, reactive, computed, onBeforeMount, watch, nextTick } from 'vue';
 import stores from '../../../store';
 
 const { searchFilterInput, onChangeSearch, onClearSearch } =
@@ -190,12 +190,16 @@ const fields = reactive([
     key: 'expandRow',
     label: '',
     tdClass: 'table-row-expand',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'name',
     label: t('pageInventory.table.name'),
     formatter: dataFormatter,
     sortable: true,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'health',
@@ -203,6 +207,8 @@ const fields = reactive([
     formatter: dataFormatter,
     tdClass: 'text-nowrap',
     sortable: true,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'status',
@@ -210,18 +216,24 @@ const fields = reactive([
     formatter: dataFormatter,
     sortable: true,
     tdClass: 'text-nowrap',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'locationNumber',
     label: t('pageInventory.table.locationNumber'),
     formatter: dataFormatter,
     sortable: true,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'identifyLed',
     label: t('pageInventory.table.identifyLed'),
     formatter: dataFormatter,
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 
@@ -243,6 +255,20 @@ const filteredRows = computed(() => {
 const dimms = computed(() => {
   return memoryStore.dimmsGetter;
 });
+
+watch(
+  () => dimms,
+  () => {
+    nextTick(() => {
+      document
+        .querySelectorAll('.b-table-sortable-column svg')
+        .forEach((svg) => {
+          svg.setAttribute('aria-hidden', 'true');
+        });
+    });
+  },
+  { deep: true },
+);
 
 function onFiltered(filteredItems) {
   searchTotalFilteredRows.value = filteredItems.length;
@@ -314,5 +340,9 @@ function getStatusTooltip(status) {
   position: sticky;
   top: 0;
   z-index: 1;
+}
+
+.b-table-sort-icon svg {
+  aria-hidden: true;
 }
 </style>

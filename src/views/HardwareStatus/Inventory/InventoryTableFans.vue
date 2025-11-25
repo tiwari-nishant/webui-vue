@@ -105,7 +105,7 @@
         <BFormCheckbox
           v-if="hasIdentifyLed(row.item.identifyLed)"
           v-model="row.item.identifyLed"
-          name="switch"
+          :name="'switch-' + row.item.id"
           switch
           :disabled="serverStatus"
           @change="toggleIdentifyLedValue(row.item)"
@@ -163,7 +163,7 @@ import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
 import TableCellCount from '@/components/Global/TableCellCount.vue';
 import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import Search from '@/components/Global/Search.vue';
-import { reactive, ref, computed, watch, onBeforeMount } from 'vue';
+import { reactive, ref, computed, watch, onBeforeMount, nextTick } from 'vue';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
 import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
 import stores from '../../../store';
@@ -199,12 +199,16 @@ const fields = reactive([
     label: '',
     tdClass: 'table-row-expand',
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'name',
     label: t('pageInventory.table.name'),
     formatter: dataFormatter,
     sortable: true,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'health',
@@ -212,6 +216,8 @@ const fields = reactive([
     formatter: dataFormatter,
     sortable: true,
     tdClass: 'text-nowrap',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'status',
@@ -219,17 +225,23 @@ const fields = reactive([
     formatter: dataFormatter,
     sortable: true,
     tdClass: 'text-nowrap',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'locationNumber',
     label: t('pageInventory.table.locationNumber'),
     formatter: dataFormatter,
     sortable: true,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'identifyLed',
     label: t('pageInventory.table.identifyLed'),
     formatter: dataFormatter,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 
@@ -288,6 +300,20 @@ watch(
       isBusy.value = false;
     });
   },
+);
+
+watch(
+  () => fans,
+  () => {
+    nextTick(() => {
+      document
+        .querySelectorAll('.b-table-sortable-column svg')
+        .forEach((svg) => {
+          svg.setAttribute('aria-hidden', 'true');
+        });
+    });
+  },
+  { deep: true },
 );
 
 function onFiltered(filteredItems) {

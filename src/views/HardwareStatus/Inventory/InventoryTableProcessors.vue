@@ -100,7 +100,7 @@
         <b-form-checkbox
           v-if="hasIdentifyLed(row.item.identifyLed)"
           v-model="row.item.identifyLed"
-          name="switch"
+          :name="'switch-' + row.item.id"
           switch
           @change="toggleIdentifyLedValue(row.item)"
         >
@@ -166,7 +166,7 @@ import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
 import Search from '@/components/Global/Search.vue';
 import ProcessorStore from '../../../store/modules/HardwareStatus/ProcessorStore';
-import { computed, onBeforeMount, reactive, ref } from 'vue';
+import { computed, onBeforeMount, reactive, ref, watch, nextTick } from 'vue';
 import useToast from '@/components/Composables/useToastComposable';
 import eventBus from '@/eventBus';
 import { useI18n } from 'vue-i18n';
@@ -192,12 +192,16 @@ const fields = reactive([
     label: '',
     tdClass: 'table-row-expand',
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'id',
     label: t('pageInventory.table.name'),
     formatter: dataFormatter,
     sortable: true,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'health',
@@ -205,6 +209,8 @@ const fields = reactive([
     formatter: dataFormatter,
     sortable: true,
     tdClass: 'text-nowrap',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'status',
@@ -212,18 +218,24 @@ const fields = reactive([
     formatter: dataFormatter,
     sortable: true,
     tdClass: 'text-nowrap',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'locationNumber',
     label: t('pageInventory.table.locationNumber'),
     formatter: dataFormatter,
     sortable: true,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'identifyLed',
     label: t('pageInventory.table.identifyLed'),
     formatter: dataFormatter,
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 
@@ -249,6 +261,20 @@ const processors = computed(() => {
 function onFiltered(filteredItems) {
   searchTotalFilteredRows.value = filteredItems.length;
 }
+
+watch(
+  () => processors,
+  () => {
+    nextTick(() => {
+      document
+        .querySelectorAll('.b-table-sortable-column svg')
+        .forEach((svg) => {
+          svg.setAttribute('aria-hidden', 'true');
+        });
+    });
+  },
+  { deep: true },
+);
 
 function toggleIdentifyLedValue(row) {
   processorStore

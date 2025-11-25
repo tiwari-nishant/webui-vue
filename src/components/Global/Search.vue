@@ -2,11 +2,16 @@
   <div class="search-global">
     <BFormGroup
       :label="$t('global.form.search')"
+      aria-label="search-bar"
       :label-for="`searchInput-${_uid}`"
       label-class="invisible"
       class="mb-2"
     >
-      <BInputGroup size="md" class="align-items-center">
+      <BInputGroup
+        aria-label="search-input"
+        size="md"
+        class="align-items-center"
+      >
         <BInputGroupText class="group-text">
           <icon-search class="search-icon" />
         </BInputGroupText>
