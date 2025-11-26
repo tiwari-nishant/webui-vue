@@ -224,6 +224,7 @@ export default {
     },
     refresh() {
       this.$emit('refresh');
+      this.$root.$emit('refresh-action');
     },
     logout() {
       this.$store.dispatch('authentication/logout');

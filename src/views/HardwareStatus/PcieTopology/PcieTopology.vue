@@ -317,6 +317,16 @@ export default {
     TableRowExpandMixin,
     SearchFilterMixin,
   ],
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.$root.$on('refresh-action', vm.handleRefresh);
+    });
+  },
+
+  beforeRouteLeave(to, from, next) {
+    this.$root.$off('refresh-action', this.handleRefresh);
+    next();
+  },
   data() {
     return {
       isBusy: true,
@@ -443,6 +453,9 @@ export default {
           this.checkIfInPhypStandby(checkCounter);
         }, 6000);
       }
+    },
+    handleRefresh() {
+      window.location.reload(true);
     },
     openResetLinkModal(value) {
       this.resetOption = value.id;
