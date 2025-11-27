@@ -5,7 +5,7 @@
         <!-- Workstation Upload -->
         <BFormGroup
           :label="$t('pageFirmware.form.updateFirmware.imageFile')"
-          aria-label="add-file"
+          aria-label="image-file"
           label-for="image-file-from"
         >
           <FormFile

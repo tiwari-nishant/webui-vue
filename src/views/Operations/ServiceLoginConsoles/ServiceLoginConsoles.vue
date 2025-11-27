@@ -1,5 +1,8 @@
 <template>
-  <div :class="isFullWindow ? 'full-window-container' : 'terminal-container'">
+  <div
+    role="main"
+    :class="isFullWindow ? 'full-window-container' : 'terminal-container'"
+  >
     <BRow class="d-flex">
       <BCol sm="6" lg="5" xl="4" class="d-flex flex-column justify-content-end">
         <dl class="mb-2" sm="6" md="6">
