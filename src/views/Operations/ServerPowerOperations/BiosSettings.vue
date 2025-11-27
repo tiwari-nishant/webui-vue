@@ -566,11 +566,15 @@ const fields = ref([
     key: 'setting',
     label: i18n.global.t('pagePower.tableRoles.setting'),
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'description',
     label: i18n.global.t('pagePower.tableRoles.description'),
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 
@@ -579,6 +583,8 @@ const linuxKvmPercentageFields = ref([
     key: 'description',
     label: i18n.global.t('pagePower.tableRoles.description'),
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 
@@ -587,6 +593,8 @@ const taggedSettingsFields = ref([
     key: 'description',
     label: i18n.global.t('pagePower.tableRoles.description'),
     sortable: false,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 
@@ -979,10 +987,10 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-caption {
+:deep(caption) {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
-  color: red;
+  color: #212529a8 !important;
   text-align: left;
 }
 

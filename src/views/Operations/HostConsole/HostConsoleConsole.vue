@@ -1,8 +1,11 @@
 <template>
-  <div :class="isFullWindow ? 'full-window-container' : 'terminal-container'">
+  <div
+    role="main"
+    :class="isFullWindow ? 'full-window-container' : 'terminal-container'"
+  >
     <BRow class="d-flex">
       <BCol class="d-flex flex-column justify-content-end">
-        <dl class="mb-2" sm="6" md="6">
+        <dl role="group" class="mb-2" sm="6" md="6">
           <dt class="d-inline fw-bold me-1">
             {{ $t('pageHostConsole.status') }}:
           </dt>
