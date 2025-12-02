@@ -96,6 +96,7 @@
               "
               @update:model-value="toggleAll"
             >
+              <span class="visually-hidden">checkbox-head</span>
             </b-form-checkbox>
           </template>
           <template #cell(checkbox)="row">
@@ -112,6 +113,7 @@
                 )
               "
             >
+              <span class="visually-hidden">checkbox</span>
             </b-form-checkbox>
           </template>
 
