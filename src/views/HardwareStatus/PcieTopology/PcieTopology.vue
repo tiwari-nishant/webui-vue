@@ -317,16 +317,6 @@ export default {
     TableRowExpandMixin,
     SearchFilterMixin,
   ],
-  beforeRouteEnter(to, from, next) {
-    next((vm) => {
-      vm.$root.$on('refresh-action', vm.handleRefresh);
-    });
-  },
-
-  beforeRouteLeave(to, from, next) {
-    this.$root.$off('refresh-action', this.handleRefresh);
-    next();
-  },
   data() {
     return {
       isBusy: true,
@@ -416,8 +406,13 @@ export default {
         ? this.searchTotalFilteredRows
         : this.filteredEntries.length;
     },
-    entries() {
-      return this.$store.getters['pcieTopology/entries'];
+    entries: {
+      get() {
+        return this.$store.getters['pcieTopology/entries'];
+      },
+      set(newValue) {
+        this.$store.commit('pcieTopology/setEntries', newValue);
+      },
     },
     filteredEntries() {
       return this.getFilteredTableData(this.entries, this.activeFilters);
@@ -440,6 +435,7 @@ export default {
   methods: {
     checkIfInPhypStandby(checkCounter = 0) {
       checkCounter++;
+      if (checkCounter > 50) return;
       if (this.isInPhypStandby) {
         this.startLoader();
         this.$store.dispatch('pcieTopology/refreshPage').then(() => {
@@ -448,14 +444,14 @@ export default {
             this.endLoader();
           });
         });
+        return;
       } else {
+        this.$store.dispatch('global/getBootProgress');
+        this.entries = [];
         setTimeout(() => {
           this.checkIfInPhypStandby(checkCounter);
         }, 6000);
       }
-    },
-    handleRefresh() {
-      window.location.reload(true);
     },
     openResetLinkModal(value) {
       this.resetOption = value.id;
