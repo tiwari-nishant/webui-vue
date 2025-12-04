@@ -218,6 +218,7 @@ const tableHeaderCheckboxModelVal = ref(tableHeaderCheckboxModel);
 const tableHeaderCheckboxIndeterminateVal = ref(
   tableHeaderCheckboxIndeterminate,
 );
+const expandColumn = ref(['timeStampOffset']);
 
 onMounted(() => {
   startLoader();
@@ -251,10 +252,27 @@ const filteredLogsByDate = computed(() => {
   );
 });
 const filteredLogs = computed(() => {
-  return getFilteredTableData(
+  if (!filteredLogsByDate.value) return [];
+  let data = getFilteredTableData(
     filteredLogsByDate.value,
     activeFiltersData.value,
   );
+  if (searchFilterInput.value) {
+    const search = searchFilterInput.value.toLowerCase();
+    const allowedKeys = fields.value.map((item) => item.key);
+    data = data.filter((item) => {
+      const searchableFields = [
+        ...allowedKeys.filter((key) => key in item).map((key) => item[key]),
+        ...expandColumn.value.map((path) => srcData[item[path]]),
+      ];
+      return searchableFields.some((field) =>
+        String(field || '')
+          .toLowerCase()
+          .includes(search),
+      );
+    });
+  }
+  return data;
 });
 
 const fetchSrcDetails = (row) => {

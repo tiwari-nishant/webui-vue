@@ -400,6 +400,13 @@ const batchActions = reactive([
   },
 ]);
 const searchTotalFilteredRows = ref(0);
+const expandColumn = ref([
+  'linkPropertiesSpeed',
+  'linkPropertiesWidth',
+  'linkPropertiesType',
+  'pcieBridge.locationNumber',
+  'ioSlots[0].locationNumber',
+]);
 
 onBeforeMount(() => {
   globalStore.getBootProgress().then(() => {
@@ -417,13 +424,27 @@ const filteredRows = computed(() => {
     : filteredEntries.value.length;
 });
 const filteredEntries = computed(() => {
-  if (pcieTopologyStore.entriesGetter) {
-    return getFilteredTableData(
-      pcieTopologyStore.entriesGetter,
-      activeFiltersRows.value,
-    );
+  if (!pcieTopologyStore.entriesGetter) return [];
+  let data = getFilteredTableData(
+    pcieTopologyStore.entriesGetter,
+    activeFiltersRows.value,
+  );
+  if (searchFilterInput.value) {
+    const search = searchFilterInput.value.toLowerCase();
+    const allowedKeys = fields.map((item) => item.key);
+    data = data.filter((item) => {
+      const searchableFields = [
+        ...allowedKeys.filter((key) => key in item).map((key) => item[key]),
+        ...expandColumn.value.map((path) => getPath(item, path)),
+      ];
+      return searchableFields.some((field) =>
+        String(field || '')
+          .toLowerCase()
+          .includes(search),
+      );
+    });
   }
-  return [];
+  return data;
 });
 const tableIsBusy = computed(() => {
   if (!globalStore.isInPhypStandby) return false;
@@ -480,6 +501,12 @@ function onFilterChange({ activeFilters }) {
 }
 function onFiltered(filteredItems) {
   searchTotalFilteredRows.value = filteredItems.length;
+}
+function getPath(obj, path) {
+  return path
+    .replace(/\[(\d+)\]/g, '.$1')
+    .split('.')
+    .reduce((o, k) => (o ? o[k] : undefined), obj);
 }
 </script>
 
