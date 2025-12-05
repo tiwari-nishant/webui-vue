@@ -297,6 +297,8 @@ const tableHeaders = computed(() => {
       label: t('pageInventory.table.partNumber'),
       formatter: dataFormatter,
       sortable: true,
+      thAttr: { scope: 'col' },
+      tdAttr: { scope: null },
     });
   }
   return tempFields;
