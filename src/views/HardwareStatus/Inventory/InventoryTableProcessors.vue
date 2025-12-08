@@ -3,7 +3,11 @@
     <!-- Search -->
     <b-row class="align-items-end">
       <b-col sm="6" md="5" xl="4">
-        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+        <search
+          label="processor"
+          @change-search="onChangeSearch"
+          @clear-search="onClearSearch"
+        />
       </b-col>
       <b-col sm="6" md="7" xl="4" class="mb-4">
         <table-cell-count
