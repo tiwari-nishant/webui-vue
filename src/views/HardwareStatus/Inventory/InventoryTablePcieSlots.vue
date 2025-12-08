@@ -9,7 +9,11 @@
     }}</b-link>
     <b-row class="align-items-end">
       <b-col sm="6" md="5" xl="4">
-        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+        <search
+          label="PCIeSlots"
+          @change-search="onChangeSearch"
+          @clear-search="onClearSearch"
+        />
       </b-col>
       <b-col sm="6" md="3" xl="2" class="mb-4">
         <table-cell-count

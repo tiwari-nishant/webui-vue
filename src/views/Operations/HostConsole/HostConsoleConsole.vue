@@ -1,6 +1,7 @@
 <template>
   <div
     role="main"
+    aria-label="terminal"
     :class="isFullWindow ? 'full-window-container' : 'terminal-container'"
   >
     <BRow class="d-flex">

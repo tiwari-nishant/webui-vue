@@ -32,17 +32,6 @@ export const AuthenticationStore = defineStore('authentication', {
     setLoginPageDetails(loginPageDetails) {
       this.loginPageDetails = loginPageDetails;
     },
-    createAbortController() {
-      this.abortController = new AbortController();
-      return this.abortController;
-    },
-    abortAllRequests() {
-      if (this.abortController) {
-        console.log('inside if');
-        this.abortController.abort();
-        this.abortController = null;
-      }
-    },
     logoutRemove() {
       cookies.remove('XSRF-TOKEN');
       cookies.remove('IsAuthenticated');
@@ -69,7 +58,6 @@ export const AuthenticationStore = defineStore('authentication', {
       const headers = {
         'X-Xsrf-Token': cookies.get('X-XSRF-TOKEN'),
       };
-      this.abortAllRequests();
       return api
         .post('/logout', { data: [] }, { headers: headers })
         .then(() => {
