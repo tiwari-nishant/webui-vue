@@ -418,6 +418,15 @@ onMounted(() => {
   eventBus.emit('loading-bar-status', true);
 });
 
+const entries = computed({
+  get() {
+    return pcieTopologyStore.entriesGetter;
+  },
+  set(newValue) {
+    pcieTopologyStore.entries = newValue;
+  },
+});
+
 const filteredRows = computed(() => {
   return searchFilterInput.value
     ? searchTotalFilteredRows.value
@@ -460,6 +469,7 @@ const isServiceUser = computed(() => {
 
 function checkIfInPhypStandby(checkCounter = 0) {
   checkCounter++;
+  if (checkCounter > 50) return;
   if (isInPhypStandby.value) {
     startLoader();
     pcieTopologyStore.refreshPage().then(() => {
@@ -469,7 +479,10 @@ function checkIfInPhypStandby(checkCounter = 0) {
         endLoader();
       });
     });
+    return;
   } else {
+    globalStore.getBootProgress();
+    entries.value = [];
     setTimeout(() => {
       checkIfInPhypStandby(checkCounter);
     }, 6000);
