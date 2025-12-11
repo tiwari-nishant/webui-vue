@@ -67,6 +67,7 @@
           <template #head(checkbox)>
             <BFormCheckbox
               v-model="tableHeaderCheckbox"
+              aria-label="checkbox-head"
               data-test-id="sessions-checkbox-selectAll"
               :indeterminate="tableHeaderCheckboxIndeterminated"
               @change="
@@ -74,11 +75,13 @@
               "
               @update:model-value="toggleAll"
             >
+              <span class="visually-hidden">checkbox-head</span>
             </BFormCheckbox>
           </template>
           <template #cell(checkbox)="row">
             <BFormCheckbox
               v-model="sessionsStore.allConnections[row.index].isSelected"
+              aria-label="checkbox"
               :data-test-id="`sessions-checkbox-selectRow-${row.index}`"
               @change="
                 toggleSelectRow(
@@ -88,7 +91,9 @@
                   row.item,
                 )
               "
-            ></BFormCheckbox>
+            >
+              <span class="visually-hidden">checkbox</span>
+            </BFormCheckbox>
           </template>
 
           <!-- Actions column -->
@@ -204,22 +209,32 @@ const selectedRowsNo = ref(0);
 const fields = ref([
   {
     key: 'checkbox',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'clientID',
     label: i18n.global.t('pageSessions.table.clientID'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'username',
     label: i18n.global.t('pageSessions.table.username'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'ipAddress',
     label: i18n.global.t('pageSessions.table.ipAddress'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'actions',
     label: '',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 const batchActions = ref([

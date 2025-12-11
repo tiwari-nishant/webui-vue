@@ -78,10 +78,10 @@
         <BFormGroup
           class="table-pagination-select"
           :label="$t('global.table.itemsPerPage')"
-          label-for="pagination-items-per-page"
+          label-for="pagination-item-per-page"
         >
           <b-form-select
-            id="pagination-items-per-page"
+            id="pagination-item-per-page"
             v-model="itemPerPage"
             :options="itemsPerPageOptions"
           />
@@ -97,7 +97,6 @@
             itemPerPage === 0 ? filteredCores.length || 1 : itemPerPage
           "
           :total-rows="getTotalRowCount(filteredRows)"
-          aria-controls="table-sensors"
         />
       </BCol>
     </BRow>
@@ -105,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
+import { ref, computed, onBeforeMount, watch, nextTick } from 'vue';
 import i18n from '@/i18n';
 import { onBeforeRouteLeave } from 'vue-router';
 import TableFilter from '@/components/Global/TableFilter.vue';
@@ -142,27 +141,37 @@ const fields = ref([
     key: 'processorId',
     sortable: true,
     label: i18n.global.t('pageDeconfigurationHardware.table.id'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'id',
     sortable: true,
     label: i18n.global.t('pageDeconfigurationHardware.table.name'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'location',
     sortable: true,
     label: i18n.global.t('pageDeconfigurationHardware.table.locationCode'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'functionalState',
     sortable: true,
     label: i18n.global.t('pageDeconfigurationHardware.table.functionalState'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
     tdClass: 'text-nowrap',
   },
   {
     key: 'eventID',
     sortable: true,
     label: i18n.global.t('pageDeconfigurationHardware.table.eventId'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
     tdClass: 'text-nowrap',
   },
   {
@@ -171,11 +180,15 @@ const fields = ref([
     label: i18n.global.t(
       'pageDeconfigurationHardware.table.deconfigurationType',
     ),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'settings',
     sortable: true,
     label: i18n.global.t('pageDeconfigurationHardware.table.settings'),
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 const tableFilters = ref([
@@ -253,6 +266,20 @@ const toggleSettingsSwitch = (row) => {
       endLoader();
     });
 };
+
+watch(
+  () => filteredCores,
+  () => {
+    nextTick(() => {
+      document
+        .querySelectorAll('.b-table-sortable-column svg')
+        .forEach((svg) => {
+          svg.setAttribute('aria-hidden', 'true');
+        });
+    });
+  },
+  { deep: true },
+);
 </script>
 
 <style lang="scss" scoped>

@@ -5,14 +5,14 @@
         <!-- Workstation Upload -->
         <BFormGroup
           :label="$t('pageFirmware.form.updateFirmware.imageFile')"
-          label-for="image-file"
+          aria-label="image-file"
+          label-for="image-file-from"
         >
           <FormFile
-            id="image-file"
+            id="image-file-from"
             :disabled="isPageDisabled"
             accept=".tar"
             :state="getValidationState(v$.file)"
-            aria-describedby="image-file-help-block"
             @input="onFileUpload($event)"
           >
             <template #invalid>
