@@ -9,7 +9,11 @@
     }}</b-link>
     <b-row class="align-items-end">
       <b-col sm="6" md="5" xl="4">
-        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+        <search
+          label="PCIeSlots"
+          @change-search="onChangeSearch"
+          @clear-search="onClearSearch"
+        />
       </b-col>
       <b-col sm="6" md="3" xl="2" class="mb-4">
         <table-cell-count
@@ -46,7 +50,7 @@
         <b-form-checkbox
           v-if="hasIdentifyLed(row.item.identifyLed)"
           v-model="row.item.identifyLed"
-          name="switch"
+          :name="'switch-' + row.item.id"
           switch
           :disabled="serverStatus"
           @change="toggleIdentifyLedValue(row.item)"
@@ -80,7 +84,7 @@
 <script setup>
 import PageSection from '@/components/Global/PageSection.vue';
 import TableCellCount from '@/components/Global/TableCellCount.vue';
-import { reactive, ref, computed, watch, onBeforeMount } from 'vue';
+import { reactive, ref, computed, watch, onBeforeMount, nextTick } from 'vue';
 
 import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
@@ -118,17 +122,23 @@ const fields = reactive([
     formatter: dataFormatter,
     sortable: true,
     class: 'text-center',
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
   {
     key: 'locationNumber',
     label: t('pageInventory.table.locationNumber'),
     formatter: dataFormatter,
     sortable: true,
+    thAttr: { scope: null },
+    tdAttr: { scope: null },
   },
   {
     key: 'identifyLed',
     label: t('pageInventory.table.identifyLed'),
     formatter: dataFormatter,
+    thAttr: { scope: 'col' },
+    tdAttr: { scope: null },
   },
 ]);
 
@@ -183,6 +193,20 @@ const setSlotListLength = (value) => {
   slotListLength.value = value;
   return;
 };
+
+watch(
+  () => pcieSlots,
+  () => {
+    nextTick(() => {
+      document
+        .querySelectorAll('.b-table-sortable-column svg')
+        .forEach((svg) => {
+          svg.setAttribute('aria-hidden', 'true');
+        });
+    });
+  },
+  { deep: true },
+);
 
 function onFiltered(filteredItems) {
   searchTotalFilteredRows.value = filteredItems.length;

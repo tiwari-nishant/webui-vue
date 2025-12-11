@@ -37,7 +37,6 @@
                       <dl>
                         <dd>
                           <BFormCheckbox
-                            id="useLLDPSwitch"
                             v-model="lldpState"
                             data-test-id="networkSettings-switch-useNtp"
                             switch
