@@ -158,6 +158,7 @@
       <BCol sm="6">
         <BPagination
           v-model="currentPageNo"
+          :tabindex="currentPageNo - 1"
           class="b-pagination"
           first-number
           last-number

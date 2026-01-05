@@ -30,7 +30,8 @@
           :download="exportFileNameByDate()"
           :href="href"
         >
-          <icon-export /> {{ $t('global.action.exportAll') }}
+          <icon-export />
+          <span class="export-icon">{{ $t('global.action.exportAll') }}</span>
         </BButton>
       </BCol>
     </BRow>
@@ -67,7 +68,7 @@
           sticky-header="75vh"
           sort-desc.sync="status"
           :actions="batchActions"
-          :fields="fields"
+          :fields="computedFields"
           :items="filteredLogs"
           :empty-text="
             isBusy
@@ -242,6 +243,7 @@
           v-model="currentPageNo"
           class="b-pagination"
           first-number
+          :tabindex="currentPageNo - 1"
           last-number
           :per-page="itemPerPage === 0 ? filteredLogs.length || 1 : itemPerPage"
           :total-rows="getTotalRowCount(filteredLogs.length)"
@@ -400,6 +402,7 @@ const fields = ref([
     tdAttr: { scope: null },
   },
 ]);
+
 const tableFilters = ref([
   {
     key: 'filterByStatus',
@@ -626,5 +629,9 @@ watch(
       text-decoration: underline;
     }
   }
+}
+.export-icon {
+  // For accessiblity compliance
+  color: #e5e5e5;
 }
 </style>

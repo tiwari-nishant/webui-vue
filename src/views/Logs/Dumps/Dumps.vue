@@ -165,6 +165,7 @@
         <b-pagination
           v-model="currentPageNo"
           class="b-pagination"
+          :tabindex="currentPageNo - 1"
           first-number
           last-number
           :per-page="

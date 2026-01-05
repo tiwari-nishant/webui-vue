@@ -2,7 +2,11 @@
   <page-section :section-title="$t('pageInventory.fabricAdapters')">
     <BRow class="align-items-end">
       <BCol sm="6" md="5" xl="4">
-        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+        <search
+          label="FabricAdapters"
+          @change-search="onChangeSearch"
+          @clear-search="onClearSearch"
+        />
       </BCol>
 
       <BCol sm="6" md="3" xl="2" class="mb-4">
@@ -172,6 +176,7 @@ const { successToast, errorToast } = useToast();
 
 const globalStore = stores.GlobalStore();
 const fabricAdaptersStore = stores.FabricAdaptersStore();
+const { expandRowLabel } = useTableRowExpandComposable();
 
 const props = defineProps({
   chassis: {

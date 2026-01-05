@@ -285,6 +285,7 @@
         <b-pagination
           v-model="currentPage"
           class="b-pagination"
+          :tabindex="currentPageNo - 1"
           first-number
           last-number
           :per-page="perPage === 0 ? filteredLogs.length || 1 : perPage"

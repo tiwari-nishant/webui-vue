@@ -2,7 +2,11 @@
   <page-section :section-title="$t('pageInventory.assemblies')">
     <BRow class="align-items-end">
       <BCol sm="6" md="5" xl="4">
-        <search @change-search="onChangeSearch" @clear-search="onClearSearch" />
+        <search
+          label="assemblies"
+          @change-search="onChangeSearch"
+          @clear-search="onClearSearch"
+        />
       </BCol>
       <BCol sm="6" md="3" xl="2" class="mb-4">
         <table-cell-count
