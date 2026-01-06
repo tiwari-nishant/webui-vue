@@ -238,6 +238,16 @@ watch(
   },
 );
 
+watch(
+  () => form.value.ipv6TableItems,
+  (item) => {
+    if (!item.length) {
+      document
+        .querySelector('tr.b-table-empty-slot td[scope]')
+        .removeAttribute('scope');
+    }
+  },
+);
 watch(network, () => {
   getipv6TableItems();
 });

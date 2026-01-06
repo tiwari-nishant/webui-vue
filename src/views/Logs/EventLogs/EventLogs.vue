@@ -520,13 +520,18 @@ export default {
     },
   },
   watch: {
-    filteredLogs: function () {
+    filteredLogs: function (value) {
       this.$nextTick(() => {
         document
           .querySelectorAll('.b-table-sortable-column svg')
           .forEach((svg) => {
             svg.setAttribute('aria-hidden', 'true');
           });
+        if (!value.length) {
+          document
+            .querySelector('tr.b-table-empty-slot td[scope]')
+            .removeAttribute('scope');
+        }
       });
     },
   },

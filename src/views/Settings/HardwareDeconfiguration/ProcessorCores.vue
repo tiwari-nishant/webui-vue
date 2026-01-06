@@ -270,13 +270,18 @@ const toggleSettingsSwitch = (row) => {
 
 watch(
   () => filteredCores,
-  () => {
+  (item) => {
     nextTick(() => {
       document
         .querySelectorAll('.b-table-sortable-column svg')
         .forEach((svg) => {
           svg.setAttribute('aria-hidden', 'true');
         });
+      if (!item.length) {
+        document
+          .querySelector('tr.b-table-empty-slot td[scope]')
+          .removeAttribute('scope');
+      }
     });
   },
   { deep: true },

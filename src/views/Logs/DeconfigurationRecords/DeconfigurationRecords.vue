@@ -30,8 +30,7 @@
           :download="exportFileNameByDate()"
           :href="href"
         >
-          <icon-export />
-          <span class="export-icon">{{ $t('global.action.exportAll') }}</span>
+          <icon-export /> {{ $t('global.action.exportAll') }}
         </BButton>
       </BCol>
     </BRow>
@@ -68,7 +67,7 @@
           sticky-header="75vh"
           sort-desc.sync="status"
           :actions="batchActions"
-          :fields="computedFields"
+          :fields="fields"
           :items="filteredLogs"
           :empty-text="
             isBusy
@@ -162,6 +161,7 @@
             <BFormCheckbox
               v-model="row.item.isSelected"
               aria-label="checkbox"
+              :name="'switch-' + row.item.id"
               @change="
                 toggleSelectRowById(
                   tableDeconfigurationRecordsRef,
@@ -171,6 +171,7 @@
                 )
               "
             >
+              <span class="visually-hidden">checkbox</span>
             </BFormCheckbox>
           </template>
           <!-- Date column -->
@@ -242,8 +243,8 @@
         <b-pagination
           v-model="currentPageNo"
           class="b-pagination"
-          first-number
           :tabindex="currentPageNo - 1"
+          first-number
           last-number
           :per-page="itemPerPage === 0 ? filteredLogs.length || 1 : itemPerPage"
           :total-rows="getTotalRowCount(filteredLogs.length)"
@@ -402,7 +403,6 @@ const fields = ref([
     tdAttr: { scope: null },
   },
 ]);
-
 const tableFilters = ref([
   {
     key: 'filterByStatus',
@@ -589,13 +589,18 @@ const onBatchAction = (action) => {
 
 watch(
   () => filteredLogs,
-  () => {
+  (logs) => {
     nextTick(() => {
       document
         .querySelectorAll('.b-table-sortable-column svg')
         .forEach((svg) => {
           svg.setAttribute('aria-hidden', 'true');
         });
+      if (!logs.length) {
+        document
+          .querySelector('tr.b-table-empty-slot td[scope]')
+          .removeAttribute('scope');
+      }
     });
   },
   { deep: true },
@@ -630,8 +635,9 @@ watch(
     }
   }
 }
-.export-icon {
-  // For accessiblity compliance
-  color: #e5e5e5;
+.btn-primary.disabled,
+.btn-primary:disabled {
+  background-color: #0004ff; /* Darker disabled background */
+  color: #ffffff; /* White text for better contrast */
 }
 </style>
