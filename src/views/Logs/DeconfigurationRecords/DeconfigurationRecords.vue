@@ -637,7 +637,6 @@ watch(
 }
 .btn-primary.disabled,
 .btn-primary:disabled {
-  background-color: #0004ff; /* Darker disabled background */
-  color: #ffffff; /* White text for better contrast */
+  opacity: 1 !important;
 }
 </style>
