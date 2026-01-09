@@ -635,8 +635,4 @@ watch(
     }
   }
 }
-.btn-primary.disabled,
-.btn-primary:disabled {
-  opacity: 1 !important;
-}
 </style>
