@@ -131,6 +131,7 @@
         <BPagination
           v-model="currentPageNo"
           class="b-pagination"
+          :tabindex="currentPageNo - 1"
           first-number
           last-number
           :per-page="itemPerPage === 0 ? filteredLogs.length || 1 : itemPerPage"
