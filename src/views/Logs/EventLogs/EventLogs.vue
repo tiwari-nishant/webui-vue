@@ -535,13 +535,6 @@ export default {
         }
       });
     },
-    // selectedRows: function (value) {
-    //   if (value.length == 0)
-    //     this.onChangeHeaderCheckbox(
-    //       this.$refs.table,
-    //       this.tableHeaderCheckboxModel,
-    //     );
-    // },
   },
   created() {
     (eventBus.on('clear-selected', () => {
@@ -898,9 +891,6 @@ export default {
       return useTableSelectableComposable().onRowSelected(event, logsLength);
     },
     onChangeHeaderCheckbox(table, tableHeaderCheckboxModel) {
-      console.log('header box triggered');
-      console.log('table', table);
-      console.log('tableHeaderCheckboxModel', tableHeaderCheckboxModel);
       return useTableSelectableComposable().onChangeHeaderCheckbox(
         table,
         tableHeaderCheckboxModel,
