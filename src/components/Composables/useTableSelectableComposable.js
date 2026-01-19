@@ -141,13 +141,18 @@ const useTableSelectableComposable = () => {
     }
   };
 
-  const onChangeHeaderCheckbox = (tableRef, tableHeaderCheckbox) => {
+  const onChangeHeaderCheckbox = (
+    tableRef,
+    tableHeaderCheckbox,
+    tHCheckboxIndeterminate = false,
+  ) => {
     tableHeaderCheckboxModel.value = tableHeaderCheckbox;
     if (tableRef) {
       if (tableHeaderCheckboxModel.value) tableRef.selectAllRows();
       else {
         selectedRowsList.value = [];
         tableRef.clearSelected();
+        tableHeaderCheckboxIndeterminate.value = tHCheckboxIndeterminate;
       }
     }
   };

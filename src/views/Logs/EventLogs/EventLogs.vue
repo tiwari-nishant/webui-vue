@@ -45,6 +45,7 @@
           ref="toolbar"
           :selected-items-count="selectedRows.length"
           :actions="batchActions"
+          :table="$refs.table"
           @clear-selected="clearSelectedRows($refs.table)"
           @batch-action="onBatchAction"
         >
@@ -534,6 +535,13 @@ export default {
         }
       });
     },
+    // selectedRows: function (value) {
+    //   if (value.length == 0)
+    //     this.onChangeHeaderCheckbox(
+    //       this.$refs.table,
+    //       this.tableHeaderCheckboxModel,
+    //     );
+    // },
   },
   created() {
     (eventBus.on('clear-selected', () => {
@@ -890,6 +898,9 @@ export default {
       return useTableSelectableComposable().onRowSelected(event, logsLength);
     },
     onChangeHeaderCheckbox(table, tableHeaderCheckboxModel) {
+      console.log('header box triggered');
+      console.log('table', table);
+      console.log('tableHeaderCheckboxModel', tableHeaderCheckboxModel);
       return useTableSelectableComposable().onChangeHeaderCheckbox(
         table,
         tableHeaderCheckboxModel,
