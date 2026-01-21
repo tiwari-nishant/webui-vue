@@ -45,6 +45,7 @@
           ref="toolbar"
           :selected-items-count="selectedRows.length"
           :actions="batchActions"
+          :table="$refs.table"
           @clear-selected="clearSelectedRows($refs.table)"
           @batch-action="onBatchAction"
         >

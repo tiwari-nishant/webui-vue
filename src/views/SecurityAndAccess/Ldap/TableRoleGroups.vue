@@ -25,6 +25,7 @@
           ref="toolbar"
           :selected-items-count="selectedRowsList.length"
           :actions="batchActions"
+          :table="tableRef"
           @clear-selected="clearSelectedRows(tableRef)"
           @batch-action="onBatchAction"
         />
