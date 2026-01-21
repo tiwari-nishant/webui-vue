@@ -493,7 +493,7 @@ export const UserManagementStore = defineStore('userManagment', {
     async updateMfaBypass(mfaObject) {
       const requestBody = {
         MFABypass: {
-          BypassTypes: mfaObject.mfa ? ['GoogleAuthenticator'] : ['None'],
+          BypassTypes: mfaObject.mfa ? ['GoogleAuthenticator'] : [],
         },
       };
       return await api
