@@ -35,6 +35,7 @@
           ref="toolbar"
           :selected-items-count="selectedRowsLists.length"
           :actions="batchActions"
+          :table="tableSessionsRef"
           @clear-selected="clearSelectedRows(tableSessionsRef)"
           @batch-action="onBatchAction"
         >

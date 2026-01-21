@@ -16,6 +16,7 @@
       <BCol xl="9">
         <table-toolbar
           ref="toolbar"
+          :table="tableRef"
           :selected-items-count="selectedRowsValue.length"
           :actions="tableToolbarActions"
           @clear-selected="clearSelectedRows(tableRef)"

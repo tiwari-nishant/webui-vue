@@ -23,6 +23,7 @@
         <table-toolbar
           ref="toolbar"
           :selected-items-count="selectedRows.length"
+          :table="tableRef"
           :actions="tableToolbarActions"
           @clear-selected="clearSelectedRows(tableRef)"
           @batch-action="onBatchAction"

@@ -10,6 +10,7 @@
         <table-toolbar
           ref="toolbar"
           :selected-items-count="selectedRowsLists.length"
+          :table="tableHardwareDeconfigurationRef"
           @clear-selected="clearSelectedRows(tableHardwareDeconfigurationRef)"
         >
           <template #toolbar-buttons>

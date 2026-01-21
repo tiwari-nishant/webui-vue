@@ -33,11 +33,16 @@
 <script setup>
 import eventBus from '@/eventBus';
 import { ref, watch } from 'vue';
+import useTableSelectableComposable from '../Composables/useTableSelectableComposable';
 
 const props = defineProps({
   selectedItemsCount: {
     type: Number,
     required: true,
+  },
+  table: {
+    type: Object,
+    default: () => {},
   },
   actions: {
     type: Array,
@@ -62,6 +67,11 @@ watch(
       isToolbarActive.value = true;
     } else {
       isToolbarActive.value = false;
+      useTableSelectableComposable().onChangeHeaderCheckbox(
+        props.table,
+        false,
+        false,
+      );
     }
   },
 );
