@@ -38,6 +38,7 @@
       <BCol>
         <table-toolbar
           ref="toolbar"
+          :table="tableDeconfigurationRecordsRef"
           :selected-items-count="selectedRowsList.length"
           @clear-selected="clearSelectedRows(tableDeconfigurationRecordsRef)"
         >
