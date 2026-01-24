@@ -4,6 +4,7 @@ import Axios from 'axios';
 //dotenv customizations.
 import stores from '@/store';
 import router from '@/router';
+import { buildApiPath } from '@/utilities/url';
 
 Axios.defaults.headers.common['Accept'] = [
   'application/octet-stream',
@@ -17,30 +18,25 @@ const api = Axios.create({
 
 const constructUrl = (path) => {
   if (import.meta.env.DEV) {
-    const basePath = '/api'; // The base path for your API
-    return `${basePath}${path}`;
-  } else {
-    return `${path}`;
+    return `/api${path}`;
   }
+
+  return buildApiPath(path);
 };
 
 api.interceptors.response.use(undefined, (error) => {
   const globalStore = stores.GlobalStore();
   const authenticationStore = stores.AuthenticationStore();
-  let response = error.response;
-  // TODO: Provide user with a notification and way to keep system active
-  if (response.status == 401) {
+  const response = error.response;
+
+  if (response?.status == 401) {
     if (response.config.url != 'api/login') {
       router.replace('/login');
-      // Commit logout to remove XSRF-TOKEN cookie
       authenticationStore.logoutRemove();
     }
   }
 
-  if (response.status == 403) {
-    // Check if action is unauthorized.
-    // Toast error message will appear on screen
-    // when the action is unauthorized.
+  if (response?.status == 403) {
     const notGetMethod = response.config.method !== 'get';
     if (notGetMethod) {
       globalStore.setUnauthorized();
