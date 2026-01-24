@@ -41,6 +41,7 @@ import { throttle } from 'lodash';
 import IconLaunch from '@carbon/icons-vue/es/launch/20';
 import StatusIcon from '@/components/Global/StatusIcon.vue';
 import stores from '@/store';
+import { buildWsUrl, buildUrlNewTab } from '@/utilities/url';
 
 defineProps({
   isFullWindow: {
@@ -98,9 +99,8 @@ watch(checkingServerStatus, async (value) => {
 
 function openTerminal() {
   const token = authenticationStore.token;
-  let host = window.location.origin.replace('https://', '');
-  host = host.replace(/\/$/, '');
-  ws.value = new WebSocket(`wss://${host}/console0`, [token]);
+
+  ws.value = new WebSocket(buildWsUrl('/console0'), [token]);
 
   // Refer https://github.com/xtermjs/xterm.js/ for xterm implementation and addons.
 
@@ -157,7 +157,7 @@ function openTerminal() {
 
 function openConsoleWindow() {
   window.open(
-    `${window.location.origin}/#/console/host-console-console`,
+    buildUrlNewTab(`/#/console/host-console-console`),
     '_blank',
     'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=yes,width=600,height=550',
   );
