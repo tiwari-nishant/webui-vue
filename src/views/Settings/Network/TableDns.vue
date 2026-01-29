@@ -158,4 +158,9 @@ const initDnsModal = () => {
 :deep(.text-right) {
   text-align: right;
 }
+:deep(.table) {
+  td {
+    white-space: nowrap;
+  }
+}
 </style>
