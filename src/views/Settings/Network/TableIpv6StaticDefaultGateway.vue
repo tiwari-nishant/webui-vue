@@ -128,12 +128,6 @@ const ipv6DefaultGatewayTableFields = ref([
     tdAttr: { scope: null },
   },
   {
-    key: 'PrefixLength',
-    label: i18n.global.t('pageNetwork.table.prefixLength'),
-    thAttr: { scope: 'col' },
-    tdAttr: { scope: null },
-  },
-  {
     key: 'actions',
     label: '',
     tdClass: 'text-right',
@@ -265,5 +259,11 @@ const initIpv6DefaultGatewayModal = () => {
 <style lang="scss" scoped>
 .text-right {
   text-align: right;
+}
+
+:deep(.table) {
+  td {
+    white-space: nowrap;
+  }
 }
 </style>
