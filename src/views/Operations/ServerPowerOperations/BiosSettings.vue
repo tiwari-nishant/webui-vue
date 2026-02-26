@@ -97,9 +97,9 @@
                     </p>
                   </alert>
                   <div>
-                    <BLink to="/settings/power-restore-policy">
+                    <router-link to="/settings/power-restore-policy">
                       {{ $t(`appPageTitle.powerRestorePolicy`) }}
-                    </BLink>
+                    </router-link>
                     {{
                       $t(
                         `pageServerPowerOperations.biosSettings.powPolicySection`,
@@ -142,9 +142,9 @@
                     </p>
                   </alert>
                   <div>
-                    <BLink to="/settings/power-restore-policy">
+                    <router-link to="/settings/power-restore-policy">
                       {{ $t(`appPageTitle.powerRestorePolicy`) }}
-                    </BLink>
+                    </router-link>
                     {{
                       $t(
                         `pageServerPowerOperations.biosSettings.powPolicySection`,
@@ -176,9 +176,9 @@
                     </p>
                   </alert>
                   <div>
-                    <BLink to="/settings/power-restore-policy">
+                    <router-link to="/settings/power-restore-policy">
                       {{ $t(`appPageTitle.powerRestorePolicy`) }}
-                    </BLink>
+                    </router-link>
                     {{
                       $t(
                         'pageServerPowerOperations.biosSettings.powPolicySection',
