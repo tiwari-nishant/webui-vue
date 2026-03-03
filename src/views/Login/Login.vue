@@ -69,10 +69,14 @@
       </div>
       <div v-if="isGlobalMfaEnabled" class="login-form__section mb-3">
         <label>TOTP</label>
-        <info-tooltip class="ml-1" :title="$t('pageLogin.totpTooltip')">
+        <info-tooltip class="m-1" :title="$t('pageLogin.totpTooltip')">
         </info-tooltip>
-        <BFormGroup>
-          <BFormInput v-model="otpValue" data-test-id="login-input-totp">
+        <BFormGroup aria-label="totp">
+          <BFormInput
+            v-model="otpValue"
+            aria-label="totp-input"
+            data-test-id="login-input-totp"
+          >
           </BFormInput>
         </BFormGroup>
       </div>
@@ -260,6 +264,6 @@ const addNewCertificate = ({ type, file }) => {
 
 <style lang="css" scoped>
 .password-style {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 </style>
