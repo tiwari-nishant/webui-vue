@@ -161,9 +161,9 @@
             @submit.prevent="updateAdapterCapacity()"
           >
             <BFormGroup
+              aria-label="slot-count-for-Node-0-io-adapter-enlarged-capacity"
               :label="$t('pageMemory.slotCountForNode0')"
               label-for="io-adapter-enlarged-capacity"
-              aria-label="slot-count-for-Node-0"
               class="mb-3"
             >
               <BFormInput
@@ -228,7 +228,7 @@
               <BFormGroup
                 :label="$t('pageMemory.slotCountForNode0')"
                 label-for="input-dynamic-io-adapter-drawer-capacity"
-                aria-label=""
+                aria-label="slot-count-for-node0-io-drawer-capacity"
                 class="mb-3"
               >
                 <BFormInput
