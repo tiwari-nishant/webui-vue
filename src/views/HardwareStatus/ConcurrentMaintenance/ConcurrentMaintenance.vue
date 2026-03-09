@@ -149,6 +149,7 @@ async function changeReadyToRemoveState(state) {
       ),
     );
   } catch (error) {
+    readyToRemoveState.value = !state;
     errorToast(error.message);
   }
 }
@@ -165,6 +166,7 @@ async function changeControlPanelState(state) {
       ),
     );
   } catch (error) {
+    readyToRemoveControlPanelState.value = !state;
     errorToast(error.message);
   }
 }
@@ -181,6 +183,7 @@ async function changeControlPanelDispState(state) {
       ),
     );
   } catch (error) {
+    readyToRemoveControlPanelDispState.value = !state;
     errorToast(error.message);
   }
 }

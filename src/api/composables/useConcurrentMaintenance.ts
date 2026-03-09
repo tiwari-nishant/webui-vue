@@ -1,31 +1,25 @@
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useAllSubResources } from './useAllSubResources';
 import { usePatchResource } from './usePatchResource';
 // @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
-import type { Resource } from '@/types/redfish';
+import type { Assembly, AssemblyItem } from '@/types/redfish';
 
-interface Assembly extends Resource {
-  MemberId: string;
-  Location?: {
-    PartLocation?: {
-      ServiceLabel?: string;
-    };
-  };
-  Oem?: {
-    OpenBMC?: {
-      ReadyToRemove?: boolean;
-    };
-  };
+export interface AssemblyData {
+  /** Redfish unique identifier — preserved for deduplication and future deep-links */
+  odataId: string;
+  memberId: string;
+  serviceLabel: string | undefined;
+  readyToRemove: boolean | undefined;
 }
 
 export interface ConcurrentMaintenanceData {
   readyToRemove: boolean | null;
-  todObject: Assembly | null;
+  todObject: AssemblyData | null;
   readyToRemoveControlPanel: boolean | null;
-  controlPanel: Assembly | null;
+  controlPanel: AssemblyData | null;
   readyToRemoveControlPanelDisp: boolean | null;
-  controlPanelDisp: Assembly | null;
+  controlPanelDisp: AssemblyData | null;
 }
 
 /**
@@ -43,7 +37,6 @@ export function useConcurrentMaintenance() {
     isError,
     refetch,
   } = useAllSubResources<Assembly>('/redfish/v1/Chassis', 'Assembly');
-
   // Process assembly data to extract concurrent maintenance info
   const assemblyData = computed<ConcurrentMaintenanceData>(() => {
     if (!assembliesData.value) {
@@ -65,33 +58,48 @@ export function useConcurrentMaintenance() {
       readyToRemoveControlPanelDisp: null,
       controlPanelDisp: null,
     };
-
-    assembliesData.value.forEach((entry: Assembly) => {
-      const hasReadyToRemove =
-        entry?.Oem?.OpenBMC && 'ReadyToRemove' in entry.Oem.OpenBMC;
-      const serviceLabel = entry?.Location?.PartLocation?.ServiceLabel;
-
-      if (hasReadyToRemove && serviceLabel) {
-        // TOD (P0-C0-E0)
-        if (serviceLabel.endsWith('P0-C0-E0')) {
-          result.todObject = entry;
-          result.readyToRemove = entry.Oem?.OpenBMC?.ReadyToRemove ?? null;
-        }
-        // Control Panel (D0)
-        else if (serviceLabel.endsWith('D0')) {
-          result.controlPanel = entry;
-          result.readyToRemoveControlPanel =
-            entry.Oem?.OpenBMC?.ReadyToRemove ?? null;
-        }
-        // Control Panel Display (D1)
-        else if (serviceLabel.endsWith('D1')) {
-          result.controlPanelDisp = entry;
-          result.readyToRemoveControlPanelDisp =
-            entry.Oem?.OpenBMC?.ReadyToRemove ?? null;
-        }
+    assembliesData.value.forEach((assemblyResource: any) => {
+      // Assembly resources have an Assemblies array property
+      const assemblies = assemblyResource?.Assemblies;
+      if (!assemblies || !Array.isArray(assemblies)) {
+        return;
       }
-    });
 
+      assemblies.forEach((entry: AssemblyItem) => {
+        const hasReadyToRemove =
+          entry?.Oem?.OpenBMC && 'ReadyToRemove' in entry.Oem.OpenBMC;
+        const serviceLabel = entry?.Location?.PartLocation?.ServiceLabel;
+
+        if (hasReadyToRemove && serviceLabel) {
+          // Construct the full @odata.id for the assembly item
+          const assemblyResourcePath = assemblyResource['@odata.id'];
+          const assemblyData: AssemblyData = {
+            odataId: `${assemblyResourcePath}/Assemblies/${entry.MemberId}`,
+            memberId: entry.MemberId,
+            serviceLabel: serviceLabel,
+            readyToRemove: entry.Oem?.OpenBMC?.ReadyToRemove,
+          };
+
+          // TOD (P0-C0-E0)
+          if (serviceLabel.endsWith('P0-C0-E0')) {
+            result.todObject = assemblyData;
+            result.readyToRemove = entry.Oem?.OpenBMC?.ReadyToRemove ?? null;
+          }
+          // Control Panel (D0)
+          else if (serviceLabel.endsWith('D0')) {
+            result.controlPanel = assemblyData;
+            result.readyToRemoveControlPanel =
+              entry.Oem?.OpenBMC?.ReadyToRemove ?? null;
+          }
+          // Control Panel Display (D1)
+          else if (serviceLabel.endsWith('D1')) {
+            result.controlPanelDisp = assemblyData;
+            result.readyToRemoveControlPanelDisp =
+              entry.Oem?.OpenBMC?.ReadyToRemove ?? null;
+          }
+        }
+      });
+    });
     return result;
   });
 
@@ -141,65 +149,91 @@ export function useConcurrentMaintenance() {
 
   // Helper functions for updating each component
   const updateTodState = async (state: boolean) => {
-    if (!assemblyData.value?.todObject?.MemberId) {
+    if (!assemblyData.value?.todObject?.memberId) {
       throw new Error('TOD object not found');
     }
-    if (!assemblyData.value?.todObject?.['@odata.id']) {
+    if (!assemblyData.value?.todObject?.odataId) {
       throw new Error('TOD object path not found');
     }
     // Extract the Assembly path from the object's @odata.id
     const assemblyPath =
-      assemblyData.value.todObject['@odata.id'].split('/Assemblies/')[0];
+      assemblyData.value.todObject.odataId.split('/Assem')[0];
     return updateReadyToRemove(
       assemblyPath,
-      assemblyData.value.todObject.MemberId,
+      assemblyData.value.todObject.memberId,
       state,
     );
   };
 
   const updateControlPanelState = async (state: boolean) => {
-    if (!assemblyData.value?.controlPanel?.MemberId) {
+    if (!assemblyData.value?.controlPanel?.memberId) {
       throw new Error('Control Panel object not found');
     }
-    if (!assemblyData.value?.controlPanel?.['@odata.id']) {
+    if (!assemblyData.value?.controlPanel?.odataId) {
       throw new Error('Control Panel object path not found');
     }
     // Extract the Assembly path from the object's @odata.id
     const assemblyPath =
-      assemblyData.value.controlPanel['@odata.id'].split('/Assemblies/')[0];
+      assemblyData.value.controlPanel.odataId.split('/Assemblies/')[0];
     return updateReadyToRemove(
       assemblyPath,
-      assemblyData.value.controlPanel.MemberId,
+      assemblyData.value.controlPanel.memberId,
       state,
     );
   };
 
   const updateControlPanelDispState = async (state: boolean) => {
-    if (!assemblyData.value?.controlPanelDisp?.MemberId) {
+    if (!assemblyData.value?.controlPanelDisp?.memberId) {
       throw new Error('Control Panel Display object not found');
     }
-    if (!assemblyData.value?.controlPanelDisp?.['@odata.id']) {
+    if (!assemblyData.value?.controlPanelDisp?.odataId) {
       throw new Error('Control Panel Display object path not found');
     }
     // Extract the Assembly path from the object's @odata.id
     const assemblyPath =
-      assemblyData.value.controlPanelDisp['@odata.id'].split('/Assemblies/')[0];
+      assemblyData.value.controlPanelDisp.odataId.split('/Assemblies/')[0];
     return updateReadyToRemove(
       assemblyPath,
-      assemblyData.value.controlPanelDisp.MemberId,
+      assemblyData.value.controlPanelDisp.memberId,
       state,
     );
   };
 
+  // Create local writable refs for UI binding
+  const readyToRemove = ref<boolean | null>(null);
+  const readyToRemoveControlPanel = ref<boolean | null>(null);
+  const readyToRemoveControlPanelDisp = ref<boolean | null>(null);
+
+  // Sync local refs with query data
+  watch(
+    () => assemblyData.value?.readyToRemove,
+    (newValue) => {
+      readyToRemove.value = newValue ?? null;
+    },
+    { immediate: true },
+  );
+
+  watch(
+    () => assemblyData.value?.readyToRemoveControlPanel,
+    (newValue) => {
+      readyToRemoveControlPanel.value = newValue ?? null;
+    },
+    { immediate: true },
+  );
+
+  watch(
+    () => assemblyData.value?.readyToRemoveControlPanelDisp,
+    (newValue) => {
+      readyToRemoveControlPanelDisp.value = newValue ?? null;
+    },
+    { immediate: true },
+  );
+
   return {
-    // Data
-    readyToRemove: computed(() => assemblyData.value?.readyToRemove ?? null),
-    readyToRemoveControlPanel: computed(
-      () => assemblyData.value?.readyToRemoveControlPanel ?? null,
-    ),
-    readyToRemoveControlPanelDisp: computed(
-      () => assemblyData.value?.readyToRemoveControlPanelDisp ?? null,
-    ),
+    // Data - writable refs that auto-sync with query data
+    readyToRemove,
+    readyToRemoveControlPanel,
+    readyToRemoveControlPanelDisp,
 
     // Loading states
     isLoading,
