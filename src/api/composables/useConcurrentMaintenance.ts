@@ -1,6 +1,7 @@
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { useAllSubResources } from './useAllSubResources';
 import { usePatchResource } from './usePatchResource';
+import { useWritableQueryState } from './useWritableQueryState';
 // @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
 import type { Assembly, AssemblyItem } from '@/types/redfish';
@@ -157,7 +158,7 @@ export function useConcurrentMaintenance() {
     }
     // Extract the Assembly path from the object's @odata.id
     const assemblyPath =
-      assemblyData.value.todObject.odataId.split('/Assem')[0];
+      assemblyData.value.todObject.odataId.split('/Assemblies/')[0];
     return updateReadyToRemove(
       assemblyPath,
       assemblyData.value.todObject.memberId,
@@ -199,34 +200,17 @@ export function useConcurrentMaintenance() {
     );
   };
 
-  // Create local writable refs for UI binding
-  const readyToRemove = ref<boolean | null>(null);
-  const readyToRemoveControlPanel = ref<boolean | null>(null);
-  const readyToRemoveControlPanelDisp = ref<boolean | null>(null);
-
-  // Sync local refs with query data
-  watch(
-    () => assemblyData.value?.readyToRemove,
-    (newValue) => {
-      readyToRemove.value = newValue ?? null;
-    },
-    { immediate: true },
+  // Create writable refs that auto-sync with query data
+  const readyToRemove = useWritableQueryState(
+    () => assemblyData.value?.readyToRemove ?? null,
   );
 
-  watch(
-    () => assemblyData.value?.readyToRemoveControlPanel,
-    (newValue) => {
-      readyToRemoveControlPanel.value = newValue ?? null;
-    },
-    { immediate: true },
+  const readyToRemoveControlPanel = useWritableQueryState(
+    () => assemblyData.value?.readyToRemoveControlPanel ?? null,
   );
 
-  watch(
-    () => assemblyData.value?.readyToRemoveControlPanelDisp,
-    (newValue) => {
-      readyToRemoveControlPanelDisp.value = newValue ?? null;
-    },
-    { immediate: true },
+  const readyToRemoveControlPanelDisp = useWritableQueryState(
+    () => assemblyData.value?.readyToRemoveControlPanelDisp ?? null,
   );
 
   return {
