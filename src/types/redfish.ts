@@ -289,6 +289,9 @@ export interface Session extends Resource {
 export interface SessionCollection extends ResourceCollection {
   Members: (ODataId | Session)[];
 }
+export interface AssemblyCollection extends ResourceCollection {
+  Members: (ODataId | Assembly)[];
+}
 
 export interface AssemblyCollection extends ResourceCollection {
   Members: (ODataId | Assembly)[];
