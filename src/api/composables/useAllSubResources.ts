@@ -15,44 +15,59 @@ export { useRedfishCollection, useRedfishResource };
 export function useAllSubResources<T extends Resource>(
   parentCollectionPath: string,
   subResourceKey: string,
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean } = {},
 ) {
   const { enabled = true } = options;
 
-  const parentQuery = useRedfishCollection<Resource>(parentCollectionPath, { enabled });
+  const parentQuery = useRedfishCollection<Resource>(parentCollectionPath, {
+    enabled,
+  });
 
   const subResourcePaths = computed(() => {
     if (!parentQuery.data.value) {
       return [];
     }
-    
+
     const parentResources = parentQuery.data.value;
-    
+
     const paths: string[] = [];
     parentResources.forEach((parent: any) => {
       if (parent && typeof parent === 'object' && subResourceKey in parent) {
         const subResource = parent[subResourceKey as keyof typeof parent];
-        
-        if (subResource && typeof subResource === 'object' && '@odata.id' in subResource) {
+
+        if (
+          subResource &&
+          typeof subResource === 'object' &&
+          '@odata.id' in subResource
+        ) {
           paths.push((subResource as ODataId)['@odata.id']);
         }
       }
     });
-    
+
     return paths;
   });
 
   // Computed to determine if sub-resources query should be enabled
   const isSubQueryEnabled = computed(() => {
-    return enabled && !parentQuery.isLoading.value && subResourcePaths.value.length > 0;
+    return (
+      enabled &&
+      !parentQuery.isLoading.value &&
+      subResourcePaths.value.length > 0
+    );
   });
 
   // Fetch all sub-resources
   const query = useQuery({
-    queryKey: ['redfish', 'allSubResources', parentCollectionPath, subResourceKey],
+    queryKey: [
+      'redfish',
+      'allSubResources',
+      parentCollectionPath,
+      subResourceKey,
+    ],
     queryFn: async (): Promise<T[]> => {
       const paths = subResourcePaths.value;
-      
+
       if (paths.length === 0) {
         return [];
       }
@@ -67,12 +82,17 @@ export function useAllSubResources<T extends Resource>(
           if (collection.Members && Array.isArray(collection.Members)) {
             // Try with $expand first
             try {
-              const expandResponse = await api.get(`${path}?$expand=.($levels=1)`);
+              const expandResponse = await api.get(
+                `${path}?$expand=.($levels=1)`,
+              );
               const expandedData = expandResponse.data;
-              
+
               if (expandedData.Members && expandedData.Members.length > 0) {
                 const firstMember = expandedData.Members[0];
-                if (typeof firstMember === 'object' && Object.keys(firstMember).length > 1) {
+                if (
+                  typeof firstMember === 'object' &&
+                  Object.keys(firstMember).length > 1
+                ) {
                   return expandedData.Members as T[];
                 }
               }
@@ -82,9 +102,10 @@ export function useAllSubResources<T extends Resource>(
 
             // Fallback: fetch each member individually
             const memberPromises = collection.Members.map((member: any) => {
-              const memberId = typeof member === 'object' && '@odata.id' in member
-                ? member['@odata.id']
-                : member;
+              const memberId =
+                typeof member === 'object' && '@odata.id' in member
+                  ? member['@odata.id']
+                  : member;
               return api.get<T>(memberId as string);
             });
 
@@ -134,7 +155,9 @@ export function useAllSubResources<T extends Resource>(
 
   return {
     data: query.data,
-    isLoading: computed(() => parentQuery.isFetching.value || query.isFetching.value),
+    isLoading: computed(
+      () => parentQuery.isFetching.value || query.isFetching.value,
+    ),
     error: computed(() => parentQuery.error.value || query.error.value),
     isError: computed(() => !!parentQuery.error.value || query.isError.value),
     refetch: refetchAll,
