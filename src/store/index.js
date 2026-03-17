@@ -1,6 +1,5 @@
 import GlobalStore from './modules/GlobalStore';
 import AuthenticationStore from './modules/Authentication/AuthenticationStore';
-import SessionsStore from './modules/SecurityAndAccess/SessionsStore';
 import LdapStore from './modules/SecurityAndAccess/LdapStore';
 import UserManagementStore from './modules/SecurityAndAccess/UserManagementStore';
 import CertificatesStore from './modules/SecurityAndAccess/CertificatesStore';
@@ -24,7 +23,6 @@ import PostCodeLogsStore from './modules/Logs/PostCodeLogsStore';
 import AuditLogsStore from './modules/Logs/AuditLogsStore';
 import FactoryResetStore from './modules/Operations/FactoryResetStore';
 import HardwareDeconfigurationStore from './modules/Settings/HardwareDeconfigurationStore';
-import KeyClearStore from './modules/Operations/KeyClearStore';
 import NetworkSettingsStore from './modules/Operations/NetworkSettingsStore';
 import IBMiServiceFunctionsStore from './modules/Logs/IBMiServiceFunctionsStore';
 import SnmpAlertsStore from './modules/Settings/SnmpAlertsStore';
@@ -48,9 +46,6 @@ Object.assign(stores, {
 });
 Object.assign(stores, {
   ConcurrentMaintenanceStore: ConcurrentMaintenanceStore,
-});
-Object.assign(stores, {
-  SessionsStore: SessionsStore,
 });
 Object.assign(stores, {
   DateTimeStore: DateTimeStore,
@@ -129,9 +124,6 @@ Object.assign(stores, {
 });
 Object.assign(stores, {
   FactoryResetStore: FactoryResetStore,
-});
-Object.assign(stores, {
-  KeyClearStore: KeyClearStore,
 });
 Object.assign(stores, {
   NetworkSettingsStore: NetworkSettingsStore,

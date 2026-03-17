@@ -29,8 +29,6 @@
                 id="key-clear-options"
                 v-model="keyOption"
                 stacked
-                role="radio"
-                aria-checked="true"
               >
                 <BFormRadio class="radioButton" value="NONE">
                   {{ $t('pageKeyClear.form.none') }}
@@ -95,11 +93,12 @@ import stores from '@/store';
 import Alert from '@/components/Global/Alert.vue';
 import PageTitle from '@/components/Global/PageTitle.vue';
 import useToast from '@/components/Composables/useToastComposable';
+import { useKeyClear } from '@/api/composables/useKeyClear';
 
 const { successToast, errorToast } = useToast();
 
 const globalStore = stores.GlobalStore();
-const keyClear = stores.KeyClearStore();
+const { clearEncryptionKeys } = useKeyClear();
 
 const keyOption = ref('NONE');
 const username = ref(globalStore.username);
@@ -111,8 +110,7 @@ function onKeyClearSubmit(valueSelected) {
   selectedKey.value = valueSelected;
 }
 const handleOK = () => {
-  keyClear
-    .clearEncryptionKeys(selectedKey.value)
+  clearEncryptionKeys(selectedKey.value)
     .then((message) => {
       openModal.value = false;
       successToast(message);
