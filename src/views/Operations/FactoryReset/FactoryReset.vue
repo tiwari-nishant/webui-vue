@@ -84,13 +84,15 @@ import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useToastComposable from '@/components/Composables/useToastComposable';
 import stores from '@/store';
 import eventBus from '@/eventBus';
+import { useFactoryReset } from '@/api/composables/useFactoryReset';
 
 const toast = useToastComposable();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 
+const { resetBios, resetToDefaults } = useFactoryReset();
+
 const global = stores.GlobalStore();
 const authentication = stores.AuthenticationStore();
-const factoryReset = stores.FactoryResetStore();
 
 const resetOption = ref('resetBios');
 
@@ -113,8 +115,7 @@ const onOkConfirm = () => {
   }
 };
 const onResetBiosConfirm = () => {
-  factoryReset
-    .resetBios()
+  resetBios()
     .then((message) => {
       toast.successToast(message);
     })
@@ -124,10 +125,9 @@ const onResetBiosConfirm = () => {
 };
 const onResetToDefaultsConfirm = () => {
   startLoader();
-  factoryReset
-    .resetBios()
+  resetBios()
     .then(() => {
-      return factoryReset.resetToDefaults();
+      return resetToDefaults();
     })
     .then((message) => {
       toast.successToast(message);
