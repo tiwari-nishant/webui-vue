@@ -29,7 +29,7 @@
                 @blur="v$.form.ipAddress.$touch()"
               />
               <BFormInvalidFeedback role="alert">
-                <template v-if="!v$.form.ipAddress.required">
+                <template v-if="v$.form.ipAddress.required.$invalid">
                   {{ $t('global.form.fieldRequired') }}
                 </template>
               </BFormInvalidFeedback>
@@ -89,7 +89,7 @@ const emit = defineEmits(['ok']);
 
 const modal = ref(false);
 const form = ref({
-  ipaddress: null,
+  ipAddress: null,
   port: null,
 });
 
