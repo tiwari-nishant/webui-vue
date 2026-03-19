@@ -322,6 +322,40 @@ export interface ExpandedCollection<T extends Resource>
 // Helper type for API responses
 export type RedfishResponse<T> = T;
 
+// Event Log Types
+export interface EventLog extends Resource {
+  EventId?: string;
+  Severity?: 'OK' | 'Warning' | 'Critical';
+  Created: string;
+  EntryType?: 'Event' | 'SEL' | 'Oem';
+  Message?: string;
+  Modified?: string;
+  Resolution?: string;
+  Resolved?: boolean;
+  AdditionalDataURI?: string;
+}
+
+export interface EventLogCollection extends ResourceCollection {
+  Members: (ODataId | EventLog)[];
+}
+
+// Audit Log Types
+export interface AuditLog extends Resource {
+  EventTimestamp: string;
+  Id: string;
+  Message?: string;
+  MessageArgs?: string[];
+  Oem?: {
+    IBM?: {
+      AdditionalDataFullAuditLogURI?: string;
+    };
+  };
+}
+
+export interface AuditLogCollection extends ResourceCollection {
+  Members: (ODataId | AuditLog)[];
+}
+
 // Helper type for collection responses
 export type CollectionResponse<T extends Resource> =
   | ResourceCollection
