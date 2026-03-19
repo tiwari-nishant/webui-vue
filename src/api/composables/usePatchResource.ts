@@ -94,6 +94,9 @@ export function usePatchResource() {
    * @param params.additionalFields - Optional additional fields to include in the patch
    * @param params.invalidateQueries - Optional array of query keys to invalidate after success.
    *                                    These queries are also used for rollback on error.
+   * @param params.onSuccess - Optional callback executed immediately after PATCH succeeds,
+   *                           before query invalidation/refetch. Useful for showing success
+   *                           messages tightly coupled to the PATCH operation.
    * @returns Promise that resolves with the response data
    * @throws Re-throws the error after rolling back the cache state
    */
@@ -103,12 +106,14 @@ export function usePatchResource() {
     value,
     additionalFields,
     invalidateQueries,
+    onSuccess,
   }: {
     endpoint: string;
     field: string;
     value: any;
     additionalFields?: Record<string, any>;
     invalidateQueries?: Array<string | string[]>;
+    onSuccess?: () => void;
   }) => {
     // Store previous data for rollback on error
     const rollbackQueries: Array<{ queryKey: any; previousData: any }> = [];
@@ -131,6 +136,12 @@ export function usePatchResource() {
         value,
         additionalFields,
       });
+
+      // Call onSuccess callback immediately after PATCH succeeds
+      // This happens before query invalidation/refetch
+      if (onSuccess) {
+        onSuccess();
+      }
 
       // Invalidate specified queries after successful mutation
       if (invalidateQueries && invalidateQueries.length > 0) {

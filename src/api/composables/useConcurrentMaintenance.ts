@@ -109,6 +109,7 @@ export function useConcurrentMaintenance() {
     assemblyPath: string,
     memberId: string,
     state: boolean,
+    onSuccess?: () => void,
   ) => {
     try {
       await patchResource({
@@ -127,14 +128,8 @@ export function useConcurrentMaintenance() {
         invalidateQueries: [
           ['redfish', 'allSubResources', '/redfish/v1/Chassis', 'Assembly'],
         ],
+        onSuccess,
       });
-
-      return i18n.global.t(
-        'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
-        {
-          state: state ? 'enabled' : 'disabled',
-        },
-      );
     } catch (error) {
       console.error('Error updating ReadyToRemove:', error);
       throw new Error(
@@ -149,7 +144,7 @@ export function useConcurrentMaintenance() {
   };
 
   // Helper functions for updating each component
-  const updateTodState = async (state: boolean) => {
+  const updateTodState = async (state: boolean, onSuccess?: () => void) => {
     if (!assemblyData.value?.todObject?.memberId) {
       throw new Error('TOD object not found');
     }
@@ -159,14 +154,18 @@ export function useConcurrentMaintenance() {
     // Extract the Assembly path from the object's @odata.id
     const assemblyPath =
       assemblyData.value.todObject.odataId.split('/Assemblies/')[0];
-    return updateReadyToRemove(
+    await updateReadyToRemove(
       assemblyPath,
       assemblyData.value.todObject.memberId,
       state,
+      onSuccess,
     );
   };
 
-  const updateControlPanelState = async (state: boolean) => {
+  const updateControlPanelState = async (
+    state: boolean,
+    onSuccess?: () => void,
+  ) => {
     if (!assemblyData.value?.controlPanel?.memberId) {
       throw new Error('Control Panel object not found');
     }
@@ -176,14 +175,18 @@ export function useConcurrentMaintenance() {
     // Extract the Assembly path from the object's @odata.id
     const assemblyPath =
       assemblyData.value.controlPanel.odataId.split('/Assemblies/')[0];
-    return updateReadyToRemove(
+    await updateReadyToRemove(
       assemblyPath,
       assemblyData.value.controlPanel.memberId,
       state,
+      onSuccess,
     );
   };
 
-  const updateControlPanelDispState = async (state: boolean) => {
+  const updateControlPanelDispState = async (
+    state: boolean,
+    onSuccess?: () => void,
+  ) => {
     if (!assemblyData.value?.controlPanelDisp?.memberId) {
       throw new Error('Control Panel Display object not found');
     }
@@ -193,10 +196,11 @@ export function useConcurrentMaintenance() {
     // Extract the Assembly path from the object's @odata.id
     const assemblyPath =
       assemblyData.value.controlPanelDisp.odataId.split('/Assemblies/')[0];
-    return updateReadyToRemove(
+    await updateReadyToRemove(
       assemblyPath,
       assemblyData.value.controlPanelDisp.memberId,
       state,
+      onSuccess,
     );
   };
 

@@ -139,15 +139,16 @@ watch(
 
 async function changeReadyToRemoveState(state) {
   try {
-    await updateTodState(state);
-    successToast(
-      i18n.global.t(
-        'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
-        {
-          state: state ? 'enabled' : 'disabled',
-        },
-      ),
-    );
+    await updateTodState(state, () => {
+      successToast(
+        i18n.global.t(
+          'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
+          {
+            state: state ? 'enabled' : 'disabled',
+          },
+        ),
+      );
+    });
   } catch (error) {
     readyToRemoveState.value = !state;
     errorToast(error.message);
@@ -156,15 +157,16 @@ async function changeReadyToRemoveState(state) {
 
 async function changeControlPanelState(state) {
   try {
-    await updateControlPanelState(state);
-    successToast(
-      i18n.global.t(
-        'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
-        {
-          state: state ? 'enabled' : 'disabled',
-        },
-      ),
-    );
+    await updateControlPanelState(state, () => {
+      successToast(
+        i18n.global.t(
+          'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
+          {
+            state: state ? 'enabled' : 'disabled',
+          },
+        ),
+      );
+    });
   } catch (error) {
     readyToRemoveControlPanelState.value = !state;
     errorToast(error.message);
@@ -173,15 +175,16 @@ async function changeControlPanelState(state) {
 
 async function changeControlPanelDispState(state) {
   try {
-    await updateControlPanelDispState(state);
-    successToast(
-      i18n.global.t(
-        'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
-        {
-          state: state ? 'enabled' : 'disabled',
-        },
-      ),
-    );
+    await updateControlPanelDispState(state, () => {
+      successToast(
+        i18n.global.t(
+          'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
+          {
+            state: state ? 'enabled' : 'disabled',
+          },
+        ),
+      );
+    });
   } catch (error) {
     readyToRemoveControlPanelDispState.value = !state;
     errorToast(error.message);
