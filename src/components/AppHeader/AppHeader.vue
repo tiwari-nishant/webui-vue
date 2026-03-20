@@ -118,6 +118,7 @@ import IconMenu from '@carbon/icons-vue/es/menu/20';
 import IconRenew from '@carbon/icons-vue/es/renew/20';
 import StatusIcon from '@/components/Global/StatusIcon.vue';
 import useToast from '@/components/Composables/useToastComposable';
+import { useSystemInfo } from '@/api/composables/useSystemInfo';
 import stores from '@/store';
 import i18n from '@/i18n';
 import eventBus from '@/eventBus';
@@ -128,7 +129,10 @@ const router = useRouter();
 
 const authenticationStore = stores.AuthenticationStore();
 const global = stores.GlobalStore();
-const eventLogStore = stores.EventLogStore();
+
+// Use vue-query composable for system info and event log health
+const { assetTag, modelType, serialNumber, serverStatus, healthStatus } =
+  useSystemInfo();
 
 const props = defineProps({
   routerKey: {
@@ -145,8 +149,6 @@ onBeforeMount(() => {
   // Reset auth state to check if user is authenticated based
   // on available browser cookies
   authenticationStore.resetStoreState();
-  getSystemInfo();
-  getEvents();
 });
 
 onMounted(() => {
@@ -159,24 +161,11 @@ onMounted(() => {
 const isNavTagPresent = computed(() => {
   return assetTag.value || modelType.value || serialNumber.value;
 });
-const assetTag = computed(() => {
-  return global.assetTagGetter;
-});
-const modelType = computed(() => {
-  return global.modelTypeGetter;
-});
-const serialNumber = computed(() => {
-  return global.serialNumberGetter;
-});
+
 const isAuthorized = computed(() => {
   return global.isAuthorizedGetter;
 });
-const serverStatus = computed(() => {
-  return global.serverStatusGetter;
-});
-const healthStatus = computed(() => {
-  return eventLogStore.healthStatus;
-});
+
 const serverStatusIcon = computed(() => {
   switch (serverStatus.value) {
     case 'on':
@@ -190,6 +179,7 @@ const serverStatusIcon = computed(() => {
       return 'secondary';
   }
 });
+
 const healthStatusIcon = computed(() => {
   switch (healthStatus.value) {
     case 'OK':
@@ -202,6 +192,7 @@ const healthStatusIcon = computed(() => {
       return 'secondary';
   }
 });
+
 const username = computed(() => {
   return global.usernameGetter;
 });
@@ -214,33 +205,24 @@ watch(isAuthorized, (value) => {
   }
 });
 
-const getSystemInfo = () => {
-  global.getSystemInfo();
-};
-const getEvents = () => {
-  eventLogStore.getEventLogData();
-};
 const refresh = () => {
   eventBus.emit('refresh-application');
 };
+
 const logout = () => {
   authenticationStore.logout().then(() => {
     router.push('/login');
   });
 };
+
 const toggleNavigation = () => {
   eventBus.emit('toggle-navigation');
 };
+
 const setFocus = (event) => {
   event.preventDefault();
   eventBus.emit('skip-navigation');
 };
-// const getImageUrl = () => {
-//       let pathName = location.pathname !== '/' ? location.pathname : '';
-//       return (
-//         location.origin + pathName + require('@/assets/images/logo-header.svg')
-//       );
-//     };
 </script>
 
 <style lang="scss">

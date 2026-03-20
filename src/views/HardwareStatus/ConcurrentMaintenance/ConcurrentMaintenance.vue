@@ -93,72 +93,101 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount } from 'vue';
+import { watch } from 'vue';
+import { useConcurrentMaintenance } from '@/api/composables/useConcurrentMaintenance';
 import useToast from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
-import stores from '@/store';
+import i18n from '@/i18n';
 
 const { successToast, errorToast } = useToast();
 const { startLoader, endLoader } = useLoadingBar();
 
-const concurrentMaintenanceStore = stores.ConcurrentMaintenanceStore();
+const {
+  readyToRemove: readyToRemoveState,
+  readyToRemoveControlPanel: readyToRemoveControlPanelState,
+  readyToRemoveControlPanelDisp: readyToRemoveControlPanelDispState,
+  isLoading,
+  isUpdating,
+  isError,
+  updateTodState,
+  updateControlPanelState,
+  updateControlPanelDispState,
+} = useConcurrentMaintenance();
 
-onBeforeMount(() => {
-  startLoader();
-  Promise.all([
-    concurrentMaintenanceStore.fetchReadyToRemove(),
-    concurrentMaintenanceStore.fetchControlPanel(),
-    concurrentMaintenanceStore.fetchControlPanelDisp(),
-  ]).finally(() => {
-    endLoader();
-  });
-});
+// Watch loading state
+watch(
+  () => isLoading.value || isUpdating.value,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+    }
+  },
+  { immediate: true },
+);
 
-const readyToRemoveState = computed({
-  get() {
-    return concurrentMaintenanceStore.ReadyToRemoveGetter;
+// Stop the loading bar and log the error when fetch fails
+watch(
+  () => isError.value,
+  (hasError) => {
+    if (hasError) {
+      endLoader();
+    }
   },
-  set(newValue) {
-    concurrentMaintenanceStore.readyToRemove = newValue;
-  },
-});
+);
 
-const readyToRemoveControlPanelState = computed({
-  get() {
-    return concurrentMaintenanceStore.ReadyToRemoveControlPanelGetter;
-  },
-  set(newValue) {
-    concurrentMaintenanceStore.readyToRemoveControlPanel = newValue;
-  },
-});
-
-const readyToRemoveControlPanelDispState = computed({
-  get() {
-    return concurrentMaintenanceStore.ReadyToRemoveControlPanelDispGetter;
-  },
-  set(newValue) {
-    concurrentMaintenanceStore.readyToRemoveControlPanelDisp = newValue;
-  },
-});
-
-function changeReadyToRemoveState(state) {
-  concurrentMaintenanceStore
-    .saveReadyToRemoveState(state)
-    .then((message) => successToast(message))
-    .catch(({ message }) => errorToast(message));
+async function changeReadyToRemoveState(state) {
+  try {
+    await updateTodState(state, () => {
+      successToast(
+        i18n.global.t(
+          'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
+          {
+            state: state ? 'enabled' : 'disabled',
+          },
+        ),
+      );
+    });
+  } catch (error) {
+    readyToRemoveState.value = !state;
+    errorToast(error.message);
+  }
 }
 
-function changeControlPanelState(state) {
-  concurrentMaintenanceStore
-    .saveReadyToRemoveControlPanel(state)
-    .then((message) => successToast(message))
-    .catch(({ message }) => errorToast(message));
+async function changeControlPanelState(state) {
+  try {
+    await updateControlPanelState(state, () => {
+      successToast(
+        i18n.global.t(
+          'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
+          {
+            state: state ? 'enabled' : 'disabled',
+          },
+        ),
+      );
+    });
+  } catch (error) {
+    readyToRemoveControlPanelState.value = !state;
+    errorToast(error.message);
+  }
 }
 
-function changeControlPanelDispState(state) {
-  concurrentMaintenanceStore
-    .saveReadyToRemoveControlPanelDisp(state)
-    .then((message) => successToast(message))
-    .catch(({ message }) => errorToast(message));
+async function changeControlPanelDispState(state) {
+  try {
+    await updateControlPanelDispState(state, () => {
+      successToast(
+        i18n.global.t(
+          'pageConcurrentMaintenance.toast.successSaveReadyToRemove',
+          {
+            state: state ? 'enabled' : 'disabled',
+          },
+        ),
+      );
+    });
+  } catch (error) {
+    readyToRemoveControlPanelDispState.value = !state;
+    errorToast(error.message);
+  }
 }
 </script>

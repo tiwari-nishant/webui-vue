@@ -31,7 +31,18 @@ export interface ResourceCollection extends ODataContext, ODataCount {
 }
 
 export interface Status {
-  State?: 'Enabled' | 'Disabled' | 'StandbyOffline' | 'StandbySpare' | 'InTest' | 'Starting' | 'Absent' | 'UnavailableOffline' | 'Deferring' | 'Quiesced' | 'Updating';
+  State?:
+    | 'Enabled'
+    | 'Disabled'
+    | 'StandbyOffline'
+    | 'StandbySpare'
+    | 'InTest'
+    | 'Starting'
+    | 'Absent'
+    | 'UnavailableOffline'
+    | 'Deferring'
+    | 'Quiesced'
+    | 'Updating';
   Health?: 'OK' | 'Warning' | 'Critical';
   HealthRollup?: 'OK' | 'Warning' | 'Critical';
 }
@@ -279,8 +290,31 @@ export interface SessionCollection extends ResourceCollection {
   Members: (ODataId | Session)[];
 }
 
+export interface AssemblyItem {
+  MemberId: string;
+  Location?: {
+    PartLocation?: {
+      ServiceLabel?: string;
+    };
+  };
+  Oem?: {
+    OpenBMC?: {
+      ReadyToRemove?: boolean;
+    };
+  };
+}
+
+export interface AssemblyCollection extends ResourceCollection {
+  Members: (ODataId | Assembly)[];
+}
+export interface Assembly extends Resource {
+  Assemblies: AssemblyItem[];
+  'Assemblies@odata.count': number;
+}
+
 // Expanded collection response type
-export interface ExpandedCollection<T extends Resource> extends ResourceCollection {
+export interface ExpandedCollection<T extends Resource>
+  extends ResourceCollection {
   Members: T[];
 }
 
