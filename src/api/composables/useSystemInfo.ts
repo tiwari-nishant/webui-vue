@@ -74,9 +74,12 @@ export interface SystemInfo {
   events: EventLogEntry[];
 }
 
+const SYSTEM_INFO_STORAGE_KEY = 'systemInfoCache';
+
 /**
  * Composable for fetching system information and event log health
  * Replaces parts of GlobalStore and EventLogStore with TanStack Query
+ * Data is cached in sessionStorage to persist across page reloads
  */
 export function useSystemInfo() {
   const {
@@ -88,6 +91,17 @@ export function useSystemInfo() {
   } = useQuery({
     queryKey: ['redfish', 'system', 'info'],
     queryFn: async (): Promise<SystemInfo> => {
+      // Check if data exists in sessionStorage first
+      const cachedData = sessionStorage.getItem(SYSTEM_INFO_STORAGE_KEY);
+      if (cachedData) {
+        try {
+          return JSON.parse(cachedData);
+        } catch (e) {
+          // If parsing fails, continue to fetch fresh data
+          sessionStorage.removeItem(SYSTEM_INFO_STORAGE_KEY);
+        }
+      }
+
       // Fetch system info and event logs in parallel
       const [systemResponse, eventLogResponse] = await Promise.all([
         api.get<SystemData>('/redfish/v1/Systems/system'),
@@ -123,7 +137,7 @@ export function useSystemInfo() {
       const events = eventLogResponse.data.Members || [];
       const healthStatus = getHealthStatus(events, true);
 
-      return {
+      const systemInfo: SystemInfo = {
         assetTag: AssetTag || null,
         modelType: Model || localStorage.getItem('storedModelType') || '--',
         serialNumber: SerialNumber || null,
@@ -131,9 +145,17 @@ export function useSystemInfo() {
         healthStatus,
         events,
       };
+
+      // Store in sessionStorage for persistence across page reloads
+      sessionStorage.setItem(
+        SYSTEM_INFO_STORAGE_KEY,
+        JSON.stringify(systemInfo),
+      );
+
+      return systemInfo;
     },
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: Infinity, // Cache for entire session - data won't change until logout
+    gcTime: Infinity, // Keep in cache indefinitely during session
     retry: (failureCount, error: any) => {
       const status = error?.response?.status;
       if (status && status >= 400 && status < 500) return false;

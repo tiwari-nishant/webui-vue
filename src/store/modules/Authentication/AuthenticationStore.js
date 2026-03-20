@@ -3,6 +3,7 @@ import api from '@/store/api';
 import { useCookies } from 'vue3-cookies';
 import Cookies from 'js-cookie';
 import router from '@/router';
+import { useQueryClient } from '@tanstack/vue-query';
 const { cookies } = useCookies();
 
 export const AuthenticationStore = defineStore('authentication', {
@@ -95,6 +96,13 @@ export const AuthenticationStore = defineStore('authentication', {
           localStorage.removeItem('storedLanguage');
           this.xsrfCookie = undefined;
           this.isAuthenticatedCookie = undefined;
+
+          // Clear TanStack Query cache and sessionStorage for system info
+          const queryClient = useQueryClient();
+          queryClient.removeQueries({
+            queryKey: ['redfish', 'system', 'info'],
+          });
+          sessionStorage.removeItem('systemInfoCache');
         })
         .then(() => {
           this.logoutRemove();
