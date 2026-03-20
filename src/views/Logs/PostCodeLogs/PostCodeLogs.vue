@@ -143,7 +143,6 @@
 <script setup>
 import IconLaunch from '@carbon/icons-vue/es/launch/20';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
-import api from '@/store/api';
 import i18n from '@/i18n';
 import { omit } from 'lodash';
 import PageTitle from '@/components/Global/PageTitle.vue';
@@ -160,11 +159,12 @@ import useToastComposable from '@/components/Composables/useToastComposable';
 import useTableSortComposable from '../../../components/Composables/useTableSortComposable';
 import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
-import { ref, onMounted, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
-import stores from '../../../store';
 import { buildUrlNewTab } from '@/utilities/url';
+import { usePostCodeLogs } from '@/api/composables/usePostCodeLogs';
 
+// Composables
 const {
   clearSelectedRows,
   toggleSelectRow,
@@ -182,9 +182,14 @@ const { getFilteredTableData, getFilteredTableDataByDate } = useTableFilter();
 const { toggleRowDetails } = useTableRowExpandComposable();
 const { expandRowLabel } = useTableRowExpandComposable();
 const { errorToast } = useToastComposable();
-const { hideLoader, startLoader, endLoader } = useLoadingBar();
+const { startLoader, endLoader, hideLoader } = useLoadingBar();
 
-const postCodeLogsStore = stores.PostCodeLogsStore();
+// Use the new vue-query composable
+const {
+  allLogs: postCodeLogsData,
+  isLoading,
+  fetchSrcDetails: fetchSrcDetailsApi,
+} = usePostCodeLogs();
 
 const srcData = ref({});
 const isBusy = ref(true);
@@ -237,13 +242,20 @@ const tableHeaderCheckboxIndeterminateVal = ref(
 );
 const expandColumn = ref(['timeStampOffset']);
 
-onMounted(() => {
-  startLoader();
-  postCodeLogsStore.getPostCodesLogData().finally(() => {
-    endLoader();
-    isBusy.value = false;
-  });
-});
+// Watch loading state
+watch(
+  isLoading,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+      isBusy.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 onBeforeRouteLeave(() => {
   // Hide loader if the user navigates to another page
   // before request is fulfilled.
@@ -256,7 +268,7 @@ const filteredRows = computed(() => {
     : filteredLogs.value.length;
 });
 const allLogs = computed(() => {
-  return postCodeLogsStore.allPostCodesGetter;
+  return postCodeLogsData.value || [];
 });
 const batchExportData = computed(() => {
   return selectedRows.value.map((row) => omit(row, 'actions'));
@@ -292,38 +304,20 @@ const filteredLogs = computed(() => {
   return data;
 });
 
-const fetchSrcDetails = (row) => {
+const fetchSrcDetails = async (row) => {
   row.item.toggleDetails = !row.item.toggleDetails;
   toggleRowDetails(row);
   if (!row.detailsShowing) {
     const { timeStampOffset, uri, postCode } = row.item;
     if (!srcData.value[timeStampOffset]) {
-      api
-        .get(uri)
-        .then((response) => generateSrcWords(response.data))
-        .then((srcWords) => {
-          srcData.value[timeStampOffset] = `${postCode.trim()} ${srcWords}`;
-        })
-        .catch(() =>
-          errorToast(i18n.global.t('pagePostCodeLogs.toast.errorSrcFetch')),
-        );
+      try {
+        const result = await fetchSrcDetailsApi(uri, postCode);
+        srcData.value[timeStampOffset] = result;
+      } catch (error) {
+        errorToast(error.message);
+      }
     }
   }
-};
-const generateSrcWords = (data) => {
-  const decodedData = atob(data); // `atob` decodes base64 to ASCII string
-  const hexData = Array.from(decodedData)
-    .map((c) => c.charCodeAt(0).toString(16))
-    .join('');
-  const srcBulk = hexData.substring(16, 80).toUpperCase();
-  if (!isNaN(srcBulk) && !Number(srcBulk)) {
-    return '';
-  }
-  let srcWords = '';
-  for (let i = 0; i <= 56; i += 8) {
-    srcWords += `${srcBulk.substring(i, i + 8)} `;
-  }
-  return srcWords.trim();
 };
 const openConsoleWindow = () => {
   window.open(
