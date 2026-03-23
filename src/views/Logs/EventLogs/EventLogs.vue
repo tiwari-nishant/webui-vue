@@ -340,8 +340,9 @@ import useDataFormatterGlobal from '../../../components/Composables/useDataForma
 import useTableSortComposable from '../../../components/Composables/useTableSortComposable';
 import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
-import { nextTick } from 'vue';
+import { nextTick, watch } from 'vue';
 import eventBus from '@/eventBus';
+import { useEventLogs } from '@/api/composables/useEventLogs';
 
 import stores from '../../../store';
 
@@ -368,9 +369,53 @@ export default {
     useLoadingBar().hideLoader();
     next();
   },
+  setup() {
+    const {
+      allLogs: eventLogsData,
+      isLoading,
+      deleteAllLogs: deleteAllLogsApi,
+      deleteEventLogs: deleteEventLogsApi,
+      resolveEventLogs: resolveEventLogsApi,
+      unresolveEventLogs: unresolveEventLogsApi,
+      updateEventLogStatus: updateEventLogStatusApi,
+      downloadLogData,
+      refetchAll,
+      refetchCELogs,
+    } = useEventLogs();
+
+    const { startLoader, endLoader } = useLoadingBar();
+
+    // Watch loading state
+    watch(
+      isLoading,
+      (loading) => {
+        if (loading) {
+          startLoader();
+        } else {
+          endLoader();
+        }
+      },
+      { immediate: true },
+    );
+
+    return {
+      eventLogsData,
+      isLoading,
+      deleteAllLogsApi,
+      deleteEventLogsApi,
+      resolveEventLogsApi,
+      unresolveEventLogsApi,
+      updateEventLogStatusApi,
+      downloadLogData,
+      refetchAll,
+      refetchCELogs,
+    };
+  },
   data() {
+    const rowExpandComposable = useTableRowExpandComposable();
     return {
       toast: useToastComposable(),
+      rowExpandComposable,
       openModal: false,
       deleteMessage: '',
       deleteTitle: '',
@@ -455,7 +500,7 @@ export default {
           ],
         },
       ],
-      expandRowLabel: useTableRowExpandComposable().expandRowLabel,
+      expandRowLabel: rowExpandComposable.expandRowLabel,
       activeFilters: [],
       batchActions: [
         {
@@ -491,7 +536,7 @@ export default {
         : this.filteredLogs.length;
     },
     allLogs() {
-      return stores.EventLogStore().eventlogsGetter;
+      return this.eventLogsData || [];
     },
     filteredLogsByDate() {
       return useTableFilter().getFilteredTableDataByDate(
@@ -542,29 +587,18 @@ export default {
     },
   },
   created() {
-    (eventBus.on('clear-selected', () => {
-      stores.EventLogStore().eventlogsGetter?.map((singleLog) => {
+    eventBus.on('clear-selected', () => {
+      this.allLogs?.forEach((singleLog) => {
         singleLog.rowSelected = false;
       });
       useTableSelectableComposable().clearSelectedRowsOptions(this.$refs.table);
-    }),
-      useLoadingBar().startLoader());
-    stores
-      .EventLogStore()
-      .initializeLogs()
-      .then(() => {
-        stores
-          .EventLogStore()
-          .getEventLogData()
-          .finally(() => {
-            this.checkForUserData();
-            if (this.isServiceUser) {
-              stores.EventLogStore().getCELogData();
-            }
-          });
-        useLoadingBar().endLoader();
-        this.isBusy = false;
-      });
+    });
+
+    this.checkForUserData();
+    if (this.isServiceUser) {
+      this.refetchCELogs();
+    }
+    this.isBusy = false;
   },
   methods: {
     onChangeSearchInput(event) {
@@ -574,8 +608,7 @@ export default {
       this.searchFilter = '';
     },
     toggleRow(row) {
-      row.item.toggleDetails = !row.item.toggleDetails;
-      useTableRowExpandComposable().toggleRowDetails(row);
+      this.rowExpandComposable.toggleRow(row);
     },
     downloadFile(pelJsonInfo) {
       let date = new Date();
@@ -603,23 +636,27 @@ export default {
       }
     },
     reloadEventLogData() {
-      if (this.isServiceUser) {
-        stores.EventLogStore().getCELogData();
-      }
-      stores.EventLogStore().getEventLogData();
+      this.refetchAll();
     },
-    changelogStatus(row) {
-      stores
-        .EventLogStore()
-        .updateEventLogStatus({
-          uri: row.uri,
-          status: row.status,
-        })
-        .then((success) => {
-          this.toast.successToast(success);
-        })
-        .catch(({ message }) => this.toast.errorToast(message))
-        .finally(() => this.reloadEventLogData());
+    async changelogStatus(row) {
+      let toastShown = false;
+      try {
+        await this.updateEventLogStatusApi({
+          log: row,
+          onSuccessCallback: () => {
+            if (!toastShown) {
+              this.toast.successToast(
+                row.status
+                  ? this.$t('pageEventLogs.toast.successResolveLogs', 1)
+                  : this.$t('pageEventLogs.toast.successUnresolveLogs', 1),
+              );
+              toastShown = true;
+            }
+          },
+        });
+      } catch (error) {
+        this.toast.errorToast(error.message);
+      }
     },
     resolutionValue(item) {
       let value = item?.resolution?.split('\n');
@@ -636,14 +673,47 @@ export default {
       this.deleteTitle = this.$t('pageEventLogs.modal.deleteAllTitle');
       this.deleteType = 'all';
     },
-    handleOk(value) {
+    async handleOk(value) {
       if (value === 'all') {
-        let totalEntries = [...this.allLogs];
+        const totalEntries = [...this.allLogs];
         let deletedEntries = 0;
-        stores
-          .EventLogStore()
-          .deleteAllEventLogs(this.allLogs)
-          .then(() => {
+        try {
+          await this.deleteAllLogsApi();
+          useLoadingBar().startLoader();
+          this.reloadEventLogData();
+          setTimeout(() => {
+            deletedEntries = totalEntries.length - this.allLogs.length;
+            if (this.allLogs.length > 0) {
+              this.toast.errorToast(
+                this.$t(
+                  'pageEventLogs.toast.errorDeleteGuardRecord',
+                  this.allLogs.length,
+                ),
+              );
+              this.toast.errorToast(
+                this.$t('pageEventLogs.toast.errorDelete', this.allLogs.length),
+              );
+            }
+            if (deletedEntries > 0) {
+              this.toast.successToast(
+                this.$t('pageEventLogs.toast.successDelete', deletedEntries),
+              );
+            }
+            useLoadingBar().endLoader();
+          }, 8000);
+        } catch (error) {
+          this.toast.errorToast(error.message);
+          useLoadingBar().endLoader();
+        } finally {
+          eventBus.emit('clear-selected');
+          this.openModal = false;
+        }
+      } else {
+        if (this.selectedRows.length === this.allLogs.length) {
+          const totalEntries = [...this.allLogs];
+          let deletedEntries = 0;
+          try {
+            await this.deleteAllLogsApi();
             useLoadingBar().startLoader();
             this.reloadEventLogData();
             setTimeout(() => {
@@ -669,88 +739,38 @@ export default {
               }
               useLoadingBar().endLoader();
             }, 8000);
-          })
-          .catch(
-            ({ message }) => this.toast.errorToast(message),
-            useLoadingBar().endLoader(),
-          )
-          .finally(() => {
+          } catch (error) {
+            this.toast.errorToast(error.message);
+            useLoadingBar().endLoader();
+          } finally {
             eventBus.emit('clear-selected');
             this.openModal = false;
-          });
-      } else {
-        if (this.selectedRows.length === this.allLogs.length) {
-          let totalEntries = [...this.allLogs];
-          let deletedEntries = 0;
-          stores
-            .EventLogStore()
-            .deleteAllEventLogs(this.allLogs)
-            .then(() => {
-              useLoadingBar().startLoader();
-              this.reloadEventLogData();
-              setTimeout(() => {
-                deletedEntries = totalEntries.length - this.allLogs.length;
-                if (this.allLogs.length > 0) {
-                  this.toast.errorToast(
-                    this.$t(
-                      'pageEventLogs.toast.errorDeleteGuardRecord',
-                      this.allLogs.length,
-                    ),
-                  );
-                  this.toast.errorToast(
-                    this.$t(
-                      'pageEventLogs.toast.errorDelete',
-                      this.allLogs.length,
-                    ),
-                  );
-                }
-                if (deletedEntries > 0) {
-                  this.toast.successToast(
-                    this.$t(
-                      'pageEventLogs.toast.successDelete',
-                      deletedEntries,
-                    ),
-                  );
-                }
-                useLoadingBar().endLoader();
-              }, 8000);
-            })
-            .catch(
-              ({ message }) => this.toast.errorToast(message),
-              useLoadingBar().endLoader(),
-            )
-            .finally(() => {
-              eventBus.emit('clear-selected');
-              this.openModal = false;
-            });
+          }
         } else {
           this.deleteLogs(this.uris);
         }
       }
     },
-    deleteLogs(uris) {
-      stores
-        .EventLogStore()
-        .deleteEventLogs(uris)
-        .then((messages) => {
-          messages.forEach(({ type, message }) => {
-            this.reloadEventLogData();
-            if (type === 'success') {
-              this.toast.successToast(message);
-            } else if (type === 'error') {
-              this.toast.errorToast(message);
-            }
-          });
-        })
-        .finally(() => {
-          eventBus.emit('clear-selected');
-          this.openModal = false;
+    async deleteLogs(uris) {
+      try {
+        const messages = await this.deleteEventLogsApi(uris);
+        messages.forEach(({ type, message }) => {
+          this.reloadEventLogData();
+          if (type === 'success') {
+            this.toast.successToast(message);
+          } else if (type === 'error') {
+            this.toast.errorToast(message);
+          }
         });
+      } finally {
+        eventBus.emit('clear-selected');
+        this.openModal = false;
+      }
     },
     onFilterChange({ activeFilters }) {
       this.activeFilters = activeFilters;
     },
-    onTableRowAction(action, { uri }) {
+    async onTableRowAction(action, { uri }) {
       if (action === 'delete') {
         this.uris = [uri];
         this.openModal = true;
@@ -758,19 +778,15 @@ export default {
         this.deleteTitle = this.$t('pageEventLogs.modal.deleteTitle');
         this.deleteType = 'selected';
       } else if (action === 'download') {
-        //  download single log
         const pelJsonInfo = [];
         useLoadingBar().startLoader();
-        stores
-          .EventLogStore()
-          .downloadLogData(uri)
-          .then((returned) => {
-            pelJsonInfo.push(returned);
-          })
-          .finally(() => {
-            this.downloadFile(pelJsonInfo);
-            useLoadingBar().endLoader();
-          });
+        try {
+          const returned = await this.downloadLogData(uri);
+          pelJsonInfo.push(returned);
+        } finally {
+          this.downloadFile(pelJsonInfo);
+          useLoadingBar().endLoader();
+        }
       }
     },
     onBatchAction(action) {
@@ -795,37 +811,45 @@ export default {
     onFiltered(filteredItems) {
       this.searchTotalFilteredRows = filteredItems.length;
     },
-    resolveLogs() {
-      stores
-        .EventLogStore()
-        .resolveEventLogs(this.selectedRows)
-        .then((messages) => {
-          messages.forEach(({ type, message }) => {
-            if (type === 'success') {
-              this.reloadEventLogData();
-              this.toast.successToast(message);
-            } else if (type === 'error') {
-              this.toast.errorToast(message);
-            }
-          });
-          eventBus.emit('clear-selected');
+    async resolveLogs() {
+      try {
+        const messages = await this.resolveEventLogsApi({
+          logs: this.selectedRows,
+          onSuccessCallback: (count) => {
+            this.toast.successToast(
+              this.$t('pageEventLogs.toast.successResolveLogs', count),
+            );
+          },
         });
+        messages.forEach(({ type, message }) => {
+          if (type === 'error') {
+            this.toast.errorToast(message);
+          }
+        });
+        eventBus.emit('clear-selected');
+      } catch (error) {
+        this.toast.errorToast(error.message);
+      }
     },
-    unresolveLogs() {
-      stores
-        .EventLogStore()
-        .unresolveEventLogs(this.selectedRows)
-        .then((messages) => {
-          messages.forEach(({ type, message }) => {
-            if (type === 'success') {
-              this.reloadEventLogData();
-              this.toast.successToast(message);
-            } else if (type === 'error') {
-              this.toast.errorToast(message);
-            }
-          });
-          eventBus.emit('clear-selected');
+    async unresolveLogs() {
+      try {
+        const messages = await this.unresolveEventLogsApi({
+          logs: this.selectedRows,
+          onSuccessCallback: (count) => {
+            this.toast.successToast(
+              this.$t('pageEventLogs.toast.successUnresolveLogs', count),
+            );
+          },
         });
+        messages.forEach(({ type, message }) => {
+          if (type === 'error') {
+            this.toast.errorToast(message);
+          }
+        });
+        eventBus.emit('clear-selected');
+      } catch (error) {
+        this.toast.errorToast(error.message);
+      }
     },
     async downloadEventLogs(value) {
       const pelJsonInfo = [];
@@ -835,38 +859,36 @@ export default {
         let counter = 1;
         while (counter <= this.allLogs.length) {
           useLoadingBar().startLoader();
-          await stores
-            .EventLogStore()
-            .downloadLogData(this.allLogs[counter - 1].uri)
-            .then((returned) => {
-              pelJsonInfo.push(returned);
-              counter = counter + 1;
-            })
-            .finally(() => {
-              if (pelJsonInfo.length === this.allLogs.length) {
-                this.downloadFile(pelJsonInfo);
-                useLoadingBar().endLoader();
-              }
-            });
+          try {
+            const returned = await this.downloadLogData(
+              this.allLogs[counter - 1].uri,
+            );
+            pelJsonInfo.push(returned);
+            counter = counter + 1;
+          } finally {
+            if (pelJsonInfo.length === this.allLogs.length) {
+              this.downloadFile(pelJsonInfo);
+              useLoadingBar().endLoader();
+            }
+          }
         }
       } else {
         // several logs
         let counter = 1;
         while (counter <= this.selectedRows.length) {
           useLoadingBar().startLoader();
-          await stores
-            .EventLogStore()
-            .downloadLogData(this.selectedRows[counter - 1].uri)
-            .then((returned) => {
-              pelJsonInfo.push(returned);
-              counter = counter + 1;
-            })
-            .finally(() => {
-              if (pelJsonInfo.length === this.selectedRows.length) {
-                this.downloadFile(pelJsonInfo);
-                useLoadingBar().endLoader();
-              }
-            });
+          try {
+            const returned = await this.downloadLogData(
+              this.selectedRows[counter - 1].uri,
+            );
+            pelJsonInfo.push(returned);
+            counter = counter + 1;
+          } finally {
+            if (pelJsonInfo.length === this.selectedRows.length) {
+              this.downloadFile(pelJsonInfo);
+              useLoadingBar().endLoader();
+            }
+          }
         }
       }
     },
@@ -877,7 +899,7 @@ export default {
       return useDataFormatterGlobal().dataFormatter(value);
     },
     toggleAll(checked) {
-      stores.EventLogStore().eventlogsGetter?.map((singleLog) => {
+      this.allLogs?.forEach((singleLog) => {
         singleLog.rowSelected = checked;
       });
     },

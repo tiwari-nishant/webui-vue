@@ -144,12 +144,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeMount } from 'vue';
+import { ref, onMounted, computed, onBeforeMount, watch, nextTick } from 'vue';
 import i18n from '@/i18n';
 import IconDownload from '@carbon/icons-vue/es/download/20';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
 import PageTitle from '@/components/Global/PageTitle.vue';
-import stores from '@/store/index.js';
 import useTableFilterComposable from '@/components/Composables/useTableFilterComposable';
 import Search from '@/components/Global/Search.vue';
 import usePaginationComposable from '@/components/Composables/usePaginationComposable';
@@ -159,18 +158,20 @@ import useDataFormatterGlobal from '@/components/Composables/useDataFormatterGlo
 import TableDateFilter from '@/components/Global/TableDateFilter.vue';
 import useTableRowExpandComposable from '@/components/Composables/useTableRowExpandComposable';
 import eventBus from '@/eventBus';
+import { useAuditLogs } from '@/api/composables/useAuditLogs';
 
 const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
   usePaginationComposable();
 const { successToast, infoToast, errorToast } = useToast();
 const { startLoader, endLoader } = useLoadingBar();
 const { dataFormatter } = useDataFormatterGlobal();
-const { expandRowLabel } = useTableRowExpandComposable();
-const { toggleRowDetails } = useTableRowExpandComposable();
+const { expandRowLabel, toggleRowDetails } = useTableRowExpandComposable();
 const { getFilteredTableData, getFilteredTableDataByDate } =
   useTableFilterComposable();
 
-const auditLogsStore = stores.AuditLogsStore();
+// Use the audit logs composable
+const { auditLogs, isLoading, refetch, downloadAuditLog, isDownloading } =
+  useAuditLogs();
 
 const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
@@ -221,12 +222,22 @@ const filterStartDate = ref(null);
 const filterEndDate = ref(null);
 const expandColumn = ref(['auditId', 'message']);
 
-onMounted(() => {
-  startLoader();
-  auditLogsStore.getAuditLogData().finally(() => {
-    isBusy.value = false;
-    endLoader();
-  });
+// Watch loading state from composable
+watch(
+  isLoading,
+  (loading) => {
+    isBusy.value = loading;
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+    }
+  },
+  { immediate: true },
+);
+
+onMounted(async () => {
+  await refetch();
 });
 
 onBeforeMount(() => {
@@ -243,7 +254,7 @@ const filteredRows = computed(() => {
 });
 const filteredLogsByDate = computed(() => {
   return getFilteredTableDataByDate(
-    auditLogsStore.allAuditLogsGetter,
+    auditLogs.value,
     filterStartDate.value,
     filterEndDate.value,
   );
@@ -272,11 +283,8 @@ const filteredLogs = computed(() => {
   return data;
 });
 const allLogs = computed(() => {
-  return auditLogsStore.allAuditLogsGetter.map((auditLogs) => {
-    return {
-      ...auditLogs,
-    };
-  });
+  console.log('allLogs', auditLogs.value);
+  return auditLogs.value;
 });
 
 const onChangeDateTimeFilter = ({ fromDate, toDate }) => {
@@ -321,22 +329,21 @@ const downloadEventLogs = async (value) => {
   infoToast(i18n.global.t('pageAuditLogs.toast.infoStartDownload'));
   if (value === 'all') {
     startLoader();
-    await auditLogsStore
-      .downloadLogData(allLogs.value[0].additionalDataUri)
-      .then((response) => {
-        auditLogsData.push(response.data);
-      })
-      .then(() => {
-        downloadFile(auditLogsData);
-        successToast(i18n.global.t('pageAuditLogs.toast.successStartDownload'));
-      })
-      .catch((error) => {
-        console.log(error);
-        errorToast(i18n.global.t('pageAuditLogs.toast.errorStartDownload'));
-      })
-      .finally(() => {
-        endLoader();
-      });
+    try {
+      const uri = allLogs.value[0]?.additionalDataUri;
+      if (!uri) {
+        throw new Error('No additional data URI available');
+      }
+      const response = await downloadAuditLog(uri);
+      auditLogsData.push(response);
+      downloadFile(auditLogsData);
+      successToast(i18n.global.t('pageAuditLogs.toast.successStartDownload'));
+    } catch (error) {
+      console.error(error);
+      errorToast(i18n.global.t('pageAuditLogs.toast.errorStartDownload'));
+    } finally {
+      endLoader();
+    }
   }
 };
 </script>
