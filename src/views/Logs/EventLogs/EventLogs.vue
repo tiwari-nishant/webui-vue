@@ -639,13 +639,23 @@ export default {
       this.refetchAll();
     },
     async changelogStatus(row) {
+      let toastShown = false;
       try {
-        const success = await this.updateEventLogStatusApi(row);
-        this.toast.successToast(success);
+        await this.updateEventLogStatusApi({
+          log: row,
+          onSuccessCallback: () => {
+            if (!toastShown) {
+              this.toast.successToast(
+                row.status
+                  ? this.$t('pageEventLogs.toast.successResolveLogs', 1)
+                  : this.$t('pageEventLogs.toast.successUnresolveLogs', 1),
+              );
+              toastShown = true;
+            }
+          },
+        });
       } catch (error) {
         this.toast.errorToast(error.message);
-      } finally {
-        this.reloadEventLogData();
       }
     },
     resolutionValue(item) {
@@ -803,12 +813,16 @@ export default {
     },
     async resolveLogs() {
       try {
-        const messages = await this.resolveEventLogsApi(this.selectedRows);
+        const messages = await this.resolveEventLogsApi({
+          logs: this.selectedRows,
+          onSuccessCallback: (count) => {
+            this.toast.successToast(
+              this.$t('pageEventLogs.toast.successResolveLogs', count),
+            );
+          },
+        });
         messages.forEach(({ type, message }) => {
-          if (type === 'success') {
-            this.reloadEventLogData();
-            this.toast.successToast(message);
-          } else if (type === 'error') {
+          if (type === 'error') {
             this.toast.errorToast(message);
           }
         });
@@ -819,12 +833,16 @@ export default {
     },
     async unresolveLogs() {
       try {
-        const messages = await this.unresolveEventLogsApi(this.selectedRows);
+        const messages = await this.unresolveEventLogsApi({
+          logs: this.selectedRows,
+          onSuccessCallback: (count) => {
+            this.toast.successToast(
+              this.$t('pageEventLogs.toast.successUnresolveLogs', count),
+            );
+          },
+        });
         messages.forEach(({ type, message }) => {
-          if (type === 'success') {
-            this.reloadEventLogData();
-            this.toast.successToast(message);
-          } else if (type === 'error') {
+          if (type === 'error') {
             this.toast.errorToast(message);
           }
         });

@@ -267,8 +267,11 @@ export function useEventLogs() {
   const patchLogStatus = async (
     logs: ProcessedEventLog[],
     resolved: boolean,
+    onSuccessCallback?: (successCount: number) => void,
   ) => {
     let guardEntries: any[] = [];
+    let successCount = 0;
+
     const promises = logs.map((log) =>
       patchResource({
         endpoint: log.uri,
@@ -286,6 +289,9 @@ export function useEventLogs() {
             '/redfish/v1/Systems/system/LogServices/CELog/Entries',
           ],
         ],
+        onSuccess: () => {
+          successCount++;
+        },
       }).catch((error) => {
         console.error(error);
         if (
@@ -300,15 +306,13 @@ export function useEventLogs() {
     );
 
     const responses = await Promise.all(promises);
-    const { successCount, errorCount } = getResponseCount(responses);
+    const { successCount: finalSuccessCount, errorCount } =
+      getResponseCount(responses);
     const toastMessages: Array<{ type: string; message: string }> = [];
 
-    if (successCount) {
-      const messageKey = resolved
-        ? 'pageEventLogs.toast.successResolveLogs'
-        : 'pageEventLogs.toast.successUnresolveLogs';
-      const message = i18n.global.t(messageKey, successCount);
-      toastMessages.push({ type: 'success', message });
+    // Call success callback once with final count after all patches complete
+    if (finalSuccessCount > 0 && onSuccessCallback) {
+      onSuccessCallback(finalSuccessCount);
     }
 
     if (errorCount) {
@@ -331,21 +335,39 @@ export function useEventLogs() {
 
   // Resolve event logs mutation
   const resolveEventLogsMutation = useMutation({
-    mutationFn: async (logs: ProcessedEventLog[]) => {
-      return await patchLogStatus(logs, true);
+    mutationFn: async ({
+      logs,
+      onSuccessCallback,
+    }: {
+      logs: ProcessedEventLog[];
+      onSuccessCallback?: (count: number) => void;
+    }) => {
+      return await patchLogStatus(logs, true, onSuccessCallback);
     },
   });
 
   // Unresolve event logs mutation
   const unresolveEventLogsMutation = useMutation({
-    mutationFn: async (logs: ProcessedEventLog[]) => {
-      return await patchLogStatus(logs, false);
+    mutationFn: async ({
+      logs,
+      onSuccessCallback,
+    }: {
+      logs: ProcessedEventLog[];
+      onSuccessCallback?: (count: number) => void;
+    }) => {
+      return await patchLogStatus(logs, false, onSuccessCallback);
     },
   });
 
   // Update single event log status mutation
   const updateEventLogStatusMutation = useMutation({
-    mutationFn: async (log: ProcessedEventLog) => {
+    mutationFn: async ({
+      log,
+      onSuccessCallback,
+    }: {
+      log: ProcessedEventLog;
+      onSuccessCallback?: () => void;
+    }) => {
       try {
         await patchResource({
           endpoint: log.uri,
@@ -363,6 +385,12 @@ export function useEventLogs() {
               '/redfish/v1/Systems/system/LogServices/CELog/Entries',
             ],
           ],
+          onSuccess: () => {
+            // Call the callback immediately after successful patch
+            if (onSuccessCallback) {
+              onSuccessCallback();
+            }
+          },
         });
 
         if (log.status) {
