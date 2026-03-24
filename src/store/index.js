@@ -1,13 +1,14 @@
 import GlobalStore from './modules/GlobalStore';
 import AuthenticationStore from './modules/Authentication/AuthenticationStore';
-import LdapStore from './modules/SecurityAndAccess/LdapStore';
 import UserManagementStore from './modules/SecurityAndAccess/UserManagementStore';
 import CertificatesStore from './modules/SecurityAndAccess/CertificatesStore';
+import LdapStore from './modules/SecurityAndAccess/LdapStore';
 import FirmwareStore from './modules/Operations/FirmwareStore';
 import BootSettingsStore from './modules/Operations/BootSettingsStore';
 import ControlStore from './modules/Operations/ControlStore';
 import PowerControlStore from './modules/ResourceManagement/PowerControlStore';
 import NetworkStore from './modules/Settings/NetworkStore';
+import DateTimeStore from './modules/Settings/DateTimeStore';
 import EventLogStore from './modules/Logs/EventLogStore';
 import SystemStore from './modules/HardwareStatus/SystemStore';
 import PowerSupplyStore from './modules/HardwareStatus/PowerSupplyStore';
@@ -23,7 +24,6 @@ import AuditLogsStore from './modules/Logs/AuditLogsStore';
 import HardwareDeconfigurationStore from './modules/Settings/HardwareDeconfigurationStore';
 import NetworkSettingsStore from './modules/Operations/NetworkSettingsStore';
 import IBMiServiceFunctionsStore from './modules/Logs/IBMiServiceFunctionsStore';
-import DateTimeStore from './modules/Settings/DateTimeStore';
 import ResourceMemoryStore from './modules/ResourceManagement/ResourceMemoryStore';
 import SystemParametersStore from './modules/ResourceManagement/SystemParametersStore';
 import DeconfigurationRecordsStore from './modules/Logs/DeconfigurationRecordsStore';
@@ -39,12 +39,6 @@ Object.assign(stores, {
 });
 Object.assign(stores, {
   AuthenticationStore: AuthenticationStore,
-});
-Object.assign(stores, {
-  DateTimeStore: DateTimeStore,
-});
-Object.assign(stores, {
-  LdapStore: LdapStore,
 });
 Object.assign(stores, {
   UserManagementStore: UserManagementStore,
@@ -71,10 +65,16 @@ Object.assign(stores, {
   NetworkStore: NetworkStore,
 });
 Object.assign(stores, {
+  DateTimeStore: DateTimeStore,
+});
+Object.assign(stores, {
   EventLogStore: EventLogStore,
 });
 Object.assign(stores, {
   CertificatesStore: CertificatesStore,
+});
+Object.assign(stores, {
+  LdapStore: LdapStore,
 });
 Object.assign(stores, {
   SystemStore: SystemStore,
