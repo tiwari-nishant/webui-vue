@@ -297,7 +297,7 @@
 <script setup>
 import { omit } from 'lodash';
 import i18n from '@/i18n';
-import { ref, computed, onBeforeMount, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import useToastComposable from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableSelectableComposable from '@/components/Composables/useTableSelectableComposable';
@@ -319,7 +319,9 @@ import Alert from '@/components/Global/Alert.vue';
 import stores from '@/store';
 import { onBeforeRouteLeave } from 'vue-router';
 import eventBus from '@/eventBus';
+import { useDeconfigurationRecords } from '@/api/composables/useDeconfigurationRecords';
 
+// Composables
 const {
   onRowSelected,
   toggleSelectRowById,
@@ -335,9 +337,19 @@ const { expandRowLabel, toggleRow } = useTableRowExpandComposable();
 const Toast = useToastComposable();
 const { getFilteredTableData } = useTableFilterComposable();
 const { dataFormatter } = useDataFormatterGlobal();
-const { hideLoader, startLoader, endLoader } = useLoadingBar();
+const { startLoader, endLoader, hideLoader } = useLoadingBar();
 
-const deconfigurationRecoredsStore = stores.DeconfigurationRecordsStore();
+// Use the new vue-query composable
+const {
+  allRecords: deconfigRecordsData,
+  isLoading,
+  isProcessing,
+  clearAllRecords: clearAllRecordsApi,
+  deleteRecords: deleteRecordsApi,
+  downloadLog: downloadLogApi,
+  refetchRecords,
+} = useDeconfigurationRecords();
+
 const global = stores.GlobalStore();
 
 const tableDeconfigurationRecordsRef = ref(null);
@@ -435,37 +447,42 @@ const batchActions = ref([
 const count = ref(0);
 const urival = ref();
 
+// Watch loading state - includes both initial fetch and processing
+watch(
+  () => isLoading.value || isProcessing.value,
+  (loading) => {
+    if (loading) {
+      startLoader();
+      isBusy.value = true;
+    } else {
+      endLoader();
+      isBusy.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 onBeforeRouteLeave(() => {
   eventBus.emit('clear-selected');
   isBusy.value = false;
   hideLoader();
 });
 
-onBeforeMount(() => {
-  startLoader();
-  isBusy.value = true;
-  deconfigurationRecoredsStore.getDeconfigurationRecordInfo().finally(() => {
-    isBusy.value = false;
-    endLoader();
+eventBus.on('clear-selected', () => {
+  deconfigRecordsData.value?.forEach((singleConnection) => {
+    singleConnection.isSelected = false;
   });
-  eventBus.on('clear-selected', () => {
-    deconfigurationRecoredsStore?.deconfigRecordsGetter?.map(
-      (singleConnection) => {
-        singleConnection.isSelected = false;
-      },
-    );
-    clearSelectedRows(tableDeconfigurationRecordsRef);
-  });
+  clearSelectedRows(tableDeconfigurationRecordsRef);
 });
 
 const href = computed(() => {
   return `data:text/json;charset=utf-8,${exportAllRecords()}`;
 });
 const allEntries = computed(() => {
-  return deconfigurationRecoredsStore.deconfigRecordsGetter;
+  return deconfigRecordsData.value || [];
 });
 const recordItems = computed(() => {
-  return deconfigurationRecoredsStore.deconfigRecordsGetter;
+  return deconfigRecordsData.value || [];
 });
 const batchExportData = computed(() => {
   return selectedRowsLists.value.map((row) => omit(row, 'actions'));
@@ -483,66 +500,69 @@ const isServerOff = () => {
 const clearAllEntries = () => {
   openModal.value = true;
 };
-const handleOk = () => {
+const handleOk = async () => {
   openModal.value = false;
-  let totalEntries = [...allEntries.value];
+  const totalEntries = [...allEntries.value];
   let deletedEntries = 0;
-  deconfigurationRecoredsStore
-    .clearAllEntries(allEntries.value)
-    .then(
-      startLoader(),
-      deconfigurationRecoredsStore
-        .getDeconfigurationRecordInfo()
-        .finally(() => {
-          deletedEntries = totalEntries.length - allEntries.value.length;
-          if (allEntries.value.length > 0) {
-            Toast.errorToast(
-              i18n.global.t(
-                'pageDeconfigurationRecords.toast.clearAllInfo',
-                allEntries.value.length,
-              ),
-            );
-            Toast.errorToast(
-              i18n.global.t(
-                'pageDeconfigurationRecords.toast.errorDelete',
-                allEntries.value.length,
-              ),
-            );
-          }
-          if (deletedEntries > 0) {
-            Toast.successToast(
-              i18n.global.t(
-                'pageDeconfigurationRecords.toast.successDelete',
-                deletedEntries,
-              ),
-            );
-          }
-          endLoader();
-        }),
-    )
-    .catch(({ message }) => Toast.errorToast(message), endLoader());
+
+  try {
+    startLoader();
+    await clearAllRecordsApi();
+    await refetchRecords();
+
+    deletedEntries = totalEntries.length - allEntries.value.length;
+    if (allEntries.value.length > 0) {
+      Toast.errorToast(
+        i18n.global.t(
+          'pageDeconfigurationRecords.toast.clearAllInfo',
+          allEntries.value.length,
+        ),
+      );
+      Toast.errorToast(
+        i18n.global.t(
+          'pageDeconfigurationRecords.toast.errorDelete',
+          allEntries.value.length,
+        ),
+      );
+    }
+    if (deletedEntries > 0) {
+      Toast.successToast(
+        i18n.global.t(
+          'pageDeconfigurationRecords.toast.successDelete',
+          deletedEntries,
+        ),
+      );
+    }
+  } catch (error) {
+    Toast.errorToast(error.message);
+  } finally {
+    endLoader();
+  }
 };
 const handleOk2 = () => {
   openModal2.value = false;
   deleteRecords(urival.value);
 };
 const deleteRecords = async (uri) => {
-  deconfigurationRecoredsStore
-    .deleteRecords(uri)
-    .then((message) => Toast.successToast(message))
-    .catch(({ message }) => Toast.errorToast(message))
-    .finally(() => eventBus.emit('clear-selected'));
+  try {
+    const message = await deleteRecordsApi(uri);
+    Toast.successToast(message);
+  } catch (error) {
+    Toast.errorToast(error.message);
+  } finally {
+    eventBus.emit('clear-selected');
+  }
 };
-const downloadLog = (uri, date) => {
-  startLoader();
-  deconfigurationRecoredsStore
-    .downloadLog({
-      uri: uri,
-      date: date,
-    })
-    .then((message) => Toast.successToast(...message))
-    .catch(({ message }) => Toast.successToast(message))
-    .finally(() => endLoader());
+const downloadLog = async (uri, date) => {
+  try {
+    startLoader();
+    const message = await downloadLogApi(uri, date);
+    Toast.successToast(...message);
+  } catch (error) {
+    Toast.errorToast(error.message);
+  } finally {
+    endLoader();
+  }
 };
 // Create export file name based on date
 const exportFileNameByDate = (value) => {
@@ -560,18 +580,16 @@ const exportFileNameByDate = (value) => {
   return fileName + date;
 };
 const exportAllRecords = () => {
-  {
-    return deconfigurationRecoredsStore.deconfigRecordsGetter.map((records) => {
-      const allDeconfigRecordsString = JSON.stringify(records);
-      return allDeconfigRecordsString;
-    });
-  }
+  return deconfigRecordsData.value.map((records) => {
+    const allDeconfigRecordsString = JSON.stringify(records);
+    return allDeconfigRecordsString;
+  });
 };
 const onFilterChange = ({ activeFilters }) => {
   activeFiltersRows.value = activeFilters;
 };
 const toggleAll = (checked) => {
-  deconfigurationRecoredsStore?.deconfigRecordsGetter?.map((singleRecord) => {
+  deconfigRecordsData.value?.forEach((singleRecord) => {
     singleRecord.isSelected = checked;
   });
   isAllSelected.value = checked;
