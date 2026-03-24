@@ -17,24 +17,30 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount } from 'vue';
+import { computed, watch } from 'vue';
 import OverviewCard from './OverviewCard.vue';
 import useDataFormatterGlobal from '@/components/Composables/useDataFormatterGlobal';
-import stores from '@/store';
+import { useDumps } from '@/api/composables/useDumps';
 import eventBus from '@/eventBus';
 
 const { dataFormatter } = useDataFormatterGlobal();
 
-const dumpsStore = stores.DumpsStore();
+// Use the new vue-query composable
+const { allDumps: dumpsData, isLoading } = useDumps();
 
-onBeforeMount(() => {
-  dumpsStore.getAllDumps().finally(() => {
-    eventBus.emit('overview-dumps-complete');
-  });
-});
+// Watch for loading completion
+watch(
+  isLoading,
+  (loading) => {
+    if (!loading) {
+      eventBus.emit('overview-dumps-complete');
+    }
+  },
+  { immediate: true },
+);
 
 const dumps = computed(() => {
-  return dumpsStore.allDumpsGetter;
+  return dumpsData.value || [];
 });
 
 const exportFileNameByDate = () => {

@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import i18n from '@/i18n';
 import { onBeforeRouteLeave } from 'vue-router';
 import TableFilter from '@/components/Global/TableFilter.vue';
@@ -103,6 +103,7 @@ import useToastComposable from '@/components/Composables/useToastComposable';
 import usePaginationComposable from '@/components/Composables/usePaginationComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableFilterComposable from '@/components/Composables/useTableFilterComposable';
+import { useHardwareDeconfiguration } from '@/api/composables/useHardwareDeconfiguration';
 import stores from '@/store';
 
 const Toast = useToastComposable();
@@ -111,10 +112,16 @@ const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const { getFilteredTableData } = useTableFilterComposable();
 
-const hardwareDeconfigurationStore = stores.HardwareDeconfigurationStore();
+// Use the new vue-query composable
+const {
+  dimms: dimmsData,
+  isLoadingDimms,
+  updateDimmSettings: updateDimmSettingsApi,
+} = useHardwareDeconfiguration();
+
 const global = stores.GlobalStore();
 
-const isBusy = ref(true);
+const isBusy = ref(false);
 const activeFiltersRows = ref([]);
 const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
@@ -195,20 +202,27 @@ const tableFilters = ref([
   },
 ]);
 
+// Watch loading state
+watch(
+  isLoadingDimms,
+  (loading) => {
+    if (loading) {
+      startLoader();
+      isBusy.value = true;
+    } else {
+      endLoader();
+      isBusy.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 onBeforeRouteLeave(() => {
   hideLoader();
 });
 
-onBeforeMount(() => {
-  startLoader();
-  hardwareDeconfigurationStore.getDimms().finally(() => {
-    endLoader();
-    isBusy.value = false;
-  });
-});
-
 const allDimms = computed(() => {
-  return hardwareDeconfigurationStore.dimmsGetter;
+  return dimmsData.value || [];
 });
 const filteredRows = computed(() => {
   return searchFilter.value
@@ -234,20 +248,19 @@ const onFilterChange = ({ activeFilters }) => {
 const onFiltered = (filteredItems) => {
   searchTotalFilteredRows.value = filteredItems.length;
 };
-const toggleSettingsSwitch = (row) => {
-  startLoader();
-  hardwareDeconfigurationStore
-    .updateSettingsState({
+const toggleSettingsSwitch = async (row) => {
+  try {
+    startLoader();
+    await updateDimmSettingsApi({
       uri: row.item.uri,
       settings: row.item.settings,
-    })
-    .catch(({ message }) => {
-      row.item.settings = !row.item.settings;
-      Toast.errorToast(message);
-    })
-    .finally(() => {
-      endLoader();
     });
+  } catch (error) {
+    row.item.settings = !row.item.settings;
+    Toast.errorToast(error.message);
+  } finally {
+    endLoader();
+  }
 };
 
 watch(

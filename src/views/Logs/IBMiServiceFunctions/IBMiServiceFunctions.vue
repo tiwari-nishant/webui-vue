@@ -165,10 +165,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
+import { ref, computed, onBeforeMount, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useToast from '@/components/Composables/useToastComposable';
+import { useIBMiServiceFunctions } from '@/api/composables/useIBMiServiceFunctions';
 import stores from '@/store';
 import Alert from '@/components/Global/Alert.vue';
 
@@ -176,10 +177,29 @@ const { successToast, errorToast } = useToast();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 
 const globalStore = stores.GlobalStore();
-const ibmiServiceFunctionsStore = stores.IBMiServiceFunctionsStore();
 const bootSettingsStore = stores.BootSettingsStore();
 
+// Use the new vue-query composable
+const {
+  availableFunctions: serviceFunctions,
+  isLoading: isLoadingFunctions,
+  executeServiceFunction: executeServiceFunctionApi,
+} = useIBMiServiceFunctions();
+
 const isLoading = ref(false);
+
+// Watch loading state
+watch(
+  isLoadingFunctions,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+    }
+  },
+  { immediate: true },
+);
 
 onBeforeRouteLeave(() => {
   hideLoader();
@@ -190,7 +210,6 @@ onBeforeMount(() => {
   isLoading.value = true;
   Promise.all([
     globalStore.getBootProgress(),
-    ibmiServiceFunctionsStore.getAvailableServiceFunctions(),
     bootSettingsStore.fetchBiosAttributes(),
   ]).finally(() => {
     isLoading.value = false;
@@ -202,7 +221,7 @@ const isOSRunning = computed(() => {
   return globalStore.isOSRunningGetter;
 });
 const availableFunctions = computed(() => {
-  return ibmiServiceFunctionsStore.serviceFunctionsGetter;
+  return serviceFunctions.value || [];
 });
 const isIBMi = computed(() => {
   if (
@@ -218,11 +237,13 @@ const attributeKeys = computed(() => {
   return bootSettingsStore.getBiosAttributes;
 });
 
-const exceuteFunction = (value) => {
-  ibmiServiceFunctionsStore
-    .executeServiceFunction(value)
-    .then((message) => successToast(message))
-    .catch(({ message }) => errorToast(message));
+const exceuteFunction = async (value) => {
+  try {
+    const message = await executeServiceFunctionApi(value);
+    successToast(message);
+  } catch (error) {
+    errorToast(error.message);
+  }
 };
 const isFunctionDisabled = (value) => {
   if (!isOSRunning.value) {

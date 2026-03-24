@@ -213,6 +213,7 @@ import useToast from '@/components/Composables/useToastComposable';
 import usePaginationComposable from '@/components/Composables/usePaginationComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableFilterComposable from '@/components/Composables/useTableFilterComposable';
+import { useDumps } from '@/api/composables/useDumps';
 import stores from '@/store';
 import eventBus from '@/eventBus';
 
@@ -223,12 +224,18 @@ const { getFilteredTableData, getFilteredTableDataByDate } =
   useTableFilterComposable();
 const { successToast, errorToast } = useToast();
 
-const dumps = stores.DumpsStore();
+// Use the new vue-query composable
+const {
+  allDumps: dumpsData,
+  isLoading,
+  deleteDumps: deleteDumpsApi,
+} = useDumps();
+
 const userManagement = stores.UserManagementStore();
 const resourceMemory = stores.ResourceMemoryStore();
 const global = stores.GlobalStore();
 
-const isBusy = ref(true);
+const isBusy = ref(false);
 const selectedDumpType = ref('');
 const fields = ref([
   {
@@ -293,6 +300,21 @@ const searchTotalFilteredRows = ref(0);
 const openModal = ref(false);
 const dumpVal = ref();
 
+// Watch loading state
+watch(
+  isLoading,
+  (loading) => {
+    if (loading) {
+      startLoader();
+      isBusy.value = true;
+    } else {
+      endLoader();
+      isBusy.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 onBeforeRouteLeave(() => {
   hideLoader();
 });
@@ -300,13 +322,11 @@ onBeforeRouteLeave(() => {
 onBeforeMount(() => {
   startLoader();
   Promise.all([
-    dumps.getAllDumps(),
     userManagement.getUsers(),
     resourceMemory.getHmcManaged(),
     global.getBootProgress(),
   ]).finally(() => {
     endLoader();
-    isBusy.value = false;
   });
 });
 
@@ -320,7 +340,7 @@ const filteredRows = computed(() => {
     : filteredDumps.value.length;
 });
 const allDumps = computed(() => {
-  return dumps.allDumpsGetter;
+  return dumpsData.value || [];
 });
 const filteredDumpsByDate = computed(() => {
   return getFilteredTableDataByDate(
@@ -378,9 +398,10 @@ const onTableRowAction = (action, dump) => {
     dumpVal.value = dump;
   }
 };
-const handleOk = () => {
+const handleOk = async () => {
   openModal.value = false;
-  dumps.deleteDumps([dumpVal.value]).then((messages) => {
+  try {
+    const messages = await deleteDumpsApi([dumpVal.value]);
     messages.forEach(({ type, message }) => {
       if (type === 'success') {
         successToast(message);
@@ -388,7 +409,9 @@ const handleOk = () => {
         errorToast(message);
       }
     });
-  });
+  } catch (error) {
+    console.error('Error deleting dump:', error);
+  }
 };
 const onChangeSearch = (event) => {
   searchFilterInput.value = event;

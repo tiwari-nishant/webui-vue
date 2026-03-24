@@ -109,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import i18n from '@/i18n';
 import { onBeforeRouteLeave } from 'vue-router';
 import TableFilter from '@/components/Global/TableFilter.vue';
@@ -120,6 +120,7 @@ import usePaginationComposable from '@/components/Composables/usePaginationCompo
 import useTableSelectableComposable from '@/components/Composables/useTableSelectableComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableFilterComposable from '@/components/Composables/useTableFilterComposable';
+import { useHardwareDeconfiguration } from '@/api/composables/useHardwareDeconfiguration';
 import stores from '@/store';
 
 const Toast = useToastComposable();
@@ -130,10 +131,16 @@ const { selectedRowsList, clearSelectedRows, onRowSelected } =
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const { getFilteredTableData } = useTableFilterComposable();
 
-const hardwareDeconfigurationStore = stores.HardwareDeconfigurationStore();
+// Use the new vue-query composable
+const {
+  cores: coresData,
+  isLoadingCores,
+  updateCoreSettings: updateCoreSettingsApi,
+} = useHardwareDeconfiguration();
+
 const global = stores.GlobalStore();
 
-const isBusy = ref(true);
+const isBusy = ref(false);
 const tableHardwareDeconfigurationRef = ref(null);
 const selectedRowsLists = ref(selectedRowsList);
 const activeFiltersRows = ref([]);
@@ -217,20 +224,27 @@ const tableFilters = ref([
   },
 ]);
 
+// Watch loading state
+watch(
+  isLoadingCores,
+  (loading) => {
+    if (loading) {
+      startLoader();
+      isBusy.value = true;
+    } else {
+      endLoader();
+      isBusy.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 onBeforeRouteLeave(() => {
   hideLoader();
 });
 
-onBeforeMount(() => {
-  startLoader();
-  hardwareDeconfigurationStore.getProcessors().finally(() => {
-    endLoader();
-    isBusy.value = false;
-  });
-});
-
 const allCores = computed(() => {
-  return hardwareDeconfigurationStore.coresGetter;
+  return coresData.value || [];
 });
 const filteredRows = computed(() => {
   return searchFilterInput.value
@@ -256,20 +270,28 @@ const onFilterChange = ({ activeFilters }) => {
 const onFiltered = (filteredItems) => {
   searchTotalFilteredRows.value = filteredItems.length;
 };
-const toggleSettingsSwitch = (row) => {
-  startLoader();
-  hardwareDeconfigurationStore
-    .updateCoresSettingsState({
+const toggleSettingsSwitch = async (row) => {
+  try {
+    startLoader();
+    await updateCoreSettingsApi({
       uri: row.item.uri,
       settings: row.item.settings,
-    })
-    .catch(({ message }) => {
-      row.item.settings = !row.item.settings;
-      Toast.errorToast(message);
-    })
-    .finally(() => {
-      endLoader();
     });
+  } catch (error) {
+    row.item.settings = !row.item.settings;
+    Toast.errorToast(error.message);
+  } finally {
+    endLoader();
+  }
+};
+
+const exportFileNameByDate = () => {
+  let date = new Date();
+  date =
+    date.toISOString().slice(0, 10) +
+    '_' +
+    date.toString().split(':').join('-').split(' ')[4];
+  return 'processor_cores_' + date;
 };
 
 watch(

@@ -92,6 +92,8 @@ import InputPasswordToggle from '@/components/Global/InputPasswordToggle.vue';
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
 import useToast from '@/components/Composables/useToastComposable';
 import { useVuelidate } from '@vuelidate/core';
+import { useDumps } from '@/api/composables/useDumps';
+import { useIBMiServiceFunctions } from '@/api/composables/useIBMiServiceFunctions';
 import stores from '@/store/index.js';
 import eventBus from '@/eventBus';
 
@@ -99,10 +101,21 @@ const { getValidationState } = useVuelidateComposable();
 const { successToast, errorToast, infoToast } = useToast();
 
 const global = stores.GlobalStore();
-const ibmiServiceFunctions = stores.IBMiServiceFunctionsStore();
 const serverBootSettings = stores.BootSettingsStore();
 const userManagement = stores.UserManagementStore();
-const dumps = stores.DumpsStore();
+
+// Use the new vue-query composables
+const {
+  createBmcDump: createBmcDumpApi,
+  createResourceDump: createResourceDumpApi,
+  createSystemDump: createSystemDumpApi,
+  getTask: getTaskApi,
+} = useDumps();
+
+const {
+  availableFunctions: serviceFunctions,
+  executeServiceFunction: executeServiceFunctionApi,
+} = useIBMiServiceFunctions();
 
 const selectedDumpType = ref('');
 const resourceSelectorValue = ref(null);
@@ -119,7 +132,6 @@ onBeforeMount(() => {
   Promise.all([
     global.getHmcManaged(),
     global.getBootProgress(),
-    ibmiServiceFunctions.getAvailableServiceFunctions(),
     serverBootSettings.fetchBiosAttributes(),
     serverBootSettings.getBiosAttributes,
   ]);
@@ -140,7 +152,7 @@ const isOSRunning = computed(() => {
   return global.isOSRunningGetter;
 });
 const availableFunctions = computed(() => {
-  return ibmiServiceFunctions.serviceFunctionsGetter;
+  return serviceFunctions.value || [];
 });
 const isIBMi = computed(() => {
   if (
@@ -194,7 +206,7 @@ const isButtonDisabled = computed(() => {
 
 const checkTask = async () => {
   //getting list of all tasks and getting the api to the most recent task
-  const taskObj = await dumps.getTask();
+  const taskObj = await getTaskApi();
   taskProgress.value = taskObj.data.Members[taskObj.data.Members.length - 1];
   const taskLink = taskProgress.value['@odata.id'];
   //going to the most recent task
@@ -267,12 +279,11 @@ const handleSubmit = () => {
   }
   // Resource dump initiation
   else if (selectedDumpType.value === 'resource') {
-    dumps
-      .createResourceDump({
-        resourceSelector: resourceSelectorValue.value,
-        // If not logged as service, '' must be used
-        resourcePassword: resourcePasswordValue.value || '',
-      })
+    createResourceDumpApi({
+      resourceSelector: resourceSelectorValue.value,
+      // If not logged as service, '' must be used
+      resourcePassword: resourcePasswordValue.value || '',
+    })
       .then(() => {
         infoToast(i18n.global.t('pageDumps.toast.successStartDump'), {
           title: i18n.global.t('pageDumps.toast.successStartResourceDumpTitle'),
@@ -284,8 +295,7 @@ const handleSubmit = () => {
   }
   // BMC dump initiation
   else if (selectedDumpType.value === 'bmc') {
-    dumps
-      .createBmcDump(dumpType)
+    createBmcDumpApi(dumpType)
       .then(() =>
         infoToast(i18n.global.t('pageDumps.toast.successStartDump'), {
           title: i18n.global.t('pageDumps.toast.successStartBmcDumpTitle'),
@@ -326,14 +336,14 @@ const setDumpTypeOptions = () => {
     return (dumpTypeOptions.value = minimumOptions);
   }
 };
-const exceuteFunction = (value) => {
-  ibmiServiceFunctions
-    .executeServiceFunction(value)
-    .then((message) => {
-      infoToast(i18n.global.t('pageDumps.toast.successSavePartitionDumpInfo'));
-      successToast(message);
-    })
-    .catch(({ message }) => errorToast(message));
+const exceuteFunction = async (value) => {
+  try {
+    const message = await executeServiceFunctionApi(value);
+    infoToast(i18n.global.t('pageDumps.toast.successSavePartitionDumpInfo'));
+    successToast(message);
+  } catch (error) {
+    errorToast(error.message);
+  }
 };
 const isFunctionDisabled = (value) => {
   // This condition is to check if the function is available to execute
@@ -350,8 +360,7 @@ const showPartitionDumpConfirmationModal = () => {
   modalPartition.value = true;
 };
 const createSystemDump = (dumpType) => {
-  dumps
-    .createSystemDump(dumpType)
+  createSystemDumpApi(dumpType)
     .then(() =>
       infoToast(i18n.global.t('pageDumps.toast.successStartDump'), {
         title: i18n.global.t('pageDumps.toast.successStartSystemDumpTitle'),
