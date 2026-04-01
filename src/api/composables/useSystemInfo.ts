@@ -1,7 +1,15 @@
 import { computed } from 'vue';
-import { useQuery } from '@tanstack/vue-query';
-// @ts-ignore - api.js is a JavaScript module
-import api from '@/store/api';
+import { useQueryClient } from '@tanstack/vue-query';
+// @ts-ignore - i18n.js is a JavaScript module
+import i18n from '@/i18n';
+// @ts-ignore - useToast is a JS module
+import useToast from '@/components/Composables/useToastComposable';
+import {
+  useRedfishResource,
+  useRedfishCollection,
+} from './useRedfishCollection';
+import { usePatchResource } from './usePatchResource';
+import type { System, EventLog } from '@/types/redfish';
 
 export const HOST_STATE = {
   on: 'xyz.openbmc_project.State.Host.HostState.Running',
@@ -29,6 +37,12 @@ export const serverStateMapper = (hostState: string): string => {
   }
 };
 
+interface EventLogEntry {
+  Id: string;
+  Severity?: string;
+  Resolved?: boolean;
+}
+
 const getHealthStatus = (
   events: EventLogEntry[],
   loadedEvents: boolean,
@@ -44,26 +58,6 @@ const getHealthStatus = (
   }
   return status;
 };
-
-interface SystemData {
-  AssetTag?: string;
-  Model?: string;
-  PowerState?: string;
-  SerialNumber?: string;
-  Status?: {
-    State?: string;
-  };
-}
-
-interface EventLogEntry {
-  Id: string;
-  Severity: string;
-  Resolved?: boolean;
-}
-
-interface EventLogResponse {
-  Members?: EventLogEntry[];
-}
 
 export interface SystemInfo {
   assetTag: string | null;
@@ -82,86 +76,77 @@ const SYSTEM_INFO_STORAGE_KEY = 'systemInfoCache';
  * Data is cached in sessionStorage to persist across page reloads
  */
 export function useSystemInfo() {
+  // Fetch system info
   const {
-    data: systemData,
-    isLoading,
-    error,
-    isError,
-    refetch,
-  } = useQuery({
-    queryKey: ['redfish', 'system', 'info'],
-    queryFn: async (): Promise<SystemInfo> => {
+    data: system,
+    isLoading: isSystemLoading,
+    error: systemError,
+    isError: isSystemError,
+    refetch: refetchSystem,
+  } = useRedfishResource<System>('/redfish/v1/Systems/system');
+
+  // Fetch event logs
+  const {
+    data: eventLogs,
+    isLoading: isEventsLoading,
+    error: eventsError,
+    isError: isEventsError,
+    refetch: refetchEvents,
+  } = useRedfishCollection<EventLog>(
+    '/redfish/v1/Systems/system/LogServices/EventLog/Entries',
+    {
+      staleTime: 30 * 1000, // 30 seconds
+    },
+  );
+
+  const systemData = computed((): SystemInfo | null => {
+    if (!system.value) {
       // Check if data exists in sessionStorage first
       const cachedData = sessionStorage.getItem(SYSTEM_INFO_STORAGE_KEY);
       if (cachedData) {
         try {
           return JSON.parse(cachedData);
         } catch (e) {
-          // If parsing fails, continue to fetch fresh data
           sessionStorage.removeItem(SYSTEM_INFO_STORAGE_KEY);
         }
       }
+      return null;
+    }
 
-      // Fetch system info and event logs in parallel
-      const [systemResponse, eventLogResponse] = await Promise.all([
-        api.get<SystemData>('/redfish/v1/Systems/system'),
-        api.get<EventLogResponse>(
-          '/redfish/v1/Systems/system/LogServices/EventLog/Entries',
-        ),
-      ]);
+    const { AssetTag, Model, PowerState, SerialNumber, Status } = system.value;
 
-      const {
-        AssetTag,
-        Model,
-        PowerState,
-        SerialNumber,
-        Status: { State } = {},
-      } = systemResponse.data;
+    let serverStatus = 'unreachable';
+    if (Status?.State === 'Quiesced' || Status?.State === 'InTest') {
+      // OpenBMC's host state interface is mapped to 2 Redfish
+      // properties "Status""State" and "PowerState". Look first
+      // at State for certain cases.
+      serverStatus = serverStateMapper(Status.State);
+    } else if (PowerState) {
+      serverStatus = serverStateMapper(PowerState);
+    }
 
-      let serverStatus = 'unreachable';
-      if (State === 'Quiesced' || State === 'InTest') {
-        // OpenBMC's host state interface is mapped to 2 Redfish
-        // properties "Status""State" and "PowerState". Look first
-        // at State for certain cases.
-        serverStatus = serverStateMapper(State);
-      } else if (PowerState) {
-        serverStatus = serverStateMapper(PowerState);
-      }
+    // Store model type in localStorage for persistence
+    if (Model) {
+      localStorage.setItem('storedModelType', Model);
+    }
 
-      // Store model type in localStorage for persistence
-      if (Model) {
-        localStorage.setItem('storedModelType', Model);
-      }
+    // Process event logs for health status
+    const events = eventLogs.value || [];
+    const healthStatus = getHealthStatus(events, true);
 
-      // Process event logs for health status
-      const events = eventLogResponse.data.Members || [];
-      const healthStatus = getHealthStatus(events, true);
+    const systemInfo: SystemInfo = {
+      assetTag: AssetTag || null,
+      modelType: Model || localStorage.getItem('storedModelType') || '--',
+      serialNumber: SerialNumber || null,
+      serverStatus,
+      healthStatus,
+      events,
+    };
 
-      const systemInfo: SystemInfo = {
-        assetTag: AssetTag || null,
-        modelType: Model || localStorage.getItem('storedModelType') || '--',
-        serialNumber: SerialNumber || null,
-        serverStatus,
-        healthStatus,
-        events,
-      };
+    // Store in sessionStorage for persistence across page reloads
+    sessionStorage.setItem(SYSTEM_INFO_STORAGE_KEY, JSON.stringify(systemInfo));
 
-      // Store in sessionStorage for persistence across page reloads
-      sessionStorage.setItem(
-        SYSTEM_INFO_STORAGE_KEY,
-        JSON.stringify(systemInfo),
-      );
-
-      return systemInfo;
-    },
-    staleTime: Infinity, // Cache for entire session - data won't change until logout
-    gcTime: Infinity, // Keep in cache indefinitely during session
-    retry: (failureCount, error: any) => {
-      const status = error?.response?.status;
-      if (status && status >= 400 && status < 500) return false;
-      return failureCount < 2;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    return systemInfo;
   });
 
   return {
@@ -173,9 +158,66 @@ export function useSystemInfo() {
     ),
     healthStatus: computed(() => systemData.value?.healthStatus ?? ''),
     events: computed(() => systemData.value?.events ?? []),
-    isLoading,
-    error,
+    isLoading: computed(() => isSystemLoading.value || isEventsLoading.value),
+    error: computed(() => systemError.value || eventsError.value),
+    isError: computed(() => isSystemError.value || isEventsError.value),
+    refetch: () => {
+      refetchSystem();
+      refetchEvents();
+    },
+  };
+}
+
+/**
+ * Composable for updating asset tag
+ * Provides mutation function with automatic cache invalidation
+ */
+export function useUpdateAssetTag() {
+  const queryClient = useQueryClient();
+  const { successToast, errorToast } = useToast();
+  const { patchResource, isPending, isError, error } = usePatchResource();
+
+  const updateAssetTag = async (
+    assetTagData: { AssetTag: string } | string,
+  ) => {
+    const assetTag =
+      typeof assetTagData === 'string' ? assetTagData : assetTagData.AssetTag;
+
+    return patchResource({
+      endpoint: '/redfish/v1/Systems/system',
+      field: 'AssetTag',
+      value: assetTag,
+      invalidateQueries: [
+        ['redfish', 'system', 'info'],
+        ['redfish', 'resource', '/redfish/v1/Systems/system'],
+      ],
+      onSuccess: () => {
+        successToast(i18n.global.t('pageOverview.toast.successSaveAssetTag'));
+        // Also clear sessionStorage cache
+        sessionStorage.removeItem(SYSTEM_INFO_STORAGE_KEY);
+        // Update the cache optimistically
+        queryClient.setQueryData(
+          ['redfish', 'system', 'info'],
+          (old: SystemInfo | undefined) => {
+            if (old) {
+              return { ...old, assetTag };
+            }
+            return old;
+          },
+        );
+      },
+      onError: (err) => {
+        console.log('Asset Tag Error:', err);
+        errorToast(i18n.global.t('pageOverview.toast.errorSaveAssetTag'));
+      },
+    });
+  };
+
+  return {
+    updateAssetTag,
+    updateAssetTagAsync: updateAssetTag,
+    isUpdating: isPending,
     isError,
-    refetch,
+    error,
   };
 }
