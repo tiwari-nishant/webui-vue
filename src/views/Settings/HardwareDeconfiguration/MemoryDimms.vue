@@ -249,18 +249,18 @@ const onFiltered = (filteredItems) => {
   searchTotalFilteredRows.value = filteredItems.length;
 };
 const toggleSettingsSwitch = async (row) => {
-  try {
-    startLoader();
-    await updateDimmSettingsApi({
-      uri: row.item.uri,
-      settings: row.item.settings,
+  startLoader();
+  await updateDimmSettingsApi({
+    uri: row.item.uri,
+    settings: row.item.settings,
+  })
+    .catch(() => {
+      // Revert the toggle on error (toast is handled in composable)
+      row.item.settings = !row.item.settings;
+    })
+    .finally(() => {
+      endLoader();
     });
-  } catch (error) {
-    row.item.settings = !row.item.settings;
-    Toast.errorToast(error.message);
-  } finally {
-    endLoader();
-  }
 };
 
 watch(

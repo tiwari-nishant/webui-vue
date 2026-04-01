@@ -8,6 +8,8 @@ import api from '@/store/api';
 import i18n from '@/i18n';
 // @ts-ignore - GlobalConstants.js is a JavaScript module
 import { REGEX_MAPPINGS } from '@/utilities/GlobalConstants';
+// @ts-ignore - useToast is a JS module
+import useToast from '@/components/Composables/useToastComposable';
 
 // Base DIMM data interface (server data only)
 export interface DimmData {
@@ -107,6 +109,7 @@ const extractConditionData = (
 export function useHardwareDeconfiguration() {
   const queryClient = useQueryClient();
   const { patchResource } = usePatchResource();
+  const { successToast, errorToast } = useToast();
 
   // Fetch Processors Collection (without $expand, fetch members individually)
   const {
@@ -255,38 +258,55 @@ export function useHardwareDeconfiguration() {
   // Update DIMM settings mutation
   const updateDimmSettingsMutation = useMutation({
     mutationFn: async (settingsState: { uri: string; settings: boolean }) => {
-      try {
-        await patchResource({
-          endpoint: settingsState.uri,
-          field: 'Enabled',
-          value: settingsState.settings,
-          invalidateQueries: [
-            ['redfish', 'collection', '/redfish/v1/Systems/system/Memory'],
-          ],
-        });
-      } catch (error: any) {
-        console.error('error', error);
-        const messageId =
-          error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]
-            ?.MessageId;
+      await patchResource({
+        endpoint: settingsState.uri,
+        field: 'Enabled',
+        value: settingsState.settings,
+        invalidateQueries: [
+          ['redfish', 'collection', '/redfish/v1/Systems/system/Memory'],
+        ],
+      });
+      return settingsState;
+    },
+    onSuccess: (settingsState: { uri: string; settings: boolean }) => {
+      if (settingsState.settings) {
+        successToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.successConfiguringDIMM',
+          ),
+        );
+      } else {
+        successToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.successDeconfiguringDIMM',
+          ),
+        );
+      }
+    },
+    onError: (
+      error: any,
+      settingsState: { uri: string; settings: boolean },
+    ) => {
+      console.error('error', error);
+      const messageId =
+        error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]?.MessageId;
 
-        if (REGEX_MAPPINGS.resourceCannotBeDeleted.test(messageId)) {
-          throw new Error(
-            i18n.global.t('pageDeconfigurationHardware.toast.deleteReqFailed'),
-          );
-        } else if (settingsState.settings) {
-          throw new Error(
-            i18n.global.t(
-              'pageDeconfigurationHardware.toast.errorConfiguringDIMM',
-            ),
-          );
-        } else {
-          throw new Error(
-            i18n.global.t(
-              'pageDeconfigurationHardware.toast.errorDeconfiguringDIMM',
-            ),
-          );
-        }
+      if (REGEX_MAPPINGS.resourceCannotBeDeleted.test(messageId)) {
+        errorToast(
+          i18n.global.t('pageDeconfigurationHardware.toast.deleteReqFailed'),
+        );
+      } else if (settingsState.settings) {
+        errorToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.errorConfiguringDIMM',
+          ),
+        );
+      } else {
+        errorToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.errorDeconfiguringDIMM',
+          ),
+        );
       }
     },
   });
@@ -294,38 +314,55 @@ export function useHardwareDeconfiguration() {
   // Update Core settings mutation
   const updateCoreSettingsMutation = useMutation({
     mutationFn: async (settingsState: { uri: string; settings: boolean }) => {
-      try {
-        await patchResource({
-          endpoint: settingsState.uri,
-          field: 'Enabled',
-          value: settingsState.settings,
-          invalidateQueries: [
-            ['redfish', 'collection', '/redfish/v1/Systems/system/Processors'],
-          ],
-        });
-      } catch (error: any) {
-        console.error('error', error);
-        const messageId =
-          error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]
-            ?.MessageId;
+      await patchResource({
+        endpoint: settingsState.uri,
+        field: 'Enabled',
+        value: settingsState.settings,
+        invalidateQueries: [
+          ['redfish', 'collection', '/redfish/v1/Systems/system/Processors'],
+        ],
+      });
+      return settingsState;
+    },
+    onSuccess: (settingsState: { uri: string; settings: boolean }) => {
+      if (settingsState.settings) {
+        successToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.successConfiguringProcessorCore',
+          ),
+        );
+      } else {
+        successToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.successDeconfiguringProcessorCore',
+          ),
+        );
+      }
+    },
+    onError: (
+      error: any,
+      settingsState: { uri: string; settings: boolean },
+    ) => {
+      console.error('error', error);
+      const messageId =
+        error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]?.MessageId;
 
-        if (REGEX_MAPPINGS.resourceCannotBeDeleted.test(messageId)) {
-          throw new Error(
-            i18n.global.t('pageDeconfigurationHardware.toast.deleteReqFailed'),
-          );
-        } else if (settingsState.settings) {
-          throw new Error(
-            i18n.global.t(
-              'pageDeconfigurationHardware.toast.errorConfiguringProcessorCore',
-            ),
-          );
-        } else {
-          throw new Error(
-            i18n.global.t(
-              'pageDeconfigurationHardware.toast.errorDeconfiguringProcessorCore',
-            ),
-          );
-        }
+      if (REGEX_MAPPINGS.resourceCannotBeDeleted.test(messageId)) {
+        errorToast(
+          i18n.global.t('pageDeconfigurationHardware.toast.deleteReqFailed'),
+        );
+      } else if (settingsState.settings) {
+        errorToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.errorConfiguringProcessorCore',
+          ),
+        );
+      } else {
+        errorToast(
+          i18n.global.t(
+            'pageDeconfigurationHardware.toast.errorDeconfiguringProcessorCore',
+          ),
+        );
       }
     },
   });

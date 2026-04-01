@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import api from '@/store/api';
 // @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
+// @ts-ignore - useToast is a JS module
+import useToast from '@/components/Composables/useToastComposable';
 
 /**
  * Composable for fetching and managing IBMi Service Functions
@@ -11,6 +13,7 @@ import i18n from '@/i18n';
  */
 export function useIBMiServiceFunctions() {
   const queryClient = useQueryClient();
+  const { successToast, errorToast, infoToast } = useToast();
 
   // Fetch available service functions
   const {
@@ -35,26 +38,27 @@ export function useIBMiServiceFunctions() {
   // Execute service function mutation
   const executeServiceFunctionMutation = useMutation({
     mutationFn: async (funcNo: number) => {
-      try {
-        await api.post(
-          '/redfish/v1/Systems/system/Actions/Oem/IBM/IBMComputerSystem.ExecutePanelFunction',
-          {
-            FuncNo: funcNo,
-          },
-        );
-        return i18n.global.t(
-          'pageIbmiServiceFunctions.toast.successExecuteFunction',
-        );
-      } catch (error) {
-        console.error(error);
-        throw new Error(
-          i18n.global.t('pageIbmiServiceFunctions.toast.errorExecuteFunction'),
-        );
-      }
+      await api.post(
+        '/redfish/v1/Systems/system/Actions/Oem/IBM/IBMComputerSystem.ExecutePanelFunction',
+        {
+          FuncNo: funcNo,
+        },
+      );
+      return i18n.global.t(
+        'pageIbmiServiceFunctions.toast.successExecuteFunction',
+      );
     },
-    onSuccess: () => {
+    onSuccess: (message: string) => {
+      infoToast(i18n.global.t('pageDumps.toast.successSavePartitionDumpInfo'));
+      successToast(message);
       // Refetch available functions after execution
       queryClient.invalidateQueries({ queryKey: ['ibmi', 'serviceFunctions'] });
+    },
+    onError: (error: any) => {
+      console.error(error);
+      errorToast(
+        i18n.global.t('pageIbmiServiceFunctions.toast.errorExecuteFunction'),
+      );
     },
   });
 

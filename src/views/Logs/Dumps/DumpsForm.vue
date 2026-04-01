@@ -283,26 +283,13 @@ const handleSubmit = () => {
       resourceSelector: resourceSelectorValue.value,
       // If not logged as service, '' must be used
       resourcePassword: resourcePasswordValue.value || '',
-    })
-      .then(() => {
-        infoToast(i18n.global.t('pageDumps.toast.successStartDump'), {
-          title: i18n.global.t('pageDumps.toast.successStartResourceDumpTitle'),
-          timestamp: true,
-        });
-        checkTask();
-      })
-      .catch(({ message }) => errorToast(message));
+    }).then(() => {
+      checkTask();
+    });
   }
   // BMC dump initiation
   else if (selectedDumpType.value === 'bmc') {
-    createBmcDumpApi(dumpType)
-      .then(() =>
-        infoToast(i18n.global.t('pageDumps.toast.successStartDump'), {
-          title: i18n.global.t('pageDumps.toast.successStartBmcDumpTitle'),
-          timestamp: true,
-        }),
-      )
-      .catch(({ message }) => errorToast(message));
+    createBmcDumpApi(dumpType);
   } else if (selectedDumpType.value === 'partition') {
     // Partition dump initiation
     showPartitionDumpConfirmationModal();
@@ -337,13 +324,7 @@ const setDumpTypeOptions = () => {
   }
 };
 const exceuteFunction = async (value) => {
-  try {
-    const message = await executeServiceFunctionApi(value);
-    infoToast(i18n.global.t('pageDumps.toast.successSavePartitionDumpInfo'));
-    successToast(message);
-  } catch (error) {
-    errorToast(error.message);
-  }
+  await executeServiceFunctionApi(value);
 };
 const isFunctionDisabled = (value) => {
   // This condition is to check if the function is available to execute

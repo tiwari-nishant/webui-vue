@@ -1,11 +1,14 @@
 import { computed, ref, watch } from 'vue';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/vue-query';
+import { useMutation, useQueryClient } from '@tanstack/vue-query';
+import { useRedfishCollection } from './useRedfishCollection';
 // @ts-ignore - api.js is a JavaScript module
 import api, { getResponseCount } from '@/store/api';
 // @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
 // @ts-ignore - GlobalConstants.js is a JavaScript module
 import { REGEX_MAPPINGS } from '@/utilities/GlobalConstants';
+// @ts-ignore - useToast is a JS module
+import useToast from '@/components/Composables/useToastComposable';
 
 // Base dump data interface (server data only)
 export interface DumpData {
@@ -43,7 +46,7 @@ const getDumpType = (dump: any): string => {
 };
 
 /**
- * Helper function to process dump entries
+ * Helper function to process dump entries (data only, no UI state)
  */
 const processDump = (dump: any): DumpData => {
   return {
@@ -58,123 +61,147 @@ const processDump = (dump: any): DumpData => {
 };
 
 /**
+ * Get default UI state for a new dump entry
+ */
+const getDefaultUIState = (): DumpUIState => {
+  return {
+    // Add defaults for other UI properties here
+  };
+};
+
+/**
  * Composable for fetching and managing dumps
  * Replaces the DumpsStore with TanStack Query
  */
 export function useDumps() {
   const queryClient = useQueryClient();
+  const { successToast, errorToast, infoToast } = useToast();
 
-  // Fetch BMC Dump Entries
-  const fetchBmcDumpEntries = async () => {
-    try {
-      const rootResponse = await api.get('/redfish/v1/');
-      const managersResponse = await api.get(
-        rootResponse.data.Managers['@odata.id'],
-      );
-      const bmcResponse = await api.get(
-        `${managersResponse.data['@odata.id']}/bmc`,
-      );
-      const logServicesResponse = await api.get(
-        bmcResponse.data.LogServices['@odata.id'],
-      );
-      const dumpResponse = await api.get(
-        `${logServicesResponse.data['@odata.id']}/Dump`,
-      );
-      const entriesResponse = await api.get(
-        dumpResponse.data.Entries['@odata.id'],
-      );
-      return entriesResponse.data?.Members || [];
-    } catch (error) {
-      console.error('Error fetching BMC dump entries:', error);
-      return [];
-    }
-  };
-
-  // Fetch System Dump Entries
-  const fetchSystemDumpEntries = async () => {
-    try {
-      const rootResponse = await api.get('/redfish/v1/');
-      const systemsResponse = await api.get(
-        rootResponse.data.Systems['@odata.id'],
-      );
-      const systemResponse = await api.get(
-        `${systemsResponse.data['@odata.id']}/system`,
-      );
-      const logServicesResponse = await api.get(
-        systemResponse.data.LogServices['@odata.id'],
-      );
-      const dumpResponse = await api.get(
-        `${logServicesResponse.data['@odata.id']}/Dump`,
-      );
-      const entriesResponse = await api.get(
-        dumpResponse.data.Entries['@odata.id'],
-      );
-      return entriesResponse.data?.Members || [];
-    } catch (error) {
-      console.error('Error fetching system dump entries:', error);
-      return [];
-    }
-  };
-
-  // Fetch all dumps using useQuery
+  // Fetch BMC Dump Entries using useRedfishCollection
   const {
-    data: dumpsRaw,
-    isLoading,
-    error,
-    isError,
-    refetch: refetchDumps,
-  } = useQuery({
-    queryKey: ['dumps', 'all'],
-    queryFn: async () => {
-      const [bmcDumps, systemDumps] = await Promise.all([
-        fetchBmcDumpEntries(),
-        fetchSystemDumpEntries(),
-      ]);
-      return [...bmcDumps, ...systemDumps];
-    },
+    data: bmcDumpsRaw,
+    isLoading: isLoadingBmcDumps,
+    error: bmcDumpsError,
+    isError: isBmcDumpsError,
+    refetch: refetchBmcDumps,
+  } = useRedfishCollection<any>(
+    '/redfish/v1/Managers/bmc/LogServices/Dump/Entries',
+  );
+
+  // Fetch System Dump Entries using useRedfishCollection
+  const {
+    data: systemDumpsRaw,
+    isLoading: isLoadingSystemDumps,
+    error: systemDumpsError,
+    isError: isSystemDumpsError,
+    refetch: refetchSystemDumps,
+  } = useRedfishCollection<any>(
+    '/redfish/v1/Systems/system/LogServices/Dump/Entries',
+  );
+
+  // Process the raw data into DumpData format
+  const bmcDumpsData = computed(() => {
+    if (!bmcDumpsRaw.value) return [];
+    return bmcDumpsRaw.value.map(processDump);
   });
 
-  // Process dumps data
-  const allDumps = computed(() => {
-    if (!dumpsRaw.value) return [];
-    return dumpsRaw.value.map(processDump);
+  const systemDumpsData = computed(() => {
+    if (!systemDumpsRaw.value) return [];
+    return systemDumpsRaw.value.map(processDump);
   });
+
+  // Combined dumps - use ref to track deep changes to dump objects
+  const allDumps = ref<ProcessedDump[]>([]);
+
+  // Separate storage for data and UI state
+  const dataMap = new Map<string, DumpData>();
+  const uiStateMap = new Map<string, DumpUIState>();
+
+  // Watch for changes and update allDumps ref while preserving UI state
+  watch(
+    [bmcDumpsData, systemDumpsData],
+    ([bmcDumps, systemDumps]: [DumpData[], DumpData[]]) => {
+      const newDumps: ProcessedDump[] = [];
+      const allRawDumps = [...(bmcDumps || []), ...(systemDumps || [])];
+      const currentLocations = new Set<string>();
+
+      for (const rawDump of allRawDumps) {
+        const location = rawDump.location;
+        currentLocations.add(location);
+
+        // Update or create data entry
+        dataMap.set(location, rawDump);
+
+        // Get or create UI state (preserves existing state)
+        if (!uiStateMap.has(location)) {
+          uiStateMap.set(location, getDefaultUIState());
+        }
+
+        // Combine data and UI state into a single object
+        const combinedDump: ProcessedDump = {
+          ...rawDump,
+          ...uiStateMap.get(location)!,
+        };
+
+        newDumps.push(combinedDump);
+      }
+
+      // Clean up removed dumps
+      for (const [location] of dataMap.entries()) {
+        if (!currentLocations.has(location)) {
+          dataMap.delete(location);
+          uiStateMap.delete(location);
+        }
+      }
+
+      allDumps.value = newDumps;
+    },
+    { immediate: true },
+  );
 
   // Create BMC Dump mutation
   const createBmcDumpMutation = useMutation({
     mutationFn: async (dumpType: string) => {
-      try {
-        await api.post(
-          '/redfish/v1/Managers/bmc/LogServices/Dump/Actions/LogService.CollectDiagnosticData',
-          {
-            DiagnosticDataType: 'Manager',
-          },
-        );
-      } catch (error: any) {
-        console.error(error);
-        const errorMsg =
-          error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]
-            ?.MessageId;
-
-        if (REGEX_MAPPINGS.resourceInUse.test(errorMsg)) {
-          throw new Error(
-            i18n.global.t('pageDumps.toast.errorStartDumpAnotherInProgress', {
-              dump: dumpType,
-            }),
-          );
-        } else if (REGEX_MAPPINGS.resourceInStandby.test(errorMsg)) {
-          throw new Error(
-            i18n.global.t('pageDumps.toast.errorStartDumpResourceInStandby', {
-              dump: dumpType,
-            }),
-          );
-        } else {
-          throw new Error(i18n.global.t('pageDumps.toast.errorStartBmcDump'));
-        }
-      }
+      return await api.post(
+        '/redfish/v1/Managers/bmc/LogServices/Dump/Actions/LogService.CollectDiagnosticData',
+        {
+          DiagnosticDataType: 'Manager',
+        },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dumps', 'all'] });
+      infoToast(i18n.global.t('pageDumps.toast.successStartDump'), {
+        title: i18n.global.t('pageDumps.toast.successStartBmcDumpTitle'),
+        timestamp: true,
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          'redfish',
+          'collection',
+          '/redfish/v1/Managers/bmc/LogServices/Dump/Entries',
+        ],
+      });
+    },
+    onError: (error: any, dumpType: string) => {
+      console.error(error);
+      const errorMsg =
+        error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]?.MessageId;
+
+      if (REGEX_MAPPINGS.resourceInUse.test(errorMsg)) {
+        errorToast(
+          i18n.global.t('pageDumps.toast.errorStartDumpAnotherInProgress', {
+            dump: dumpType,
+          }),
+        );
+      } else if (REGEX_MAPPINGS.resourceInStandby.test(errorMsg)) {
+        errorToast(
+          i18n.global.t('pageDumps.toast.errorStartDumpResourceInStandby', {
+            dump: dumpType,
+          }),
+        );
+      } else {
+        errorToast(i18n.global.t('pageDumps.toast.errorStartBmcDump'));
+      }
     },
   });
 
@@ -190,102 +217,110 @@ export function useDumps() {
       const delay = (time: number) =>
         new Promise((resolve) => setTimeout(resolve, time));
 
-      try {
-        const response = await api.post(
-          '/redfish/v1/Systems/system/LogServices/Dump/Actions/LogService.CollectDiagnosticData',
-          {
-            DiagnosticDataType: 'OEM',
-            OEMDiagnosticDataType: `Resource_${resourceSelector || ''}_${resourcePassword}`,
-          },
-        );
+      const response = await api.post(
+        '/redfish/v1/Systems/system/LogServices/Dump/Actions/LogService.CollectDiagnosticData',
+        {
+          DiagnosticDataType: 'OEM',
+          OEMDiagnosticDataType: `Resource_${resourceSelector || ''}_${resourcePassword}`,
+        },
+      );
 
-        // A half second lag is needed while the backend runs a process
-        await delay(500);
-        const taskResponse = await api.get(response.data['@odata.id']);
+      // A half second lag is needed while the backend runs a process
+      await delay(500);
+      const taskResponse = await api.get(response.data['@odata.id']);
 
-        const messageId = taskResponse.data.Messages.filter(
-          (message: any) =>
-            REGEX_MAPPINGS.actionParameterUnknown.test(message.MessageId) ||
-            REGEX_MAPPINGS.resourceAtUriUnauthorized.test(message.MessageId) ||
-            REGEX_MAPPINGS.insufficientPrivilege.test(message.MessageId),
-        )[0]?.MessageId;
+      const messageId = taskResponse.data.Messages.filter(
+        (message: any) =>
+          REGEX_MAPPINGS.actionParameterUnknown.test(message.MessageId) ||
+          REGEX_MAPPINGS.resourceAtUriUnauthorized.test(message.MessageId) ||
+          REGEX_MAPPINGS.insufficientPrivilege.test(message.MessageId),
+      )[0]?.MessageId;
 
-        if (messageId) {
-          throw messageId;
-        }
-      } catch (error: any) {
-        const errorMsg = error;
-
-        if (
-          REGEX_MAPPINGS.resourceInStandby.test(
-            error.response?.data?.error?.code,
-          )
-        ) {
-          throw new Error(i18n.global.t('pageDumps.toast.errorPhypInStandby'));
-        }
-
-        if (REGEX_MAPPINGS.actionParameterUnknown.test(errorMsg)) {
-          throw new Error(
-            i18n.global.t(
-              'pageDumps.toast.errorStartResourceDumpInvalidSelector',
-            ),
-          );
-        } else if (REGEX_MAPPINGS.resourceAtUriUnauthorized.test(errorMsg)) {
-          throw new Error(
-            i18n.global.t(
-              'pageDumps.toast.errorStartResourceDumpInvalidPassword',
-            ),
-          );
-        } else if (REGEX_MAPPINGS.insufficientPrivilege.test(errorMsg)) {
-          throw new Error(i18n.global.t('global.toast.unAuthDescription'));
-        } else {
-          throw new Error(
-            i18n.global.t('pageDumps.toast.errorStartResourceDump'),
-          );
-        }
+      if (messageId) {
+        throw messageId;
       }
+
+      return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dumps', 'all'] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          'redfish',
+          'collection',
+          '/redfish/v1/Systems/system/LogServices/Dump/Entries',
+        ],
+      });
+    },
+    onError: (error: any) => {
+      const errorMsg = error;
+
+      if (
+        REGEX_MAPPINGS.resourceInStandby.test(error.response?.data?.error?.code)
+      ) {
+        errorToast(i18n.global.t('pageDumps.toast.errorPhypInStandby'));
+        return;
+      }
+
+      if (REGEX_MAPPINGS.actionParameterUnknown.test(errorMsg)) {
+        errorToast(
+          i18n.global.t(
+            'pageDumps.toast.errorStartResourceDumpInvalidSelector',
+          ),
+        );
+      } else if (REGEX_MAPPINGS.resourceAtUriUnauthorized.test(errorMsg)) {
+        errorToast(
+          i18n.global.t(
+            'pageDumps.toast.errorStartResourceDumpInvalidPassword',
+          ),
+        );
+      } else if (REGEX_MAPPINGS.insufficientPrivilege.test(errorMsg)) {
+        errorToast(i18n.global.t('global.toast.unAuthDescription'));
+      } else {
+        errorToast(i18n.global.t('pageDumps.toast.errorStartResourceDump'));
+      }
     },
   });
 
   // Create System Dump mutation
   const createSystemDumpMutation = useMutation({
     mutationFn: async (dumpType: string) => {
-      try {
-        await api.post(
-          '/redfish/v1/Systems/system/LogServices/Dump/Actions/LogService.CollectDiagnosticData',
-          {
-            DiagnosticDataType: 'OEM',
-            OEMDiagnosticDataType: 'System',
-          },
-        );
-      } catch (error: any) {
-        console.error(error);
-        const errorMsg =
-          error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]
-            ?.MessageId;
-
-        if (REGEX_MAPPINGS.resourceInUse.test(errorMsg)) {
-          throw new Error(
-            i18n.global.t('pageDumps.toast.errorStartDumpAnotherInProgress', {
-              dump: dumpType,
-            }),
-          );
-        } else if (REGEX_MAPPINGS.resourceInStandby.test(errorMsg)) {
-          throw new Error(
-            i18n.global.t('pageDumps.toast.errorStartDumpResourceInStandby', {
-              dump: dumpType,
-            }),
-          );
-        } else {
-          throw new Error(i18n.global.t('pageDumps.toast.errorStartBmcDump'));
-        }
-      }
+      return await api.post(
+        '/redfish/v1/Systems/system/LogServices/Dump/Actions/LogService.CollectDiagnosticData',
+        {
+          DiagnosticDataType: 'OEM',
+          OEMDiagnosticDataType: 'System',
+        },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dumps', 'all'] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          'redfish',
+          'collection',
+          '/redfish/v1/Systems/system/LogServices/Dump/Entries',
+        ],
+      });
+    },
+    onError: (error: any, dumpType: string) => {
+      console.error(error);
+      const errorMsg =
+        error.response?.data?.error?.['@Message.ExtendedInfo']?.[0]?.MessageId;
+
+      if (REGEX_MAPPINGS.resourceInUse.test(errorMsg)) {
+        errorToast(
+          i18n.global.t('pageDumps.toast.errorStartDumpAnotherInProgress', {
+            dump: dumpType,
+          }),
+        );
+      } else if (REGEX_MAPPINGS.resourceInStandby.test(errorMsg)) {
+        errorToast(
+          i18n.global.t('pageDumps.toast.errorStartDumpResourceInStandby', {
+            dump: dumpType,
+          }),
+        );
+      } else {
+        errorToast(i18n.global.t('pageDumps.toast.errorStartBmcDump'));
+      }
     },
   });
 
@@ -322,30 +357,55 @@ export function useDumps() {
       return toastMessages;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dumps', 'all'] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          'redfish',
+          'collection',
+          '/redfish/v1/Managers/bmc/LogServices/Dump/Entries',
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          'redfish',
+          'collection',
+          '/redfish/v1/Systems/system/LogServices/Dump/Entries',
+        ],
+      });
     },
   });
 
   // Delete all dumps mutation
   const deleteAllDumpsMutation = useMutation({
     mutationFn: async (totalDumpCount: number) => {
-      try {
-        await api.post(
-          '/redfish/v1/Managers/bmc/LogServices/Dump/Actions/LogService.ClearLog',
-        );
-        return i18n.global.t(
-          'pageDumps.toast.successDeleteDump',
-          totalDumpCount,
-        );
-      } catch (error) {
-        console.error(error);
-        throw new Error(
-          i18n.global.t('pageDumps.toast.errorDeleteDump', totalDumpCount),
-        );
-      }
+      await api.post(
+        '/redfish/v1/Managers/bmc/LogServices/Dump/Actions/LogService.ClearLog',
+      );
+      return totalDumpCount;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dumps', 'all'] });
+    onSuccess: (totalDumpCount: number) => {
+      successToast(
+        i18n.global.t('pageDumps.toast.successDeleteDump', totalDumpCount),
+      );
+      queryClient.invalidateQueries({
+        queryKey: [
+          'redfish',
+          'collection',
+          '/redfish/v1/Managers/bmc/LogServices/Dump/Entries',
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          'redfish',
+          'collection',
+          '/redfish/v1/Systems/system/LogServices/Dump/Entries',
+        ],
+      });
+    },
+    onError: (error: any, totalDumpCount: number) => {
+      console.error(error);
+      errorToast(
+        i18n.global.t('pageDumps.toast.errorDeleteDump', totalDumpCount),
+      );
     },
   });
 
@@ -356,14 +416,20 @@ export function useDumps() {
 
   return {
     // Data
+    bmcDumps: bmcDumpsData,
+    systemDumps: systemDumpsData,
     allDumps,
 
     // Loading states
-    isLoading,
+    isLoading: computed(
+      () => isLoadingBmcDumps.value || isLoadingSystemDumps.value,
+    ),
+    isLoadingBmcDumps,
+    isLoadingSystemDumps,
 
     // Error states
-    isError,
-    error,
+    isError: computed(() => isBmcDumpsError.value || isSystemDumpsError.value),
+    error: computed(() => bmcDumpsError.value || systemDumpsError.value),
 
     // Mutations
     createBmcDump: createBmcDumpMutation.mutateAsync,
@@ -384,6 +450,13 @@ export function useDumps() {
     ),
 
     // Refetch functions
-    refetchDumps,
+    refetchBmcDumps,
+    refetchSystemDumps,
+    refetchAll: async () => {
+      await refetchBmcDumps();
+      await refetchSystemDumps();
+    },
   };
 }
+
+// Made with Bob
