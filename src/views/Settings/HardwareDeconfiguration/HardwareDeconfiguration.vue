@@ -51,17 +51,28 @@ import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import Alert from '@/components/Global/Alert.vue';
 import ProcessorCores from './ProcessorCores.vue';
 import MemoryDimms from './MemoryDimms.vue';
-import { onBeforeMount } from 'vue';
+import { watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
+import { useHardwareDeconfiguration } from '@/api/composables/useHardwareDeconfiguration';
 
-const { startLoader, hideLoader } = useLoadingBar();
+const { startLoader, endLoader, hideLoader } = useLoadingBar();
+const { isLoading } = useHardwareDeconfiguration();
+
+// Watch the combined loading state from the composable
+watch(
+  isLoading,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+    }
+  },
+  { immediate: true },
+);
 
 onBeforeRouteLeave(() => {
   hideLoader();
-});
-
-onBeforeMount(() => {
-  startLoader();
 });
 </script>
 

@@ -224,17 +224,11 @@ const tableFilters = ref([
   },
 ]);
 
-// Watch loading state
+// Watch loading state (only update isBusy, loading bar is managed by parent)
 watch(
   isLoadingCores,
   (loading) => {
-    if (loading) {
-      startLoader();
-      isBusy.value = true;
-    } else {
-      endLoader();
-      isBusy.value = false;
-    }
+    isBusy.value = loading;
   },
   { immediate: true },
 );
