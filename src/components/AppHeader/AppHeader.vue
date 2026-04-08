@@ -149,6 +149,9 @@ onBeforeMount(() => {
   // Reset auth state to check if user is authenticated based
   // on available browser cookies
   authenticationStore.resetStoreState();
+
+  // Initialize GlobalStore serverStatus for components that depend on Pinia store
+  global.getSystemInfo();
 });
 
 onMounted(() => {
