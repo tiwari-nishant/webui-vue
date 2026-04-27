@@ -11,10 +11,15 @@
     />
     <BRow>
       <BCol class="text-right">
-        <table-filter :filters="tableFilters" @filter-change="onFilterChange" />
+        <table-filter
+          :filters="tableFilters"
+          data-test-id="deconfigRecords-filter"
+          @filter-change="onFilterChange"
+        />
         <BButton
           variant="link"
           :disabled="allEntries.length === 0 || !isServerOff()"
+          data-test-id="deconfigRecords-button-clearAll"
           @click="clearAllEntries"
         >
           <icon-delete /> {{ $t('global.action.clearAll') }}
@@ -24,6 +29,7 @@
           :class="{ disabled: allEntries.length === 0 }"
           :download="exportFileNameByDate()"
           :href="href"
+          data-test-id="deconfigRecords-button-exportAll"
         >
           <icon-export /> {{ $t('global.action.exportAll') }}
         </BButton>
@@ -203,6 +209,7 @@
             id="pagination-items-per-page"
             v-model="itemPerPage"
             :options="itemsPerPageOptions"
+            data-test-id="deconfigRecords-itemsPerPage"
           />
         </BFormGroup>
       </BCol>
