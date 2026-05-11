@@ -309,6 +309,8 @@ const disconnectSessions = (uris) => {
         Toast.errorToast(message);
       }
     });
+    // Clear selection and reset header checkbox after deletion
+    clearSelectedRows(tableSessionsRef);
   });
 };
 const onTableRowAction = (action, { uri }) => {
