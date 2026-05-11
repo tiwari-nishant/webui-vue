@@ -284,7 +284,11 @@ function onModalDeleteBatch(deleteConfirmed) {
       })
       .then((success) => successToast(success))
       .catch(({ message }) => errorToast(message))
-      .finally(() => endLoader());
+      .finally(() => {
+        // Clear selection and reset header checkbox after batch deletion
+        clearSelectedRows(tableRef);
+        endLoader();
+      });
   }
 }
 function onTableRowAction(action, row) {
@@ -309,7 +313,11 @@ const onModalDelete = (deleteConfirmed) => {
       .deleteRoleGroup({ roleGroups: [activeRoleGroup.value] })
       .then((success) => successToast(success))
       .catch(({ message }) => errorToast(message))
-      .finally(() => endLoader());
+      .finally(() => {
+        // Clear selection and reset header checkbox after deletion
+        clearSelectedRows(tableRef);
+        endLoader();
+      });
   }
 };
 function initRoleGroupModal(roleGroup) {

@@ -374,13 +374,19 @@ function saveUser({ isNewUser, userData }) {
     if (isNewUser) {
       userManagement
         .createUser(userData)
-        .then((success) => toast.successToast(success))
+        .then((success) => {
+          toast.successToast(success);
+          clearSelectedRows(tableRef);
+        })
         .catch(({ message }) => toast.errorToast(message))
         .finally(() => endLoader());
     } else {
       userManagement
         .updateUserfromUserManagement(userData)
-        .then((success) => toast.successToast(success))
+        .then((success) => {
+          toast.successToast(success);
+          clearSelectedRows(tableRef);
+        })
         .catch(({ message }) => toast.errorToast(message))
         .finally(() => endLoader());
     }

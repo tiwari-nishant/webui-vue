@@ -298,6 +298,7 @@ const deleteDestination = ({ id }) => {
     .finally(() => {
       openDeleteModal.value = false;
       snmpToDelete.value = '';
+      clearSelectedRows(tableRef);
       endLoader();
     });
 };
