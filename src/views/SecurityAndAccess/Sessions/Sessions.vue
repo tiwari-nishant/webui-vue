@@ -311,12 +311,13 @@ const disconnectSessions = (uris) => {
     });
     // Clear selection and reset header checkbox after deletion
     clearSelectedRows(tableSessionsRef);
+    eventBus.emit('clear-selected');
   });
 };
 const onTableRowAction = (action, { uri }) => {
   if (action === 'disconnect') {
     urisStore.value = uri;
-    selectedRowsNo.value = selectedRowsLists.value.map((row) => row.uri).length;
+    selectedRowsNo.value = 1;
     count.value = 1;
     openModal.value = true;
   }
@@ -325,7 +326,7 @@ const onBatchAction = (action) => {
   if (action === 'disconnect') {
     const uris = selectedRowsLists.value.map((row) => row.uri);
     urisStore.value = uris;
-    selectedRowsNo.value = selectedRowsLists.value.map((row) => row.uri).length;
+    selectedRowsNo.value = uris.length;
     count.value = selectedRowsNo.value;
     openModal.value = true;
   }
