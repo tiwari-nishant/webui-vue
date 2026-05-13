@@ -12,6 +12,7 @@ export const AuthenticationStore = defineStore('authentication', {
     unauthError: false,
     xsrfCookie: cookies.get('XSRF-TOKEN'),
     isAuthenticatedCookie: cookies.get('IsAuthenticated'),
+    currentSessionUri: localStorage.getItem('currentSessionUri') || null,
   }),
   getters: {
     loginPageDetailsGetter: (state) => state.loginPageDetails,
@@ -36,16 +37,45 @@ export const AuthenticationStore = defineStore('authentication', {
       cookies.remove('XSRF-TOKEN');
       cookies.remove('IsAuthenticated');
       localStorage.removeItem('storedUsername');
+      localStorage.removeItem('currentSessionUri');
       //Change null to undefined once the cookies value able to get
       this.xsrfCookie = null;
       this.isAuthenticatedCookie = undefined;
+      this.currentSessionUri = null;
     },
     login({ username, password }) {
       this.authError = false;
       this.unauthError = false;
       return api
         .post('/login', { data: [username, password] })
-        .then(() => this.authSuccess())
+        .then((response) => {
+          this.authSuccess();
+          // After successful login, fetch the current session URI
+          return api
+            .get('/redfish/v1/SessionService/Sessions')
+            .then((sessionsResponse) => {
+              const sessionUris = sessionsResponse.data.Members.map(
+                (session) => session['@odata.id'],
+              );
+              // Get details of all sessions to find the current user's session
+              return api.all(sessionUris.map((uri) => api.get(uri)));
+            })
+            .then((sessionDetails) => {
+              // Find the session that matches the current username
+              const currentUserSession = sessionDetails.find(
+                (session) => session.data?.UserName === username,
+              );
+
+              if (currentUserSession) {
+                const sessionUri = currentUserSession.data['@odata.id'];
+                this.currentSessionUri = sessionUri;
+                localStorage.setItem('currentSessionUri', sessionUri);
+              }
+            })
+            .catch((error) => {
+              console.log('Error fetching session URI:', error);
+            });
+        })
         .catch((error) => {
           this.authError = true;
           throw new Error(error);
@@ -68,8 +98,10 @@ export const AuthenticationStore = defineStore('authentication', {
           localStorage.removeItem('storedCurrentUser');
           localStorage.removeItem('storedHmcManagedValue');
           localStorage.removeItem('storedLanguage');
+          localStorage.removeItem('currentSessionUri');
           this.xsrfCookie = undefined;
           this.isAuthenticatedCookie = undefined;
+          this.currentSessionUri = null;
         })
         .then(() => {
           this.logoutRemove();
