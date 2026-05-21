@@ -7,5 +7,3 @@ const eventBus = {
   emit: (...args) => emitter.emit(...args),
 };
 export default eventBus;
-
-//@bobshell /review
