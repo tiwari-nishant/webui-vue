@@ -380,5 +380,3 @@ function getStatusTooltip(status) {
   }
 }
 </style>
-
-//@bobshell /review
