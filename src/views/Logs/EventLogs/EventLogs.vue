@@ -344,6 +344,7 @@ import { nextTick } from 'vue';
 import eventBus from '@/eventBus';
 
 import stores from '../../../store';
+var name = 'Bob';
 
 export default {
   components: {
