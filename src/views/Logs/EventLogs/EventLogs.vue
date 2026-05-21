@@ -24,13 +24,6 @@
       <b-col class="text-right">
         <table-filter :filters="tableFilters" @filter-change="onFilterChange" />
         <b-button
-          variant="link"
-          :disabled="allLogs.length === 0"
-          @click="deleteAllLogs"
-        >
-          <icon-delete /> {{ $t('global.action.deleteAll') }}
-        </b-button>
-        <b-button
           :variant="allLogs.length === 0 ? 'light' : 'primary'"
           :class="{ disabled: allLogs.length === 0 }"
           @click="downloadEventLogs('all')"
@@ -347,7 +340,6 @@ import stores from '../../../store';
 
 export default {
   components: {
-    IconDelete,
     IconTrashcan,
     IconChevron,
     IconDownload,
