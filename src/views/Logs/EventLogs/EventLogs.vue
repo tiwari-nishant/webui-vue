@@ -338,6 +338,8 @@ import eventBus from '@/eventBus';
 
 import stores from '../../../store';
 
+var userName = 'test';
+
 export default {
   components: {
     IconTrashcan,
