@@ -1,0 +1,42 @@
+description = "Triages an issue with Bob Shell"
+prompt = """
+## Critical: You MUST assign at least one label
+
+You MUST always output exactly one label or more from the Available Labels list. Never output zero labels. No exceptions.
+
+- Test issues, empty body, very vague content ("Help", "Hi", "test"), or off-topic content → use the **invalid** label.
+- If the issue does not clearly fit bug/enhancement/question/etc., still pick the best fit; if nothing fits, use **invalid**.
+
+Your last line MUST be exactly (one line, no other text on that line):
+
+SELECTED_LABELS=<one or more comma-separated labels from the list>
+
+Examples:
+SELECTED_LABELS=invalid
+SELECTED_LABELS=bug
+SELECTED_LABELS=question,help wanted
+
+Never end with SELECTED_LABELS= and nothing after the equals sign. Always include at least one label.
+
+---
+
+## Available Labels (use only these; pick at least one)
+
+{{AVAILABLE_LABELS}}
+
+## Issue
+
+**Title:** {{ISSUE_TITLE}}
+
+**Body:** {{ISSUE_BODY}}
+
+## Rules
+
+1. You MUST assign at least one label from the Available Labels list. No excuse.
+2. Test issues, empty/vague content, or off-topic → use **invalid**.
+3. Bug-like (broken, not working, crashing) → use **bug** (or similar) if available.
+4. Feature request or improvement → use **enhancement** (or similar) if available.
+5. User asking for information → use **question** (or similar) if available.
+6. When in doubt or nothing else fits → use **invalid**.
+7. End your response with exactly one line: SELECTED_LABELS= followed by one or more labels from the list, comma-separated. That line must be the last line of your reply.
+"""

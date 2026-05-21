@@ -1,0 +1,221 @@
+name: 'Scheduled Issue Triage'
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour
+  pull_request:
+    branches:
+      - 'main'
+      - 'release/**/*'
+    paths:
+      - '.github/workflows/scheduled-triage.yml'
+  push:
+    branches:
+      - 'main'
+      - 'release/**/*'
+    paths:
+      - '.github/workflows/scheduled-triage.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  triage:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 7
+    permissions:
+      contents: 'read'
+      issues: 'read'
+      pull-requests: 'read'
+    outputs:
+      available_labels: '${{ steps.get_labels.outputs.available_labels }}'
+      triaged_issues: '${{ steps.export_triaged.outputs.triaged_issues }}'
+    steps:
+      - name: 'Get repository labels'
+        id: 'get_labels'
+        uses: 'actions/github-script@v7'
+        with:
+          script: |-
+            const labels = [];
+            for await (const response of github.paginate.iterator(github.rest.issues.listLabelsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            })) {
+              labels.push(...response.data);
+            }
+
+            if (!labels || labels.length === 0) {
+              core.setFailed('There are no issue labels in this repository.')
+            }
+
+            const labelNames = labels.map(label => label.name).sort();
+            core.setOutput('available_labels', labelNames.join(','));
+            core.info(`Found ${labelNames.length} labels: ${labelNames.join(', ')}`);
+            return labelNames;
+
+      - name: 'Find untriaged issues'
+        id: 'find_issues'
+        env:
+          GITHUB_REPOSITORY: '${{ github.repository }}'
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+        run: |-
+          echo 'Finding unlabeled issues and issues marked for triage...'
+          ISSUES="$(gh issue list \
+            --state 'open' \
+            --search 'no:label label:"status/needs-triage"' \
+            --json number,title,body \
+            --limit '100' \
+            --repo "${GITHUB_REPOSITORY}"
+          )"
+
+          echo "issues_to_triage=${ISSUES}" >> "${GITHUB_OUTPUT}"
+
+          ISSUE_COUNT="$(echo "${ISSUES}" | jq 'length')"
+          echo "Found ${ISSUE_COUNT} issue(s) to triage!"
+
+      - name: 'Set up Node.js'
+        uses: 'actions/setup-node@v4'
+        with:
+          node-version: '${{ vars.NODE_VERSION || ''22'' }}'
+
+      - name: 'Download bob-action from default branch'
+        run: |
+          mkdir -p .github/actions/bob-action
+          curl \
+            --retry 3 \
+            --retry-max-time 60 \
+            -L -s \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.raw" \
+            -o .github/actions/bob-action/action.yml \
+            "${API_URL}/repos/${REPOSITORY}/contents/.github/actions/bob-action/action.yml?ref=${DEFAULT_BRANCH}"
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          API_URL: '${{ github.api_url }}'
+          REPOSITORY: '${{ github.repository }}'
+          DEFAULT_BRANCH: '${{ github.event.repository.default_branch || github.ref_name || ''main'' }}'
+
+      - name: 'Download commands from default branch'
+        run: |
+          mkdir -p .github/commands
+          for file in bob-scheduled-triage.toml; do
+            curl --retry 3 --retry-max-time 60 -L -s -f \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.raw" \
+              -o ".github/commands/${file}" \
+              "${API_URL}/repos/${REPOSITORY}/contents/.github/commands/${file}?ref=${DEFAULT_BRANCH}" || true
+          done
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          API_URL: '${{ github.api_url }}'
+          REPOSITORY: '${{ github.repository }}'
+          DEFAULT_BRANCH: '${{ github.event.repository.default_branch || github.ref_name || ''main'' }}'
+
+      - name: 'Run Bob Shell issue analysis'
+        id: 'bob_issue_analysis'
+        if: steps.find_issues.outputs.issues_to_triage != '[]'
+        uses: './.github/actions/bob-action'
+        env:
+          ISSUES_TO_TRIAGE: '${{ steps.find_issues.outputs.issues_to_triage }}'
+          AVAILABLE_LABELS: '${{ steps.get_labels.outputs.available_labels }}'
+        with:
+          max_coins: 3
+          bobshell_api_key: '${{ secrets.BOBSHELL_API_KEY }}'
+          bobshell_version: '${{ vars.BOBSHELL_VERSION || ''latest'' }}'
+          bobshell_debug: '${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
+          settings: |-
+            {
+              "coreTools": [
+                "attempt_completion"
+              ]
+            }
+          prompt: '/bob-scheduled-triage'
+
+      - name: 'Export triaged issues to job output'
+        id: 'export_triaged'
+        run: |-
+          echo "triaged_issues<<EOF" >> "${GITHUB_OUTPUT}"
+          echo "${TRIAGED_ISSUES:-[]}" >> "${GITHUB_OUTPUT}"
+          echo "EOF" >> "${GITHUB_OUTPUT}"
+
+  label:
+    runs-on: 'ubuntu-latest'
+    needs:
+      - 'triage'
+    if: |
+      needs.triage.outputs.available_labels != '' &&
+      needs.triage.outputs.triaged_issues != '' &&
+      needs.triage.outputs.triaged_issues != '[]'
+    permissions:
+      contents: 'read'
+      issues: 'write'
+      pull-requests: 'write'
+    steps:
+      - name: 'Mint identity token'
+        id: 'mint_identity_token'
+        if: vars.BOB_APP_ID != ''
+        uses: 'actions/create-github-app-token@v2'
+        with:
+          app-id: '${{ vars.BOB_APP_ID }}'
+          private-key: '${{ secrets.BOB_APP_PRIVATE_KEY }}'
+          permission-contents: 'read'
+          permission-issues: 'write'
+          permission-pull-requests: 'write'
+
+      - name: 'Apply labels'
+        env:
+          AVAILABLE_LABELS: '${{ needs.triage.outputs.available_labels }}'
+          TRIAGED_ISSUES: '${{ needs.triage.outputs.triaged_issues }}'
+        uses: 'actions/github-script@v7'
+        with:
+          github-token: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
+          script: |-
+            const availableLabels = (process.env.AVAILABLE_LABELS || '').split(',')
+              .map((label) => label.trim())
+              .sort()
+
+            const triagedIssues = (JSON.parse(process.env.TRIAGED_ISSUES || '[]'))
+              .sort((a, b) => a.issue_number - b.issue_number)
+
+            core.debug(`Triaged issues: ${JSON.stringify(triagedIssues)}`);
+
+            for (const issue of triagedIssues) {
+              if (!issue) {
+                core.debug(`Skipping empty issue: ${JSON.stringify(issue)}`);
+                continue;
+              }
+
+              const issueNumber = issue.issue_number;
+              if (!issueNumber) {
+                core.debug(`Skipping issue with no data: ${JSON.stringify(issue)}`);
+                continue;
+              }
+
+              let labelsToSet = (issue.labels_to_set || [])
+                .map((label) => label.trim())
+                .filter((label) => availableLabels.includes(label))
+                .sort()
+
+              core.debug(`Identified labels to set: ${JSON.stringify(labelsToSet)}`);
+
+              if (labelsToSet.length === 0) {
+                core.info(`Skipping issue #${issueNumber} - no labels to set.`)
+                continue;
+              }
+
+              core.debug(`Setting labels on issue #${issueNumber} to ${labelsToSet.join(', ')} (${issue.explanation || 'no explanation'})`)
+
+              await github.rest.issues.setLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: labelsToSet,
+              });
+            }
