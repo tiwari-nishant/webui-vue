@@ -1,0 +1,207 @@
+name: 'Issue Triage'
+
+on:
+  workflow_call:
+    inputs:
+      additional_context:
+        type: 'string'
+        description: 'Any additional context from the request'
+        required: false
+
+concurrency:
+  group: '${{ github.workflow }}-triage-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  triage:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 7
+    outputs:
+      available_labels: '${{ steps.get_labels.outputs.available_labels }}'
+      selected_labels: '${{ steps.export_labels.outputs.selected_labels }}'
+      already_has_labels: '${{ steps.check_issue_labels.outputs.already_has_labels }}'
+    permissions:
+      contents: 'read'
+      issues: 'read'
+      pull-requests: 'read'
+    steps:
+      - name: 'Get repository labels'
+        id: 'get_labels'
+        uses: 'actions/github-script@v7'
+        with:
+          script: |-
+            const labels = [];
+            for await (const response of github.paginate.iterator(github.rest.issues.listLabelsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            })) {
+              labels.push(...response.data);
+            }
+
+            if (!labels || labels.length === 0) {
+              core.setFailed('There are no issue labels in this repository.')
+            }
+
+            const labelNames = labels.map(label => label.name).sort();
+            core.setOutput('available_labels', labelNames.join(','));
+            core.info(`Found ${labelNames.length} labels: ${labelNames.join(', ')}`);
+            return labelNames;
+
+      - name: 'Check if issue already has labels'
+        id: 'check_issue_labels'
+        uses: 'actions/github-script@v7'
+        with:
+          script: |-
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const hasLabels = issue.labels && issue.labels.length > 0;
+            core.setOutput('already_has_labels', hasLabels ? 'true' : 'false');
+            if (hasLabels) {
+              core.info(`Issue #${context.issue.number} already has ${issue.labels.length} label(s); skipping Bob.`);
+            }
+
+      - name: 'Set up Node.js'
+        if: steps.check_issue_labels.outputs.already_has_labels != 'true'
+        uses: 'actions/setup-node@v4'
+        with:
+          node-version: '${{ vars.NODE_VERSION || ''22'' }}'
+
+      - name: 'Download bob-action from default branch'
+        if: steps.check_issue_labels.outputs.already_has_labels != 'true'
+        run: |
+          mkdir -p .github/actions/bob-action
+          curl \
+            --retry 3 \
+            --retry-max-time 60 \
+            -L -s \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.raw" \
+            -o .github/actions/bob-action/action.yml \
+            "${API_URL}/repos/${REPOSITORY}/contents/.github/actions/bob-action/action.yml?ref=${DEFAULT_BRANCH}"
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          API_URL: '${{ github.api_url }}'
+          REPOSITORY: '${{ github.repository }}'
+          DEFAULT_BRANCH: '${{ github.event.repository.default_branch }}'
+
+      - name: 'Download commands from default branch'
+        if: steps.check_issue_labels.outputs.already_has_labels != 'true'
+        run: |
+          mkdir -p .github/commands
+          for file in bob-triage.toml; do
+            curl --retry 3 --retry-max-time 60 -L -s -f \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.raw" \
+              -o ".github/commands/${file}" \
+              "${API_URL}/repos/${REPOSITORY}/contents/.github/commands/${file}?ref=${DEFAULT_BRANCH}" || true
+          done
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          API_URL: '${{ github.api_url }}'
+          REPOSITORY: '${{ github.repository }}'
+          DEFAULT_BRANCH: '${{ github.event.repository.default_branch }}'
+
+      - name: 'Run Bob Shell issue analysis'
+        id: 'bob_analysis'
+        if: steps.check_issue_labels.outputs.already_has_labels != 'true'
+        uses: './.github/actions/bob-action'
+        env:
+          ISSUE_TITLE: '${{ github.event.issue.title }}'
+          ISSUE_BODY: '${{ github.event.issue.body }}'
+          AVAILABLE_LABELS: '${{ vars.BOB_TRIAGE_AVAILABLE_LABELS || ''bug,documentation,duplicate,enhancement,good first issue,help wanted,invalid,question,wontfix'' }}'
+          GITHUB_ENV: '${{ env.GITHUB_ENV }}'
+        with:
+          max_coins: 2
+          hide_intermediary_output: true
+          bobshell_api_key: '${{ secrets.BOBSHELL_API_KEY }}'
+          bobshell_version: '${{ vars.BOBSHELL_VERSION || ''latest'' }}'
+          bobshell_debug: '${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
+          settings: |-
+            {
+              "coreTools": [
+                "attempt_completion"
+              ]
+            }
+          prompt: '/bob-triage'
+
+      - name: 'Export selected labels to job output'
+        id: 'export_labels'
+        env:
+          BOB_SUMMARY: '${{ steps.bob_analysis.outputs.summary }}'
+        run: |
+          if [[ -n "${SELECTED_LABELS:-}" ]]; then
+            echo "selected_labels=${SELECTED_LABELS}" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          # Parse Bob's text output: use last line containing SELECTED_LABELS= (Bob may add commentary after)
+          parsed=
+          if [[ -n "${BOB_SUMMARY:-}" ]]; then
+            while IFS= read -r line; do
+              if [[ "$line" =~ SELECTED_LABELS=(.*) ]]; then
+                parsed="${BASH_REMATCH[1]}"
+              fi
+            done < <(echo "${BOB_SUMMARY}" | tr -d '\r' | grep -E 'SELECTED_LABELS=' || true)
+            parsed=$(echo "${parsed}" | sed 's/^["`'\''[:space:]]*//;s/["`'\''[:space:]]*$//')
+          fi
+          echo "selected_labels=${parsed:-}" >> "${GITHUB_OUTPUT}"
+          echo "Parsed labels from Bob output: '${parsed:-}'"
+
+  label:
+    runs-on: 'ubuntu-latest'
+    needs:
+      - 'triage'
+    if: always() && needs.triage.result == 'success' && needs.triage.outputs.already_has_labels != 'true'
+    permissions:
+      contents: 'read'
+      issues: 'write'
+      pull-requests: 'write'
+    steps:
+      - name: 'Mint identity token'
+        id: 'mint_identity_token'
+        if: vars.BOB_APP_ID != ''
+        uses: 'actions/create-github-app-token@v2'
+        with:
+          app-id: '${{ vars.BOB_APP_ID }}'
+          private-key: '${{ secrets.BOB_APP_PRIVATE_KEY }}'
+          permission-contents: 'read'
+          permission-issues: 'write'
+          permission-pull-requests: 'write'
+
+      - name: 'Apply labels'
+        env:
+          ISSUE_NUMBER: '${{ github.event.issue.number }}'
+          AVAILABLE_LABELS: '${{ needs.triage.outputs.available_labels }}'
+          SELECTED_LABELS: '${{ needs.triage.outputs.selected_labels }}'
+        uses: 'actions/github-script@v7'
+        with:
+          github-token: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
+          script: |-
+            const availableLabels = (process.env.AVAILABLE_LABELS || '').split(',')
+              .map((label) => label.trim())
+              .sort()
+
+            const selectedLabels = (process.env.SELECTED_LABELS || '').split(',')
+              .map((label) => label.trim())
+              .filter((label) => availableLabels.includes(label))
+              .sort()
+
+            const issueNumber = process.env.ISSUE_NUMBER;
+            if (selectedLabels && selectedLabels.length > 0) {
+              await github.rest.issues.setLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: selectedLabels,
+              });
+              core.info(`Successfully set labels: ${selectedLabels.join(',')}`);
+            } else {
+              core.info(`Failed to determine labels to set. There may not be enough information in the issue or pull request.`)
+            }
