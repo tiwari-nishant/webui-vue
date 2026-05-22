@@ -1,6 +1,6 @@
 <template>
   <BContainer fluid="xl">
-    <page-title :title="$t('appPageTitle.overview')" />
+    <page-title :title="$t('appPageTitle.overv')" />
     <overview-quick-links class="mb-4" />
     <page-section
       :section-title="$t('pageOverview.systemInformation')"

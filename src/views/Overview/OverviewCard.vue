@@ -3,17 +3,6 @@
     <div class="justify-content-between align-items-center d-flex flex-wrap">
       <h3 class="h5 mb-0">{{ title }}</h3>
       <div class="card-buttons">
-        <BButton
-          v-if="exportButton || downloadButton"
-          :disabled="disabled"
-          :download="download"
-          :href="href"
-          class="p-0"
-          variant="link"
-        >
-          <span v-if="downloadButton">{{ $t('global.action.download') }}</span>
-          <span v-if="exportButton">{{ $t('global.action.exportAll') }}</span>
-        </BButton>
         <span v-if="exportButton || downloadButton" class="ps-2 pe-2">|</span>
         <router-link :to="to">{{ $t('pageOverview.viewMore') }}</router-link>
       </div>
