@@ -173,7 +173,7 @@ const assetTag = computed(() => {
 const truncatedAssetTag = computed(() => {
   const tag = assetTag.value;
   if (!tag) return '';
-  return tag.length > 20 ? tag.substring(0, 20) + '...' : tag;
+  return tag.length > 30 ? tag.substring(0, 20) + '...' : tag;
 });
 const modelType = computed(() => {
   return global.modelTypeGetter;
