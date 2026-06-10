@@ -1,7 +1,7 @@
 name: 'Automatic PR Review'
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - synchronize
@@ -24,7 +24,13 @@ jobs:
       issues: 'write'
       pull-requests: 'write'
     steps:
-      - name: 'Checkout repository'
+      - name: 'Checkout base branch for action'
+        uses: 'actions/checkout@v4'
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: 'base-repo'
+      
+      - name: 'Checkout PR branch'
         uses: 'actions/checkout@v4'
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -51,7 +57,7 @@ jobs:
           rm github-mcp-server.tar.gz
          
       - name: 'Run automatic pull request review'
-        uses: './.github/actions/bob-action'
+        uses: './base-repo/.github/actions/bob-action'
         id: 'bobshell_pr_review'
         env:
           GITHUB_TOKEN: '${{ steps.app_token.outputs.token || secrets.GITHUB_TOKEN }}'
@@ -75,7 +81,7 @@ jobs:
             {
               "mcpServers": {
                 "github": {
-                  "command": "./github-mcp-server",
+                  "command": "${{ github.workspace }}/github-mcp-server",
                   "args": ["stdio"],
                   "includeTools": [
                     "add_comment_to_pending_review",
