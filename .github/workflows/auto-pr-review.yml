@@ -1,7 +1,7 @@
 name: 'Automatic PR Review'
 
 on:
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - synchronize
@@ -24,16 +24,17 @@ jobs:
       issues: 'write'
       pull-requests: 'write'
     steps:
-      - name: 'Checkout base branch'
+      - name: 'Checkout base branch for action'
         uses: 'actions/checkout@v4'
         with:
           ref: ${{ github.event.pull_request.base.ref }}
+          path: 'base'
 
-      - name: 'Checkout PR branch to subdirectory'
+      - name: 'Checkout PR branch'
         uses: 'actions/checkout@v4'
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          path: 'pr-code'
+          path: 'pr'
 
       - name: 'Set up Node.js'
         uses: 'actions/setup-node@v4'
@@ -45,13 +46,8 @@ jobs:
           echo "node: $(node --version 2>/dev/null || echo 'not found')"
           echo "node path: $(command -v node 2>/dev/null || echo 'not found')"
 
-      - name: 'Copy PR code to workspace'
-        run: |
-          # Copy PR code files to main workspace, but preserve .github from base
-          rsync -av --exclude='.github' --exclude='.git' pr-code/ ./
-          rm -rf pr-code
-
       - name: 'Download and install GitHub MCP server'
+        working-directory: pr
         run: |
           curl \
             --retry 3 \
@@ -63,7 +59,7 @@ jobs:
           rm github-mcp-server.tar.gz
          
       - name: 'Run automatic pull request review'
-        uses: './.github/actions/bob-action'
+        uses: './base/.github/actions/bob-action'
         id: 'bobshell_pr_review'
         env:
           GITHUB_TOKEN: '${{ steps.app_token.outputs.token || secrets.GITHUB_TOKEN }}'
@@ -71,8 +67,7 @@ jobs:
           ISSUE_BODY: '${{ github.event.pull_request.body }}'
           PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number }}'
           REPOSITORY: '${{ github.repository }}'
-          WORKSPACE_PATH: '${{ github.workspace }}'
-          PR_HEAD_SHA: '${{ github.event.pull_request.head.sha }}'
+          WORKSPACE_PATH: '${{ github.workspace }}/pr'
         with:
           max_coins: 3
           bobshell_api_key: '${{ secrets.BOBSHELL_API_KEY }}'
@@ -88,7 +83,7 @@ jobs:
             {
               "mcpServers": {
                 "github": {
-                  "command": "${{ github.workspace }}/github-mcp-server",
+                  "command": "${{ github.workspace }}/pr/github-mcp-server",
                   "args": ["stdio"],
                   "includeTools": [
                     "add_comment_to_pending_review",
@@ -114,7 +109,8 @@ jobs:
           prompt: '/bob-review'
       
       - name: 'Post review cost'
-        if: hashFiles('session-summary.json') != ''
+        if: hashFiles('pr/session-summary.json') != ''
+        working-directory: pr
         env:
           COMMENT_TOKEN: '${{ steps.app_token.outputs.token || secrets.GITHUB_TOKEN }}'
           REPOSITORY: '${{ github.repository }}'
