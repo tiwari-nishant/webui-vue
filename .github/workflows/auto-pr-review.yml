@@ -24,10 +24,16 @@ jobs:
       issues: 'write'
       pull-requests: 'write'
     steps:
-      - name: 'Checkout repository'
+      - name: 'Checkout base branch'
+        uses: 'actions/checkout@v4'
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: 'Checkout PR branch to subdirectory'
         uses: 'actions/checkout@v4'
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          path: 'pr-code'
 
       - name: 'Set up Node.js'
         uses: 'actions/setup-node@v4'
@@ -39,38 +45,11 @@ jobs:
           echo "node: $(node --version 2>/dev/null || echo 'not found')"
           echo "node path: $(command -v node 2>/dev/null || echo 'not found')"
 
-      - name: 'Download bob-action from default branch'
+      - name: 'Copy PR code to workspace'
         run: |
-          mkdir -p .github/actions/bob-action
-          curl \
-            --retry 3 \
-            --retry-max-time 60 \
-            -L -s \
-            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            -H "Accept: application/vnd.github.raw" \
-            -o .github/actions/bob-action/action.yml \
-            "${API_URL}/repos/${REPOSITORY}/contents/.github/actions/bob-action/action.yml?ref=${DEFAULT_BRANCH}"
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
-          API_URL: '${{ github.api_url }}'
-          REPOSITORY: '${{ github.repository }}'
-          DEFAULT_BRANCH: '${{ github.event.pull_request.base.ref }}'
-
-      - name: 'Download commands from default branch'
-        run: |
-          mkdir -p .github/commands
-          for file in bob-review.toml bob-summary.toml; do
-            curl --retry 3 --retry-max-time 60 -L -s -f \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-              -H "Accept: application/vnd.github.raw" \
-              -o ".github/commands/${file}" \
-              "${API_URL}/repos/${REPOSITORY}/contents/.github/commands/${file}?ref=${DEFAULT_BRANCH}" || true
-          done
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
-          API_URL: '${{ github.api_url }}'
-          REPOSITORY: '${{ github.repository }}'
-          DEFAULT_BRANCH: '${{ github.event.pull_request.base.ref }}'
+          # Copy PR code files to main workspace, but preserve .github from base
+          rsync -av --exclude='.github' --exclude='.git' pr-code/ ./
+          rm -rf pr-code
 
       - name: 'Download and install GitHub MCP server'
         run: |
@@ -93,6 +72,7 @@ jobs:
           PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number }}'
           REPOSITORY: '${{ github.repository }}'
           WORKSPACE_PATH: '${{ github.workspace }}'
+          PR_HEAD_SHA: '${{ github.event.pull_request.head.sha }}'
         with:
           max_coins: 3
           bobshell_api_key: '${{ secrets.BOBSHELL_API_KEY }}'
