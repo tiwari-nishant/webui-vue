@@ -24,13 +24,7 @@ jobs:
       issues: 'write'
       pull-requests: 'write'
     steps:
-      - name: 'Checkout base branch for action'
-        uses: 'actions/checkout@v4'
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
-          path: 'base-repo'
-      
-      - name: 'Checkout PR branch'
+      - name: 'Checkout repository'
         uses: 'actions/checkout@v4'
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -45,6 +39,39 @@ jobs:
           echo "node: $(node --version 2>/dev/null || echo 'not found')"
           echo "node path: $(command -v node 2>/dev/null || echo 'not found')"
 
+      - name: 'Download bob-action from default branch'
+        run: |
+          mkdir -p .github/actions/bob-action
+          curl \
+            --retry 3 \
+            --retry-max-time 60 \
+            -L -s \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.raw" \
+            -o .github/actions/bob-action/action.yml \
+            "${API_URL}/repos/${REPOSITORY}/contents/.github/actions/bob-action/action.yml?ref=${DEFAULT_BRANCH}"
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          API_URL: '${{ github.api_url }}'
+          REPOSITORY: '${{ github.repository }}'
+          DEFAULT_BRANCH: '${{ github.event.pull_request.base.ref }}'
+
+      - name: 'Download commands from default branch'
+        run: |
+          mkdir -p .github/commands
+          for file in bob-review.toml bob-summary.toml; do
+            curl --retry 3 --retry-max-time 60 -L -s -f \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.raw" \
+              -o ".github/commands/${file}" \
+              "${API_URL}/repos/${REPOSITORY}/contents/.github/commands/${file}?ref=${DEFAULT_BRANCH}" || true
+          done
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          API_URL: '${{ github.api_url }}'
+          REPOSITORY: '${{ github.repository }}'
+          DEFAULT_BRANCH: '${{ github.event.pull_request.base.ref }}'
+
       - name: 'Download and install GitHub MCP server'
         run: |
           curl \
@@ -57,7 +84,7 @@ jobs:
           rm github-mcp-server.tar.gz
          
       - name: 'Run automatic pull request review'
-        uses: './base-repo/.github/actions/bob-action'
+        uses: './.github/actions/bob-action'
         id: 'bobshell_pr_review'
         env:
           GITHUB_TOKEN: '${{ steps.app_token.outputs.token || secrets.GITHUB_TOKEN }}'
