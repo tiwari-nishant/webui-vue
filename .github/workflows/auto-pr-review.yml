@@ -59,6 +59,11 @@ jobs:
           rm github-mcp-server.tar.gz
          
       - name: 'Run automatic pull request review'
+      - name: 'Symlink action to expected local path'
+        run: |
+          mkdir -p ${{ github.workspace }}/.github/actions
+          ln -s ${{ github.workspace }}/base/.github/actions/bob-action \
+                ${{ github.workspace }}/.github/actions/bob-action
         uses: 'ibm-openbmc/webui-vue/.github/actions/bob-action@1120-vue3'
         id: 'bobshell_pr_review'
         env:
