@@ -1,7 +1,7 @@
 name: 'Automatic PR Review'
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - synchronize
@@ -59,7 +59,7 @@ jobs:
           rm github-mcp-server.tar.gz
          
       - name: 'Run automatic pull request review'
-        uses: './base/.github/actions/bob-action'
+        uses: 'ibm-openbmc/webui-vue/.github/actions/bob-action@1120-vue3'
         id: 'bobshell_pr_review'
         env:
           GITHUB_TOKEN: '${{ steps.app_token.outputs.token || secrets.GITHUB_TOKEN }}'
