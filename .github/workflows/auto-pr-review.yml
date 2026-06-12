@@ -57,14 +57,13 @@ jobs:
           tar -xzf github-mcp-server.tar.gz
           chmod +x ./github-mcp-server
           rm github-mcp-server.tar.gz
-         
-      - name: 'Run automatic pull request review'
-      - name: 'Symlink action to expected local path'
+      - name: 'Copy bob-action from base branch'
         run: |
-          mkdir -p ${{ github.workspace }}/.github/actions
-          ln -s ${{ github.workspace }}/base/.github/actions/bob-action \
-                ${{ github.workspace }}/.github/actions/bob-action
-        uses: 'ibm-openbmc/webui-vue/.github/actions/bob-action@1120-vue3'
+          mkdir -p ${{ github.workspace }}/pr/.github/actions/bob-action
+          cp -r ${{ github.workspace }}/base/.github/actions/bob-action/. \
+                ${{ github.workspace }}/pr/.github/actions/bob-action/
+      - name: 'Run automatic pull request review'
+        uses: './pr/.github/actions/bob-action'
         id: 'bobshell_pr_review'
         env:
           GITHUB_TOKEN: '${{ steps.app_token.outputs.token || secrets.GITHUB_TOKEN }}'
