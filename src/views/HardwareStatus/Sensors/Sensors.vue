@@ -13,8 +13,8 @@
       </BCol>
       <BCol sm="3" md="3" xl="2">
         <table-cell-count
-          :filtered-items-count="filteredRows"
-          :total-number-of-cells="filteredSensors.length"
+          :filtered-items-count="totalItems"
+          :total-number-of-cells="sensorsData.length"
         ></table-cell-count>
       </BCol>
       <BCol sm="3" md="4" xl="6" class="text-right">
@@ -49,13 +49,8 @@
           :no-border-collapse="true"
           :items="filteredSensors"
           :fields="fields"
-          :per-page="
-            itemPerPage === 0 ? filteredSensors.length || 1 : itemPerPage
-          "
-          :current-page="currentPageNo"
-          :filter="searchFilterInput"
+          :busy="isBusy"
           class="no-scroll-sticky"
-          @filtered="onFiltered"
           @row-selected="onRowSelected($event, filteredSensors.length)"
         >
           <!-- Checkbox column -->
@@ -186,6 +181,7 @@ import { ref, onMounted, computed, onBeforeMount, watch, nextTick } from 'vue';
 import i18n from '@/i18n';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useSensors } from '@/api/composables/useSensors';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 import InfoTooltip from '@/components/Global/InfoTooltip.vue';
 import PageTitle from '@/components/Global/PageTitle.vue';
 import Search from '@/components/Global/Search.vue';
@@ -201,7 +197,7 @@ import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useDataFormatterGlobal from '@/components/Composables/useDataFormatterGlobal';
 import eventBus from '@/eventBus';
 
-const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
+const { perPage, itemsPerPageOptions, getTotalRowCount } =
   usePaginationComposable();
 const {
   clearSelectedRows,
@@ -243,15 +239,12 @@ const sensorsData = computed(() => {
   }));
 });
 
-const currentPageNo = ref(currentPage);
-const itemPerPage = ref(perPage);
+// UI state
 const tableHeaderCheckbox = ref(tableHeaderCheckboxModel);
 const tableHeaderCheckboxIndeterminated = ref(tableHeaderCheckboxIndeterminate);
 const tableRef = ref(null);
-const searchTotalFilteredRows = ref(0);
 const activeFiltersRows = ref([]);
 const isBusy = computed(() => isSensorsLoading.value);
-const isAllSelected = ref(false);
 const searchFilterInput = ref('');
 
 const fields = ref([
@@ -330,14 +323,8 @@ watch(
   },
 );
 
-onMounted(() => {});
-
-const filteredRows = computed(() => {
-  return searchFilterInput.value
-    ? searchTotalFilteredRows.value
-    : filteredSensors.value.length;
-});
-const filteredSensors = computed(() => {
+// Filtered data before pagination (memoized for performance)
+const filteredSensorsData = computed(() => {
   if (!sensorsData.value) return [];
 
   let data = getFilteredTableData(sensorsData.value, activeFiltersRows.value);
@@ -359,16 +346,43 @@ const filteredSensors = computed(() => {
   return data;
 });
 
+// Enhanced pagination with performance optimizations
+const itemPerPage = ref(perPage);
+
+// Create pagination with reactive pageSize
+const pagination = usePaginatedData({
+  data: filteredSensorsData,
+  pageSize: itemPerPage.value,
+  initialPage: 1,
+});
+
+// Sync pageSize changes with pagination
+watch(itemPerPage, (newSize) => {
+  pagination.pageSize.value = newSize;
+});
+
+// Extract pagination values for template use
+const filteredSensors = pagination.paginatedData;
+const currentPageNo = pagination.currentPage;
+const totalItems = pagination.totalItems;
+const pageInfo = pagination.pageInfo;
+
+// Computed for backward compatibility with existing code
+const filteredRows = computed(() => totalItems.value);
+
+onMounted(() => {});
+
+// Accessibility fixes
 watch(
-  () => filteredSensors,
-  (item) => {
+  () => filteredSensors.value,
+  (items) => {
     nextTick(() => {
       document
         .querySelectorAll('.b-table-sortable-column svg')
         .forEach((svg) => {
           svg.setAttribute('aria-hidden', 'true');
         });
-      if (!item.length) {
+      if (!items || !items.length) {
         document
           .querySelector('tr.b-table-empty-slot td[scope]')
           ?.removeAttribute('scope');
@@ -386,13 +400,15 @@ function toggleAll(checked) {
   } else {
     selectedSensors.value.clear();
   }
-  isAllSelected.value = checked;
 }
+
 function onFilterChange({ activeFilters }) {
   activeFiltersRows.value = activeFilters;
 }
+
 function onFiltered(filteredItems) {
-  searchTotalFilteredRows.value = filteredItems.length;
+  // This is called by BTable's internal filtering
+  // We don't need it anymore since we handle filtering in computed
 }
 function onChangeSearch(event) {
   searchFilterInput.value = event;
