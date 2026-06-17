@@ -345,3 +345,5 @@ export function usePropertyFromCollection<
     refetch: collectionQuery.refetch,
   };
 }
+
+// Made with Bob

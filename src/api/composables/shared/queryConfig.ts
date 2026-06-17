@@ -69,7 +69,7 @@ export const defaultRedfishRetryDelay = (attemptIndex: number): number => {
 export function createRedfishQueryConfig<T = unknown>(
   overrides: RedfishQueryConfig = {},
 ): Partial<UseQueryOptions<T>> {
-  const config: Partial<UseQueryOptions<T>> = {
+  return {
     staleTime: overrides.staleTime ?? 30 * 1000, // 30 seconds
     gcTime: overrides.gcTime ?? 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: overrides.refetchOnWindowFocus ?? false,
@@ -78,8 +78,6 @@ export function createRedfishQueryConfig<T = unknown>(
     refetchInterval: overrides.refetchInterval ?? false,
     retryDelay: overrides.retryDelay ?? defaultRedfishRetryDelay,
   };
-
-  return config;
 }
 
 /**
@@ -106,6 +104,15 @@ export const RedfishQueryPresets = {
   }),
 
   /**
+   * For static/rarely changing data (e.g., hardware inventory, BIOS settings)
+   * Longer stale time to reduce unnecessary requests
+   */
+  static: createRedfishQueryConfig({
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+  }),
+
+  /**
    * For configuration data (e.g., network settings, date/time)
    * Balanced between realtime and static
    */
@@ -123,3 +130,5 @@ export const RedfishQueryPresets = {
     gcTime: 30 * 60 * 1000, // 30 minutes
   }),
 };
+
+// Made with Bob
