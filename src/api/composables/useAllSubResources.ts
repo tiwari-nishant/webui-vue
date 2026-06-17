@@ -7,6 +7,7 @@ import {
 } from './useRedfishCollection';
 import type { Resource, ODataId, ResourceCollection } from '@/types/redfish';
 import { createRedfishQueryConfig } from './shared/queryConfig';
+import { batchFetch } from './shared/useBatchedRequests';
 
 // Re-export helpers for consistent imports across all composables
 export { useRedfishCollection, useRedfishResource };
@@ -76,56 +77,89 @@ export function useAllSubResources<T extends Resource>(
         return [];
       }
 
-      // Fetch all sub-resource collections
-      const collectionPromises = paths.map(async (path) => {
-        try {
-          const response = await api.get(path);
-          const collection = response.data;
-
-          // If it's a collection, fetch all members
-          if (collection.Members && Array.isArray(collection.Members)) {
-            // Try with $expand first
-            try {
-              const expandResponse = await api.get(
-                `${path}?$expand=.($levels=1)`,
-              );
-              const expandedData = expandResponse.data;
-
-              if (expandedData.Members && expandedData.Members.length > 0) {
-                const firstMember = expandedData.Members[0];
-                if (
-                  typeof firstMember === 'object' &&
-                  Object.keys(firstMember).length > 1
-                ) {
-                  return expandedData.Members as T[];
-                }
-              }
-            } catch {
-              // $expand not supported, fall back to individual fetches
-            }
-
-            // Fallback: fetch each member individually
-            const memberPromises = collection.Members.map((member: any) => {
-              const memberId =
-                typeof member === 'object' && '@odata.id' in member
-                  ? member['@odata.id']
-                  : member;
-              return api.get<T>(memberId as string);
-            });
-
-            const responses = await Promise.all(memberPromises);
-            return responses.map((res: any) => res.data);
-          }
-
-          // If it's a single resource, return it as an array
-          return [collection as T];
-        } catch (error) {
-          console.error(`Error fetching sub-resource from ${path}:`, error);
-          return [];
-        }
+      // Fetch all sub-resource collections with batching
+      const collections = await batchFetch<ResourceCollection>(paths, {
+        concurrency: 6,
+        retry: true,
       });
 
-      const results = await Promise.all(collectionPromises);
+      // Process each collection
+      const allMemberUrls: string[] = [];
+      const collectionResults: T[][] = [];
+
+      for (let i = 0; i < collections.length; i++) {
+        const collection = collections[i];
+        const path = paths[i];
+
+        if (!collection) {
+          collectionResults.push([]);
+          continue;
+        }
+
+        // If it's a collection, extract member URLs
+        if (collection.Members && Array.isArray(collection.Members)) {
+          // Try with $expand first
+          try {
+            const expandResponse = await api.get(
+              `${path}?$expand=.($levels=1)`,
+            );
+            const expandedData = expandResponse.data;
+
+            if (expandedData.Members && expandedData.Members.length > 0) {
+              const firstMember = expandedData.Members[0];
+              if (
+                typeof firstMember === 'object' &&
+                Object.keys(firstMember).length > 1
+              ) {
+                collectionResults.push(expandedData.Members as T[]);
+                continue;
+              }
+            }
+          } catch {
+            // $expand not supported, fall back to batched individual fetches
+          }
+
+          // Extract member URLs for batched fetching
+          const memberUrls = collection.Members.map((member: any) => {
+            return typeof member === 'object' && '@odata.id' in member
+              ? member['@odata.id']
+              : member;
+          }).filter(Boolean);
+
+          const startIndex = allMemberUrls.length;
+          allMemberUrls.push(...memberUrls);
+          collectionResults.push([]); // Placeholder, will be filled later
+
+          // Store the range for this collection
+          (collectionResults[i] as any)._range = {
+            start: startIndex,
+            end: startIndex + memberUrls.length,
+          };
+        } else {
+          // Single resource
+          collectionResults.push([collection as unknown as T]);
+        }
+      }
+
+      // Batch fetch all members at once with concurrency control
+      if (allMemberUrls.length > 0) {
+        const allMembers = await batchFetch<T>(allMemberUrls, {
+          concurrency: 8, // Higher concurrency for member fetches
+          retry: true,
+        });
+
+        // Distribute members back to their collections
+        collectionResults.forEach((result, index) => {
+          if ((result as any)._range) {
+            const { start, end } = (result as any)._range;
+            const members = allMembers.slice(start, end).filter(Boolean);
+            collectionResults[index] = members;
+            delete (result as any)._range;
+          }
+        });
+      }
+
+      const results = collectionResults;
       // Flatten and deduplicate by @odata.id (Redfish unique identifier).
       // Using name-based dedup would silently drop sensors with the same name
       // from different chassis (e.g. two "CPU Temp" sensors on different chassis).
