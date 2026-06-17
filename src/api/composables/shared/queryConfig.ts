@@ -130,5 +130,3 @@ export const RedfishQueryPresets = {
     gcTime: 30 * 60 * 1000, // 30 minutes
   }),
 };
-
-// Made with Bob

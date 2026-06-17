@@ -236,5 +236,3 @@ export function useTablePagination<T>(options: PaginationOptions<T>) {
     totalRows: pagination.totalItems,
   };
 }
-
-// Made with Bob
