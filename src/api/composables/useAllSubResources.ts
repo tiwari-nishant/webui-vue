@@ -1,8 +1,12 @@
 import { useQuery } from '@tanstack/vue-query';
 import { computed } from 'vue';
 import api from '@/store/api';
-import { useRedfishCollection, useRedfishResource } from './useRedfishCollection';
+import {
+  useRedfishCollection,
+  useRedfishResource,
+} from './useRedfishCollection';
 import type { Resource, ODataId, ResourceCollection } from '@/types/redfish';
+import { createRedfishQueryConfig } from './shared/queryConfig';
 
 // Re-export helpers for consistent imports across all composables
 export { useRedfishCollection, useRedfishResource };
@@ -135,16 +139,7 @@ export function useAllSubResources<T extends Resource>(
       });
     },
     enabled: isSubQueryEnabled,
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    // Don't retry client errors (4xx) — they won't succeed on retry.
-    // Do retry transient server errors (5xx) and network failures.
-    retry: (failureCount, error: any) => {
-      const status = error?.response?.status;
-      if (status && status >= 400 && status < 500) return false;
-      return failureCount < 2;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    ...createRedfishQueryConfig<T[]>(),
   });
 
   // Combined refetch function that refetches both parent and child queries
@@ -170,17 +165,19 @@ export function useAllSubResources<T extends Resource>(
  * @param navigationPath Array of property names to navigate through
  * @returns The final collection URL
  */
-export async function navigateToCollection(navigationPath: string[]): Promise<string> {
+export async function navigateToCollection(
+  navigationPath: string[],
+): Promise<string> {
   let currentUrl = '/redfish/v1/';
-  
+
   for (const property of navigationPath) {
     const response = await api.get(currentUrl);
     const data = response.data;
-    
+
     if (!data[property]) {
       throw new Error(`Property ${property} not found at ${currentUrl}`);
     }
-    
+
     const nextResource = data[property];
     if (typeof nextResource === 'object' && '@odata.id' in nextResource) {
       currentUrl = nextResource['@odata.id'];
@@ -188,7 +185,7 @@ export async function navigateToCollection(navigationPath: string[]): Promise<st
       throw new Error(`Invalid navigation path at ${property}`);
     }
   }
-  
+
   return currentUrl;
 }
 
@@ -198,7 +195,7 @@ export async function navigateToCollection(navigationPath: string[]): Promise<st
  */
 export function useNavigatedCollection<T extends Resource>(
   navigationPath: string[],
-  options: { enabled?: boolean; filter?: (item: T) => boolean } = {}
+  options: { enabled?: boolean; filter?: (item: T) => boolean } = {},
 ) {
   const { enabled = true, filter } = options;
 
@@ -207,10 +204,9 @@ export function useNavigatedCollection<T extends Resource>(
     queryFn: async (): Promise<T[]> => {
       const collectionUrl = await navigateToCollection(navigationPath);
       const response = await api.get<ResourceCollection>(collectionUrl);
-      
-      const memberIds = response.data.Members?.map(
-        (member: any) => member['@odata.id']
-      ) || [];
+
+      const memberIds =
+        response.data.Members?.map((member: any) => member['@odata.id']) || [];
 
       if (memberIds.length === 0) {
         return [];
@@ -218,12 +214,17 @@ export function useNavigatedCollection<T extends Resource>(
 
       // Try $expand first
       try {
-        const expandResponse = await api.get(`${collectionUrl}?$expand=.($levels=1)`);
+        const expandResponse = await api.get(
+          `${collectionUrl}?$expand=.($levels=1)`,
+        );
         const expandedData = expandResponse.data;
-        
+
         if (expandedData.Members && expandedData.Members.length > 0) {
           const firstMember = expandedData.Members[0];
-          if (typeof firstMember === 'object' && Object.keys(firstMember).length > 1) {
+          if (
+            typeof firstMember === 'object' &&
+            Object.keys(firstMember).length > 1
+          ) {
             const members = expandedData.Members as T[];
             return filter ? members.filter(filter) : members;
           }
@@ -234,7 +235,7 @@ export function useNavigatedCollection<T extends Resource>(
 
       // Fallback: fetch each member individually
       const memberResponses = await Promise.all(
-        memberIds.map((id: string) => api.get<T>(id))
+        memberIds.map((id: string) => api.get<T>(id)),
       );
 
       const members = memberResponses.map((res) => res.data);
@@ -256,20 +257,29 @@ export function useNavigatedCollection<T extends Resource>(
  * Fetch a property from all resources in a collection
  * Example: Fetch PowerRestorePolicy from all Systems
  */
-export function usePropertyFromCollection<T extends Resource, K extends keyof T>(
+export function usePropertyFromCollection<
+  T extends Resource,
+  K extends keyof T,
+>(
   collectionPath: string,
   propertyKey: K,
-  options: { enabled?: boolean; expand?: boolean } = {}
+  options: { enabled?: boolean; expand?: boolean } = {},
 ) {
   const { enabled = true, expand = false } = options;
 
-  const collectionQuery = useRedfishCollection<T>(collectionPath, { enabled, expand });
+  const collectionQuery = useRedfishCollection<T>(collectionPath, {
+    enabled,
+    expand,
+  });
 
   const propertyValue = computed(() => {
-    if (!collectionQuery.data.value || collectionQuery.data.value.length === 0) {
+    if (
+      !collectionQuery.data.value ||
+      collectionQuery.data.value.length === 0
+    ) {
       return null;
     }
-    
+
     // Return the property from the first resource (most common case)
     // If multiple systems exist, this can be extended
     const firstResource = collectionQuery.data.value[0];

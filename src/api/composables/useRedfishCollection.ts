@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/vue-query';
 import api from '@/store/api';
-import type { ResourceCollection, Resource, ExpandedCollection } from '@/types/redfish';
+import type {
+  ResourceCollection,
+  Resource,
+  ExpandedCollection,
+} from '@/types/redfish';
+import { createRedfishQueryConfig } from './shared/queryConfig';
 
 interface UseRedfishCollectionOptions {
   expand?: boolean;
@@ -16,24 +21,31 @@ interface UseRedfishCollectionOptions {
  */
 export function useRedfishCollection<T extends Resource>(
   collectionPath: string,
-  options: UseRedfishCollectionOptions = {}
+  options: UseRedfishCollectionOptions = {},
 ) {
   const {
     expand = true,
     expandLevels = 1,
     select,
     enabled = true,
-    staleTime: staleTimeMs = 30 * 1000,
+    staleTime: staleTimeMs,
   } = options;
 
   return useQuery({
-    queryKey: ['redfish', 'collection', collectionPath, { expand, expandLevels, select }],
+    queryKey: [
+      'redfish',
+      'collection',
+      collectionPath,
+      { expand, expandLevels, select },
+    ],
     queryFn: async (): Promise<T[]> => {
       const queryString = expand ? `?$expand=.($levels=${expandLevels})` : '';
       const url = `${collectionPath}${queryString}`;
 
       try {
-        const response = await api.get<ExpandedCollection<T> | ResourceCollection>(url);
+        const response = await api.get<
+          ExpandedCollection<T> | ResourceCollection
+        >(url);
         const data = response.data;
 
         if (data.Members && data.Members.length > 0) {
@@ -49,9 +61,10 @@ export function useRedfishCollection<T extends Resource>(
 
         if (data.Members && data.Members.length > 0) {
           const memberPromises = data.Members.map((member: any) => {
-            const memberId = typeof member === 'object' && '@odata.id' in member
-              ? member['@odata.id']
-              : member;
+            const memberId =
+              typeof member === 'object' && '@odata.id' in member
+                ? member['@odata.id']
+                : member;
             return api.get<T>(memberId as string);
           });
 
@@ -66,16 +79,9 @@ export function useRedfishCollection<T extends Resource>(
       }
     },
     enabled,
-    staleTime: staleTimeMs,
-    gcTime: 5 * 60 * 1000,
-    // Don't retry client errors (4xx) — they won't succeed on retry.
-    // Do retry transient server errors (5xx) and network failures.
-    retry: (failureCount, error: any) => {
-      const status = error?.response?.status;
-      if (status && status >= 400 && status < 500) return false;
-      return failureCount < 2;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    ...createRedfishQueryConfig<T[]>({
+      staleTime: staleTimeMs,
+    }),
   });
 }
 
@@ -84,7 +90,7 @@ export function useRedfishCollection<T extends Resource>(
  */
 export function useRedfishResource<T extends Resource>(
   resourcePath: string,
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean } = {},
 ) {
   const { enabled = true } = options;
 
@@ -95,15 +101,6 @@ export function useRedfishResource<T extends Resource>(
       return response.data;
     },
     enabled,
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    // Don't retry client errors (4xx) — they won't succeed on retry.
-    // Do retry transient server errors (5xx) and network failures.
-    retry: (failureCount, error: any) => {
-      const status = error?.response?.status;
-      if (status && status >= 400 && status < 500) return false;
-      return failureCount < 2;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    ...createRedfishQueryConfig<T>(),
   });
 }
