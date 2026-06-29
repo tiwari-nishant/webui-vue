@@ -12,3 +12,5 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "✅ All tests passed with sufficient coverage!"
+
+# Made with Bob
