@@ -73,3 +73,5 @@ export default mergeConfig(
     },
   }),
 );
+
+// Made with Bob
