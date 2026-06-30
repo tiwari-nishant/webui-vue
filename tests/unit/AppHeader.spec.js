@@ -71,8 +71,11 @@ describe('AppHeader.vue', () => {
 
   it('logout button should dispatch authentication/logout', async () => {
     const logoutSpy = vi.spyOn(authStore, 'logout').mockResolvedValue();
-    wrapper.get('[data-test-id="appHeader-link-logout"]').trigger('click');
-    await wrapper.vm.$nextTick();
+    await wrapper
+      .get('[data-test-id="appHeader-link-logout"]')
+      .trigger('click');
+    // Flush the resolved promise chain (.then(() => router.push(...)))
+    await Promise.resolve();
     expect(logoutSpy).toHaveBeenCalled();
     logoutSpy.mockRestore();
     expect(wrapper.exists()).toBe(true);
