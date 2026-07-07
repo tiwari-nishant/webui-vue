@@ -18,6 +18,8 @@ export interface RedfishQueryConfig {
   retry?: boolean | number | ((failureCount: number, error: any) => boolean);
   /** Custom retry delay */
   retryDelay?: (attemptIndex: number) => number;
+  /** Interval in ms to automatically refetch data in the background */
+  refetchInterval?: number | false;
 }
 
 /**
@@ -67,14 +69,17 @@ export const defaultRedfishRetryDelay = (attemptIndex: number): number => {
 export function createRedfishQueryConfig<T = unknown>(
   overrides: RedfishQueryConfig = {},
 ): Partial<UseQueryOptions<T>> {
-  return {
+  const config: Partial<UseQueryOptions<T>> = {
     staleTime: overrides.staleTime ?? 30 * 1000, // 30 seconds
     gcTime: overrides.gcTime ?? 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: overrides.refetchOnWindowFocus ?? false,
     refetchOnReconnect: overrides.refetchOnReconnect ?? true,
     retry: overrides.retry ?? defaultRedfishRetry,
+    refetchInterval: overrides.refetchInterval ?? false,
     retryDelay: overrides.retryDelay ?? defaultRedfishRetryDelay,
   };
+
+  return config;
 }
 
 /**
@@ -82,21 +87,22 @@ export function createRedfishQueryConfig<T = unknown>(
  */
 export const RedfishQueryPresets = {
   /**
+   * For sensor readings — always considered stale so each refetch gets fresh
+   * data, with automatic background polling every 30 seconds.
+   */
+  sensors: createRedfishQueryConfig({
+    staleTime: 0, // always stale — every refetch fetches fresh data
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 30 * 1000, // poll every 30 seconds
+  }),
+
+  /**
    * For frequently changing data (e.g., sensor readings, power metrics)
    * Shorter stale time for more frequent updates
    */
   realtime: createRedfishQueryConfig({
     staleTime: 10 * 1000, // 10 seconds
     gcTime: 2 * 60 * 1000, // 2 minutes
-  }),
-
-  /**
-   * For static/rarely changing data (e.g., hardware inventory, BIOS settings)
-   * Longer stale time to reduce unnecessary requests
-   */
-  static: createRedfishQueryConfig({
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
   }),
 
   /**

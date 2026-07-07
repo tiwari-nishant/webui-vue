@@ -49,7 +49,6 @@
           :no-border-collapse="true"
           :items="filteredSensors"
           :fields="fields"
-          :busy="isBusy"
           class="no-scroll-sticky"
           @row-selected="onRowSelected($event, filteredSensors.length)"
         >

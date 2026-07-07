@@ -1,5 +1,7 @@
 import { computed } from 'vue';
 import { useAllSubResources } from './useAllSubResources';
+import { RedfishQueryPresets } from './shared/queryConfig';
+import type { UseQueryOptions } from '@tanstack/vue-query';
 import type { Sensor } from '@/types/redfish';
 
 export interface SensorData {
@@ -23,7 +25,11 @@ export function useSensors() {
     error,
     isError,
     refetch,
-  } = useAllSubResources<Sensor>('/redfish/v1/Chassis', 'Sensors');
+  } = useAllSubResources<Sensor>('/redfish/v1/Chassis', 'Sensors', {
+    queryConfig: RedfishQueryPresets.sensors as Partial<
+      UseQueryOptions<Sensor[]>
+    >,
+  });
 
   const sensors = computed<SensorData[]>(() => {
     if (!sensorsData.value) {

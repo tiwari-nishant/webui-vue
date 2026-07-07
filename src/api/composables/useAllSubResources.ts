@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/vue-query';
+import type { UseQueryOptions } from '@tanstack/vue-query';
 import { computed } from 'vue';
 import api from '@/store/api';
 import {
@@ -20,9 +21,12 @@ export { useRedfishCollection, useRedfishResource };
 export function useAllSubResources<T extends Resource>(
   parentCollectionPath: string,
   subResourceKey: string,
-  options: { enabled?: boolean } = {},
+  options: {
+    enabled?: boolean;
+    queryConfig?: Partial<UseQueryOptions<T[]>>;
+  } = {},
 ) {
-  const { enabled = true } = options;
+  const { enabled = true, queryConfig } = options;
 
   const parentQuery = useRedfishCollection<Resource>(parentCollectionPath, {
     enabled,
@@ -174,6 +178,7 @@ export function useAllSubResources<T extends Resource>(
     },
     enabled: isSubQueryEnabled,
     ...createRedfishQueryConfig<T[]>(),
+    ...queryConfig,
   });
 
   // Combined refetch function that refetches both parent and child queries
