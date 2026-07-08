@@ -44,12 +44,8 @@
           :sort-desc="true"
           show-empty
           :fields="fields"
-          :items="filteredLogs"
-          :per-page="perPageVal === 0 ? filteredLogs.length || 1 : perPageVal"
-          :current-page="currentPageNo"
-          :filter="searchFilterInputVal"
-          @filtered="onFiltered"
-          @row-selected="onRowSelected($event, filteredLogs.length)"
+          :items="paginatedLogs"
+          @row-selected="onRowSelected($event, paginatedLogs.length)"
         >
           <!-- Expand chevron icon -->
           <template #cell(expandRow)="row">
@@ -132,7 +128,7 @@
           first-number
           last-number
           :per-page="perPageVal === 0 ? filteredLogs.length || 1 : perPageVal"
-          :total-rows="getTotalRowCount(filteredRows)"
+          :total-rows="filteredRows"
           aria-controls="table-post-code-logs"
         />
       </BCol>
@@ -160,6 +156,7 @@ import useTableSortComposable from '../../../components/Composables/useTableSort
 import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
 import { ref, computed, watch, nextTick } from 'vue';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 import { onBeforeRouteLeave } from 'vue-router';
 import { buildUrlNewTab } from '@/utilities/url';
 import { usePostCodeLogs } from '@/api/composables/usePostCodeLogs';
@@ -176,8 +173,7 @@ const {
 } = useTableSelectableComposable();
 const { dataFormatter } = useDataFormatterGlobal();
 const { searchFilterInput } = useSearchFilterComposable();
-const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
-  usePaginationComposable();
+const { perPage, itemsPerPageOptions } = usePaginationComposable();
 const { getFilteredTableData, getFilteredTableDataByDate } = useTableFilter();
 const { toggleRowDetails } = useTableRowExpandComposable();
 const { expandRowLabel } = useTableRowExpandComposable();
@@ -228,13 +224,11 @@ const fields = ref([
   },
 ]);
 const activeFiltersData = ref([]);
-const currentPageNo = ref(currentPage);
 const filterStartDate = ref(null);
 const filterEndDate = ref(null);
 const itemsPerPageOptionsVal = ref(itemsPerPageOptions);
 const perPageVal = ref(perPage);
 const searchFilterInputVal = ref(searchFilterInput);
-const searchTotalFilteredRows = ref(0);
 const selectedRows = ref(selectedRowsList);
 const tableHeaderCheckboxModelVal = ref(tableHeaderCheckboxModel);
 const tableHeaderCheckboxIndeterminateVal = ref(
@@ -262,11 +256,6 @@ onBeforeRouteLeave(() => {
   hideLoader();
 });
 
-const filteredRows = computed(() => {
-  return searchFilterInputVal.value
-    ? searchTotalFilteredRows.value
-    : filteredLogs.value.length;
-});
 const allLogs = computed(() => {
   return postCodeLogsData.value || [];
 });
@@ -304,6 +293,21 @@ const filteredLogs = computed(() => {
   return data;
 });
 
+// ── Client-side pagination via usePaginatedData ───────────────────────────────
+const pagination = usePaginatedData({
+  data: filteredLogs,
+  pageSize: perPageVal.value,
+  initialPage: 1,
+});
+
+watch(perPageVal, (newSize) => {
+  pagination.pageSize.value = newSize;
+});
+
+const paginatedLogs = pagination.paginatedData;
+const currentPageNo = pagination.currentPage;
+const filteredRows = pagination.totalItems;
+
 const fetchSrcDetails = async (row) => {
   row.item.toggleDetails = !row.item.toggleDetails;
   toggleRowDetails(row);
@@ -332,9 +336,6 @@ const onFilterChange = ({ activeFilters }) => {
 const onChangeDateTimeFilter = ({ fromDate, toDate }) => {
   filterStartDate.value = fromDate;
   filterEndDate.value = toDate;
-};
-const onFiltered = (filteredItems) => {
-  searchTotalFilteredRows.value = filteredItems.length;
 };
 // Create export file name based on date and action
 const exportFileNameByDate = (value) => {
