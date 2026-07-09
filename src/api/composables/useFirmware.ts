@@ -67,48 +67,51 @@ export function useFirmware() {
   const { errorToast } = useToast();
 
   // Fetch BMC active firmware ID
-  const {
-    data: bmcActiveFirmwareId,
-    isFetching: isFetchingBmcActive,
-  } = useQuery({
-    queryKey: ['redfish', 'managers', 'bmc', 'activeFirmware'],
-    queryFn: async (): Promise<string | null> => {
-      const response = await api.get<ManagerResponse>('/redfish/v1/Managers/bmc');
-      const id = response.data?.Links?.ActiveSoftwareImage?.['@odata.id']?.split('/').pop();
-      return id || null;
-    },
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-    retry: 2,
-  });
+  const { data: bmcActiveFirmwareId, isFetching: isFetchingBmcActive } =
+    useQuery({
+      queryKey: ['redfish', 'managers', 'bmc', 'activeFirmware'],
+      queryFn: async (): Promise<string | null> => {
+        const response = await api.get<ManagerResponse>(
+          '/redfish/v1/Managers/bmc',
+        );
+        const id = response.data?.Links?.ActiveSoftwareImage?.['@odata.id']
+          ?.split('/')
+          .pop();
+        return id || null;
+      },
+      refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
+      gcTime: 5 * 60 * 1000,
+      retry: 2,
+    });
 
   // Fetch Host active firmware ID
-  const {
-    data: hostActiveFirmwareId,
-    isFetching: isFetchingHostActive,
-  } = useQuery({
-    queryKey: ['redfish', 'systems', 'system', 'bios', 'activeFirmware'],
-    queryFn: async (): Promise<string | null> => {
-      const response = await api.get<BiosResponse>('/redfish/v1/Systems/system/Bios');
-      const id = response.data?.Links?.ActiveSoftwareImage?.['@odata.id']?.split('/').pop();
-      return id || null;
-    },
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-    retry: 2,
-  });
+  const { data: hostActiveFirmwareId, isFetching: isFetchingHostActive } =
+    useQuery({
+      queryKey: ['redfish', 'systems', 'system', 'bios', 'activeFirmware'],
+      queryFn: async (): Promise<string | null> => {
+        const response = await api.get<BiosResponse>(
+          '/redfish/v1/Systems/system/Bios',
+        );
+        const id = response.data?.Links?.ActiveSoftwareImage?.['@odata.id']
+          ?.split('/')
+          .pop();
+        return id || null;
+      },
+      refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
+      gcTime: 5 * 60 * 1000,
+      retry: 2,
+    });
 
   // Fetch firmware boot side
-  const {
-    data: firmwareBootSide,
-    isFetching: isFetchingBootSide,
-  } = useQuery({
+  const { data: firmwareBootSide, isFetching: isFetchingBootSide } = useQuery({
     queryKey: ['redfish', 'systems', 'system', 'bios', 'bootSide'],
     queryFn: async (): Promise<string | null> => {
-      const response = await api.get<BiosResponse>('/redfish/v1/Systems/system/Bios');
+      const response = await api.get<BiosResponse>(
+        '/redfish/v1/Systems/system/Bios',
+      );
       return response.data?.Attributes?.fw_boot_side_current || null;
     },
-    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
     gcTime: 5 * 60 * 1000,
     retry: 2,
   });
@@ -122,20 +125,27 @@ export function useFirmware() {
     refetch,
   } = useQuery({
     queryKey: ['redfish', 'updateService', 'firmwareInventory'],
-    queryFn: async (): Promise<{ bmc: FirmwareItem[]; host: FirmwareItem[] }> => {
+    queryFn: async (): Promise<{
+      bmc: FirmwareItem[];
+      host: FirmwareItem[];
+    }> => {
       const response = await api.get<FirmwareInventoryResponse>(
-        '/redfish/v1/UpdateService/FirmwareInventory'
+        '/redfish/v1/UpdateService/FirmwareInventory',
       );
       const members = response.data?.Members || [];
 
-      const promises = members.map((item) => api.get<FirmwareItemResponse>(item['@odata.id']));
+      const promises = members.map((item) =>
+        api.get<FirmwareItemResponse>(item['@odata.id']),
+      );
       const responses = await Promise.all(promises);
 
       const bmcFirmware: FirmwareItem[] = [];
       const hostFirmware: FirmwareItem[] = [];
 
       responses.forEach(({ data }) => {
-        const firmwareType = data?.RelatedItem?.[0]?.['@odata.id']?.split('/').pop();
+        const firmwareType = data?.RelatedItem?.[0]?.['@odata.id']
+          ?.split('/')
+          .pop();
         const item: FirmwareItem = {
           version: data?.Version || '',
           id: data?.Id || '',
@@ -152,7 +162,7 @@ export function useFirmware() {
 
       return { bmc: bmcFirmware, host: hostFirmware };
     },
-    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
     gcTime: 5 * 60 * 1000,
     retry: (failureCount: number, err: any) => {
       const status = err?.response?.status;
@@ -164,16 +174,18 @@ export function useFirmware() {
   });
 
   // Fetch update service settings
-  const {
-    data: applyTime,
-    isFetching: isFetchingApplyTime,
-  } = useQuery({
+  const { data: applyTime, isFetching: isFetchingApplyTime } = useQuery({
     queryKey: ['redfish', 'updateService', 'settings'],
     queryFn: async (): Promise<string | null> => {
-      const response = await api.get<UpdateServiceResponse>('/redfish/v1/UpdateService');
-      return response.data?.HttpPushUriOptions?.HttpPushUriApplyTime?.ApplyTime || null;
+      const response = await api.get<UpdateServiceResponse>(
+        '/redfish/v1/UpdateService',
+      );
+      return (
+        response.data?.HttpPushUriOptions?.HttpPushUriApplyTime?.ApplyTime ||
+        null
+      );
     },
-    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
     gcTime: 5 * 60 * 1000,
     retry: 2,
   });
@@ -184,10 +196,16 @@ export function useFirmware() {
     isFetching: isFetchingLowestSupported,
   } = useQuery({
     queryKey: ['redfish', 'managers', 'bmc', 'lowestSupportedVersion'],
-    queryFn: async (): Promise<{ version: string | null; showAlert: boolean }> => {
-      const managerResponse = await api.get<ManagerResponse>('/redfish/v1/Managers/bmc');
-      const imageUrl = managerResponse.data?.Links?.ActiveSoftwareImage?.['@odata.id'];
-      
+    queryFn: async (): Promise<{
+      version: string | null;
+      showAlert: boolean;
+    }> => {
+      const managerResponse = await api.get<ManagerResponse>(
+        '/redfish/v1/Managers/bmc',
+      );
+      const imageUrl =
+        managerResponse.data?.Links?.ActiveSoftwareImage?.['@odata.id'];
+
       if (!imageUrl) {
         return { version: null, showAlert: false };
       }
@@ -200,7 +218,7 @@ export function useFirmware() {
         showAlert: !!lowestVersion,
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
     gcTime: 10 * 60 * 1000,
     retry: 2,
   });
@@ -213,34 +231,44 @@ export function useFirmware() {
 
   // Computed: Active BMC firmware
   const activeBmcFirmware = computed(() => {
-    return bmcFirmware.value.find(
-      (firmware) => firmware.id === bmcActiveFirmwareId.value
-    ) || null;
+    return (
+      bmcFirmware.value.find(
+        (firmware) => firmware.id === bmcActiveFirmwareId.value,
+      ) || null
+    );
   });
 
   // Computed: Active Host firmware
   const activeHostFirmware = computed(() => {
-    return hostFirmware.value.find(
-      (firmware) => firmware.id === hostActiveFirmwareId.value
-    ) || null;
+    return (
+      hostFirmware.value.find(
+        (firmware) => firmware.id === hostActiveFirmwareId.value,
+      ) || null
+    );
   });
 
   // Computed: Backup BMC firmware
   const backupBmcFirmware = computed(() => {
-    return bmcFirmware.value.find(
-      (firmware) => firmware.id !== bmcActiveFirmwareId.value
-    ) || null;
+    return (
+      bmcFirmware.value.find(
+        (firmware) => firmware.id !== bmcActiveFirmwareId.value,
+      ) || null
+    );
   });
 
   // Computed: Backup Host firmware
   const backupHostFirmware = computed(() => {
-    return hostFirmware.value.find(
-      (firmware) => firmware.id !== hostActiveFirmwareId.value
-    ) || null;
+    return (
+      hostFirmware.value.find(
+        (firmware) => firmware.id !== hostActiveFirmwareId.value,
+      ) || null
+    );
   });
 
   // Computed: Is single file upload enabled
-  const isSingleFileUploadEnabled = computed(() => hostFirmware.value.length === 0);
+  const isSingleFileUploadEnabled = computed(
+    () => hostFirmware.value.length === 0,
+  );
 
   // Computed: Loading state
   const isFetching = computed(
@@ -250,7 +278,7 @@ export function useFirmware() {
       isFetchingBootSide.value ||
       isFetchingInventory.value ||
       isFetchingApplyTime.value ||
-      isFetchingLowestSupported.value
+      isFetchingLowestSupported.value,
   );
 
   // Mutation: Set apply time to immediate
@@ -284,10 +312,14 @@ export function useFirmware() {
         await setApplyTimeImmediateMutation.mutateAsync();
       }
 
-      const response = await api.post('/redfish/v1/UpdateService/update', image, {
-        headers: { 'Content-Type': 'application/octet-stream' },
-      });
-      
+      const response = await api.post(
+        '/redfish/v1/UpdateService/update',
+        image,
+        {
+          headers: { 'Content-Type': 'application/octet-stream' },
+        },
+      );
+
       return response.data;
     },
     onSuccess: () => {

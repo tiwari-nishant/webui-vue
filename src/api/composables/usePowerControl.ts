@@ -53,6 +53,7 @@ export function usePowerControl() {
     error: powerControlError,
   } = useRedfishResource<EnvironmentMetrics>(
     '/redfish/v1/Chassis/chassis/EnvironmentMetrics',
+    { refetchInterval: 60 * 1000 }, // Auto-refetch every 1 minute
   );
 
   const powerControlData = computed<PowerControlData>(() => {
@@ -138,7 +139,10 @@ export function usePowerPerformanceMode() {
     isFetching: isPowerPerformanceFetching,
     isError: isPowerPerformanceError,
     error: powerPerformanceError,
-  } = useRedfishResource<SystemPowerMode>('/redfish/v1/Systems/system');
+  } = useRedfishResource<SystemPowerMode>(
+    '/redfish/v1/Systems/system',
+    { refetchInterval: 60 * 1000 }, // Auto-refetch every 1 minute
+  );
 
   const powerPerformanceData = computed<PowerPerformanceData>(() => {
     if (!systemPowerMode.value) {
@@ -209,7 +213,10 @@ export function useIdlePowerSaver() {
     isError: isIdlePowerSaverError,
     error: idlePowerSaverError,
     refetch,
-  } = useRedfishResource<SystemPowerMode>('/redfish/v1/Systems/system');
+  } = useRedfishResource<SystemPowerMode>(
+    '/redfish/v1/Systems/system',
+    { refetchInterval: 60 * 1000 }, // Auto-refetch every 1 minute
+  );
 
   const idlePowerSaverData = computed<IdlePowerSaver | null>(() => {
     return systemPowerMode.value?.IdlePowerSaver ?? null;

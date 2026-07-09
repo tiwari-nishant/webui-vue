@@ -10,13 +10,18 @@ import type { Manager } from '@/types/redfish';
 export function useRebootBmc() {
   const queryClient = useQueryClient();
 
-  const { data: managerData, isFetching, isError, error } = useQuery({
+  const {
+    data: managerData,
+    isFetching,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['redfish', 'managers', 'bmc'],
     queryFn: async (): Promise<Manager> => {
       const response = await api.get<Manager>('/redfish/v1/Managers/bmc');
       return response.data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     // Don't retry client errors (4xx) — they won't succeed on retry.
     // Do retry transient server errors (5xx) and network failures.

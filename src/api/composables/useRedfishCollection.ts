@@ -90,9 +90,9 @@ export function useRedfishCollection<T extends Resource>(
  */
 export function useRedfishResource<T extends Resource>(
   resourcePath: string,
-  options: { enabled?: boolean } = {},
+  options: { enabled?: boolean; refetchInterval?: number | false } = {},
 ) {
-  const { enabled = true } = options;
+  const { enabled = true, refetchInterval } = options;
 
   return useQuery({
     queryKey: ['redfish', 'resource', resourcePath],
@@ -101,6 +101,6 @@ export function useRedfishResource<T extends Resource>(
       return response.data;
     },
     enabled,
-    ...createRedfishQueryConfig<T>(),
+    ...createRedfishQueryConfig<T>({ refetchInterval }),
   });
 }

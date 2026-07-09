@@ -38,7 +38,12 @@ const { startLoader, endLoader, hideLoader } = useLoadingBar();
 const systemStore = stores.SystemStore();
 const licenseStore = stores.LicenseStore();
 
-const { isFetching, isError } = useFieldCoreOverride();
+const { isFetching, isError, refetch } = useFieldCoreOverride();
+
+// Expose refetch for parent components
+defineExpose({
+  refetch,
+});
 
 onBeforeMount(() => {
   startLoader();

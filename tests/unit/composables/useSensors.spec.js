@@ -141,4 +141,79 @@ describe('useSensors', () => {
     expect(error.value).toBeInstanceOf(Error);
     expect(refetch).toBe(refetchFn);
   });
+
+  it('calls useAllSubResources with correct parameters', () => {
+    useAllSubResources.mockReturnValue(makeMockSubResources());
+
+    useSensors();
+
+    expect(useAllSubResources).toHaveBeenCalledWith(
+      '/redfish/v1/Chassis',
+      'Sensors',
+    );
+  });
+
+  it('handles sensors with undefined Reading', () => {
+    const rawSensors = [
+      {
+        '@odata.id': '/redfish/v1/Chassis/chassis1/Sensors/NoReading',
+        Name: 'Sensor1',
+        Status: { Health: 'OK' },
+        ReadingUnits: 'Cel',
+      },
+    ];
+    useAllSubResources.mockReturnValue(
+      makeMockSubResources({ data: ref(rawSensors) }),
+    );
+
+    const { sensors } = useSensors();
+
+    expect(sensors.value[0].currentValue).toBeUndefined();
+  });
+
+  it('handles sensors with undefined ReadingUnits', () => {
+    const rawSensors = [
+      {
+        '@odata.id': '/redfish/v1/Chassis/chassis1/Sensors/NoUnits',
+        Name: 'Sensor1',
+        Status: { Health: 'OK' },
+        Reading: 100,
+      },
+    ];
+    useAllSubResources.mockReturnValue(
+      makeMockSubResources({ data: ref(rawSensors) }),
+    );
+
+    const { sensors } = useSensors();
+
+    expect(sensors.value[0].units).toBeUndefined();
+  });
+
+  it('initializes isSelected to false for all sensors', () => {
+    const rawSensors = [
+      {
+        '@odata.id': '/id/1',
+        Name: 'Temp1',
+        Status: { Health: 'OK' },
+        Reading: 40,
+        ReadingUnits: 'Cel',
+      },
+      {
+        '@odata.id': '/id/2',
+        Name: 'Fan1',
+        Status: { Health: 'OK' },
+        Reading: 3000,
+        ReadingUnits: 'RPM',
+      },
+    ];
+    useAllSubResources.mockReturnValue(
+      makeMockSubResources({ data: ref(rawSensors) }),
+    );
+
+    const { sensors } = useSensors();
+
+    expect(sensors.value.every((sensor) => sensor.isSelected === false)).toBe(
+      true,
+    );
+  });
 });

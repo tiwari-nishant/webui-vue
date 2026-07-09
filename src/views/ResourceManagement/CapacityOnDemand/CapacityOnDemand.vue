@@ -65,7 +65,12 @@ const global = stores.GlobalStore();
 const systemStore = stores.SystemStore();
 
 // Use the new VueQuery composable
-const { isFetching, isError, vetCapabilities } = useCapacityOnDemand();
+const { isFetching, isError, vetCapabilities, refetch } = useCapacityOnDemand();
+
+// Expose refetch for parent components
+defineExpose({
+  refetch,
+});
 
 const activation = ref(null);
 const orderInfo = ref(null);

@@ -10,6 +10,8 @@ export interface RedfishQueryConfig {
   staleTime?: number;
   /** Time in ms before unused cache is garbage collected (default: 5min) */
   gcTime?: number;
+  /** Auto-refetch interval in ms (default: undefined - no auto-refetch) */
+  refetchInterval?: number | false;
   /** Whether to refetch on window focus (default: false) */
   refetchOnWindowFocus?: boolean;
   /** Whether to refetch on network reconnect (default: true) */
@@ -69,7 +71,7 @@ export const defaultRedfishRetryDelay = (attemptIndex: number): number => {
 export function createRedfishQueryConfig<T = unknown>(
   overrides: RedfishQueryConfig = {},
 ): Partial<UseQueryOptions<T>> {
-  return {
+  const config: Partial<UseQueryOptions<T>> = {
     staleTime: overrides.staleTime ?? 30 * 1000, // 30 seconds
     gcTime: overrides.gcTime ?? 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: overrides.refetchOnWindowFocus ?? false,
@@ -78,6 +80,13 @@ export function createRedfishQueryConfig<T = unknown>(
     refetchInterval: overrides.refetchInterval ?? false,
     retryDelay: overrides.retryDelay ?? defaultRedfishRetryDelay,
   };
+
+  // Only add refetchInterval if explicitly provided
+  if (overrides.refetchInterval !== undefined) {
+    config.refetchInterval = overrides.refetchInterval;
+  }
+
+  return config;
 }
 
 /**

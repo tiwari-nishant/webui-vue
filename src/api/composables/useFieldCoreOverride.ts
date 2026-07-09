@@ -19,13 +19,21 @@ interface BiosResponse {
 export function useFieldCoreOverride() {
   const queryClient = useQueryClient();
 
-  const { data: biosData, isFetching, isError, error } = useQuery({
+  const {
+    data: biosData,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['redfish', 'systems', 'system', 'bios'],
     queryFn: async (): Promise<BiosAttributes> => {
-      const response = await api.get<BiosResponse>('/redfish/v1/Systems/system/Bios');
+      const response = await api.get<BiosResponse>(
+        '/redfish/v1/Systems/system/Bios',
+      );
       return response.data?.Attributes ?? {};
     },
-    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     // Don't retry client errors (4xx) — they won't succeed on retry.
     // Do retry transient server errors (5xx) and network failures.
@@ -38,12 +46,20 @@ export function useFieldCoreOverride() {
       Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 
-  const pending = computed<number>(() => biosData.value?.hb_field_core_override ?? 0);
-  const current = computed<number>(() => biosData.value?.hb_field_core_override_current ?? 0);
+  const pending = computed<number>(
+    () => biosData.value?.hb_field_core_override ?? 0,
+  );
+  const current = computed<number>(
+    () => biosData.value?.hb_field_core_override_current ?? 0,
+  );
 
   const isPending = computed<boolean>(() => current.value !== pending.value);
-  const configuredCores = computed<number>(() => isPending.value ? pending.value : current.value);
-  const isEnabled = computed<boolean>(() => isPending.value ? pending.value > 0 : current.value > 0);
+  const configuredCores = computed<number>(() =>
+    isPending.value ? pending.value : current.value,
+  );
+  const isEnabled = computed<boolean>(() =>
+    isPending.value ? pending.value > 0 : current.value > 0,
+  );
 
   const setFieldCoreOverrideMutation = useMutation({
     mutationFn: async (coreOverride: number): Promise<void> => {
@@ -66,6 +82,7 @@ export function useFieldCoreOverride() {
     isPending,
     configuredCores,
     isEnabled,
+    refetch,
     setFieldCoreOverride: setFieldCoreOverrideMutation.mutateAsync,
   };
 }
