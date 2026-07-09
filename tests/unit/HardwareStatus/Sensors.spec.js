@@ -52,6 +52,7 @@ import eventBus from '@/eventBus';
 const makeSensorsHook = (overrides = {}) => ({
   sensors: ref([]),
   isLoading: ref(false),
+  isFetching: ref(false),
   isError: ref(false),
   error: ref(null),
   refetch: vi.fn(),
@@ -143,13 +144,13 @@ describe('Sensors.vue', () => {
 
   // ── Loading state ─────────────────────────────────────────────────────────
 
-  it('isBusy computed is true when sensors are loading', () => {
-    const wrapper = mountSensors({ isLoading: ref(true) });
+  it('isBusy computed is true when sensors are fetching', () => {
+    const wrapper = mountSensors({ isFetching: ref(true) });
     expect(wrapper.vm.isBusy).toBe(true);
   });
 
-  it('isBusy computed is false when loading is complete', () => {
-    const wrapper = mountSensors({ isLoading: ref(false) });
+  it('isBusy computed is false when fetching is complete', () => {
+    const wrapper = mountSensors({ isFetching: ref(false) });
     expect(wrapper.vm.isBusy).toBe(false);
   });
 

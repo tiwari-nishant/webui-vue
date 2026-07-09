@@ -169,11 +169,19 @@ export function useAllSubResources<T extends Resource>(
       // from different chassis (e.g. two "CPU Temp" sensors on different chassis).
       const flat = results.flat();
       const seen = new Set<string>();
-      return flat.filter((item) => {
+      const deduplicated = flat.filter((item) => {
         const id = (item as any)['@odata.id'];
         if (id && seen.has(id)) return false;
         if (id) seen.add(id);
         return true;
+      });
+
+      // Sort by @odata.id for stable, consistent ordering across refetches
+      // This prevents the table from reordering items during auto-refresh
+      return deduplicated.sort((a, b) => {
+        const idA = (a as any)['@odata.id'] || '';
+        const idB = (b as any)['@odata.id'] || '';
+        return idA.localeCompare(idB);
       });
     },
     enabled: isSubQueryEnabled,
@@ -190,6 +198,9 @@ export function useAllSubResources<T extends Resource>(
   return {
     data: query.data,
     isLoading: computed(
+      () => parentQuery.isLoading.value || query.isLoading.value,
+    ),
+    isFetching: computed(
       () => parentQuery.isFetching.value || query.isFetching.value,
     ),
     error: computed(() => parentQuery.error.value || query.error.value),

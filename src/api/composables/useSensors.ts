@@ -22,6 +22,7 @@ export function useSensors() {
   const {
     data: sensorsData,
     isLoading,
+    isFetching,
     error,
     isError,
     refetch,
@@ -49,6 +50,7 @@ export function useSensors() {
   return {
     sensors,
     isLoading,
+    isFetching,
     error,
     isError,
     refetch,

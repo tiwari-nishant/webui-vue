@@ -215,6 +215,7 @@ const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const {
   sensors: sensorsFromQuery,
   isLoading: isSensorsLoading,
+  isFetching: isSensorsFetching,
   isError,
   refetch: refetchSensors,
 } = useSensors();
@@ -243,7 +244,8 @@ const tableHeaderCheckbox = ref(tableHeaderCheckboxModel);
 const tableHeaderCheckboxIndeterminated = ref(tableHeaderCheckboxIndeterminate);
 const tableRef = ref(null);
 const activeFiltersRows = ref([]);
-const isBusy = computed(() => isSensorsLoading.value);
+// Use isFetching for table busy state (includes background refetches)
+const isBusy = computed(() => isSensorsFetching.value);
 const searchFilterInput = ref('');
 
 const fields = ref([
@@ -300,6 +302,7 @@ onBeforeMount(() => {
   });
 });
 
+// Only show loading bar on initial load, not during background refetches
 watch(
   () => isSensorsLoading.value,
   (loading) => {
