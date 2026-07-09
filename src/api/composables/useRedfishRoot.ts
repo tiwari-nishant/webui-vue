@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/vue-query';
 import api from '@/store/api';
 import type { ServiceRoot } from '@/types/redfish';
+import { RedfishQueryPresets } from './shared/queryConfig';
 
 /**
  * Composable to fetch and cache the Redfish ServiceRoot
@@ -13,9 +14,8 @@ export function useRedfishRoot() {
       const response = await api.get<ServiceRoot>('/redfish/v1/');
       return response.data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - ServiceRoot rarely changes
-    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
-    retry: 3,
+    ...RedfishQueryPresets.metadata,
+    retry: 3, // Override: ServiceRoot is critical, retry more times
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
@@ -25,7 +25,7 @@ export function useRedfishRoot() {
  */
 export function useODataExpandSupport() {
   const { data: serviceRoot } = useRedfishRoot();
-  
+
   const isExpandSupported = () => {
     return (
       serviceRoot.value?.ProtocolFeaturesSupported?.ExpandQuery?.ExpandAll ??

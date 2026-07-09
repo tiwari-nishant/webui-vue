@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+# Run unit tests with coverage before commit
+echo "Running unit tests with coverage check (90% threshold)..."
+npm run test:coverage
+
+# If tests or coverage fail, prevent commit
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed or coverage is below 90%. Commit aborted."
+  echo "Run 'npm run test:coverage' to see detailed coverage report."
+  exit 1
+fi
+
+echo "✅ All tests passed with sufficient coverage!"

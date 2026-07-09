@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
+import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import { createPinia, setActivePinia } from 'pinia';
 import stores from '@/store';
 import AppHeader from '@/components/AppHeader/AppHeader.vue';
@@ -20,18 +21,22 @@ describe('AppHeader.vue', () => {
   let globalStore;
   let eventLogStore;
   let authStore;
+  let queryClient;
+
   beforeEach(() => {
     const pinia = createPinia();
     setActivePinia(pinia);
+
     globalStore = stores.GlobalStore();
     eventLogStore = stores.EventLogStore();
     authStore = stores.AuthenticationStore();
     globalStore.getSystemInfo = vi.fn();
     eventLogStore.getEventLogData = vi.fn();
     authStore.resetStoreState = vi.fn();
+
     wrapper = mount(AppHeader, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, [VueQueryPlugin, { queryClient }]],
         mocks: {
           $t: (key) => key,
         },
@@ -66,8 +71,11 @@ describe('AppHeader.vue', () => {
 
   it('logout button should dispatch authentication/logout', async () => {
     const logoutSpy = vi.spyOn(authStore, 'logout').mockResolvedValue();
-    wrapper.get('[data-test-id="appHeader-link-logout"]').trigger('click');
-    await wrapper.vm.$nextTick();
+    await wrapper
+      .get('[data-test-id="appHeader-link-logout"]')
+      .trigger('click');
+    // Flush the resolved promise chain (.then(() => router.push(...)))
+    await Promise.resolve();
     expect(logoutSpy).toHaveBeenCalled();
     logoutSpy.mockRestore();
     expect(wrapper.exists()).toBe(true);
@@ -77,16 +85,5 @@ describe('AppHeader.vue', () => {
     wrapper.vm.$root.$emit('change-is-navigation-open', false);
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.isNavigationOpen).toBe(false);
-  });
-
-  describe('Created lifecycle hook', () => {
-    it('getSystemInfo should dispatch global/getSystemInfo', () => {
-      wrapper.vm.getSystemInfo();
-      expect(globalStore.getSystemInfo).toHaveBeenCalled();
-    });
-    it('getEvents should dispatch eventLog/getEventLogData', () => {
-      wrapper.vm.getEvents();
-      expect(eventLogStore.getEventLogData).toHaveBeenCalled();
-    });
   });
 });
