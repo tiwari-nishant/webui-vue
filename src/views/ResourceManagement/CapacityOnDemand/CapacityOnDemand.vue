@@ -65,7 +65,12 @@ const global = stores.GlobalStore();
 const systemStore = stores.SystemStore();
 
 // Use the new VueQuery composable
-const { isFetching, isError, vetCapabilities } = useCapacityOnDemand();
+const { isLoading, isError, vetCapabilities, refetch } = useCapacityOnDemand();
+
+// Expose refetch for parent components
+defineExpose({
+  refetch,
+});
 
 const activation = ref(null);
 const orderInfo = ref(null);
@@ -96,11 +101,11 @@ const quickLinks = reactive([
   },
 ]);
 
-// Manage loading bar for query fetching state
+// Only show loading bar on initial load, not during background refetches
 watch(
-  isFetching,
-  (fetching) => {
-    if (fetching) {
+  isLoading,
+  (loading) => {
+    if (loading) {
       startLoader();
     } else {
       endLoader();
@@ -127,7 +132,7 @@ const serverStatus = computed(() => {
   return global.serverStatusGetter;
 });
 
-const isBusy = computed(() => isFetching.value);
+const isBusy = computed(() => isLoading.value);
 </script>
 <style lang="scss" scoped>
 a {

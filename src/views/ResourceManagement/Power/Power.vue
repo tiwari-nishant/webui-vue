@@ -56,19 +56,19 @@ const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const globalStore = stores.GlobalStore();
 
 // Use VueQuery composables for power data
-const { isPowerControlFetching, isPowerControlMutating, isPowerControlError } =
+const { isPowerControlLoading, isPowerControlMutating, isPowerControlError } =
   usePowerControl();
 
 const {
   oemMode,
-  isPowerPerformanceFetching,
+  isPowerPerformanceLoading,
   isPowerPerformanceMutating,
   isPowerPerformanceError,
 } = usePowerPerformanceMode();
 
 const {
   idlePowerSaverData,
-  isIdlePowerSaverFetching,
+  isIdlePowerSaverLoading,
   isIdlePowerSaverMutating,
   isIdlePowerSaverError,
 } = useIdlePowerSaver();
@@ -85,15 +85,11 @@ const nonIdlePowerSaverMode = computed(() => {
   return idlePowerSaverData.value ? false : true;
 });
 
-// Manage loading bar for fetching state (initial data load)
+// Only show loading bar on initial load, not during background refetches
 watch(
-  [
-    isPowerControlFetching,
-    isPowerPerformanceFetching,
-    isIdlePowerSaverFetching,
-  ],
-  ([controlFetching, performanceFetching, idleFetching]) => {
-    if (controlFetching || performanceFetching || idleFetching) {
+  [isPowerControlLoading, isPowerPerformanceLoading, isIdlePowerSaverLoading],
+  ([controlLoading, performanceLoading, idleLoading]) => {
+    if (controlLoading || performanceLoading || idleLoading) {
       startLoader();
     } else {
       endLoader();

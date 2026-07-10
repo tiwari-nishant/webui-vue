@@ -79,6 +79,11 @@ export function createRedfishQueryConfig<T = unknown>(
     retryDelay: overrides.retryDelay ?? defaultRedfishRetryDelay,
   };
 
+  // Only add refetchInterval if explicitly provided
+  if (overrides.refetchInterval !== undefined) {
+    config.refetchInterval = overrides.refetchInterval;
+  }
+
   return config;
 }
 
@@ -103,6 +108,15 @@ export const RedfishQueryPresets = {
   realtime: createRedfishQueryConfig({
     staleTime: 10 * 1000, // 10 seconds
     gcTime: 2 * 60 * 1000, // 2 minutes
+  }),
+
+  /**
+   * For static/rarely changing data (e.g., hardware inventory, BIOS settings)
+   * Longer stale time to reduce unnecessary requests
+   */
+  static: createRedfishQueryConfig({
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
   }),
 
   /**

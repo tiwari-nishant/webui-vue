@@ -49,6 +49,7 @@ export function useCapacityOnDemand() {
   // Fetch licenses data
   const {
     data: licensesData,
+    isLoading,
     isFetching,
     isError,
     error,
@@ -58,21 +59,25 @@ export function useCapacityOnDemand() {
     queryFn: async (): Promise<Record<string, License>> => {
       const response = await api.get('/redfish/v1/LicenseService/Licenses');
       const members = response.data?.Members || [];
-      
-      const promises = members.map((member: any) => 
-        api.get(member['@odata.id'])
+
+      const promises = members.map((member: any) =>
+        api.get(member['@odata.id']),
       );
-      
+
       const responses = await Promise.all(promises);
-      
-      const data = responses.reduce((acc, { data }) => {
-        acc[data.Id] = data;
-        return acc;
-      }, {} as Record<string, License>);
-      
+
+      const data = responses.reduce(
+        (acc, { data }) => {
+          acc[data.Id] = data;
+          return acc;
+        },
+        {} as Record<string, License>,
+      );
+
       return data;
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0,
+    refetchInterval: 60 * 1000,
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount: number, err: any) => {
       const status = err?.response?.status;
@@ -130,7 +135,7 @@ export function useCapacityOnDemand() {
 
   // Mutation: Activate license
   const { successToast, errorToast } = useToast();
-  
+
   const activateLicenseMutation = useMutation({
     mutationFn: async (licenseKey: string): Promise<void> => {
       await api.post('/redfish/v1/LicenseService/Licenses', {
@@ -138,7 +143,9 @@ export function useCapacityOnDemand() {
       });
     },
     onSuccess: () => {
-      successToast(i18n.global.t('pageCapacityOnDemand.activation.toast.success'));
+      successToast(
+        i18n.global.t('pageCapacityOnDemand.activation.toast.success'),
+      );
       queryClient.invalidateQueries({
         queryKey: ['redfish', 'licenseService', 'licenses'],
       });
@@ -164,6 +171,7 @@ export function useCapacityOnDemand() {
     aixAccessKeyInfo,
 
     // Loading and error states
+    isLoading,
     isFetching,
     isError,
     error,
