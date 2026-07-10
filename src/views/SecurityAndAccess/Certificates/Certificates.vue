@@ -63,11 +63,7 @@
         >
           <!-- Certificate -->
           <template #cell(certificate)="row">
-            {{
-              row.item.certificate === 'ServiceLogin Certificate'
-                ? $t('pageCertificates.serviceLoginCertificate')
-                : row.item.certificate
-            }}
+            {{ getCertificateLabel(row.item.certificate) }}
           </template>
           <template #cell(validFrom)="{ value }">
             {{ $filters.formatDate(value) }}
@@ -125,7 +121,7 @@
       :cancel-title="$t('global.action.cancel')"
       :ok-title="$t('global.action.delete')"
       @cancel="onModalCancel"
-      @ok="onModalDelete"
+      @ok="onModalDeleteHandler"
       @hide="onModalHide"
     >
       {{
@@ -140,27 +136,58 @@
 </template>
 
 <script setup>
+// @ts-ignore
 import IconAdd from '@carbon/icons-vue/es/add--alt/20';
+// @ts-ignore
 import IconReplace from '@carbon/icons-vue/es/renew/20';
+// @ts-ignore
 import IconTrashcan from '@carbon/icons-vue/es/trash-can/20';
+// @ts-ignore
 import ModalGenerateCsr from './ModalGenerateCsr.vue';
+// @ts-ignore
 import ModalUploadCertificate from './ModalUploadCertificate.vue';
+// @ts-ignore
 import PageTitle from '@/components/Global/PageTitle.vue';
+// @ts-ignore
 import TableRowAction from '@/components/Global/TableRowAction.vue';
+// @ts-ignore
 import StatusIcon from '@/components/Global/StatusIcon.vue';
+// @ts-ignore
 import Alert from '@/components/Global/Alert.vue';
+// @ts-ignore
 import stores from '@/store';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
+// @ts-ignore
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
+// @ts-ignore
 import useToastComposable from '@/components/Composables/useToastComposable';
+// @ts-ignore
 import i18n from '@/i18n';
+// @ts-ignore
 import eventBus from '@/eventBus';
+import {
+  useCertificates,
+  CERTIFICATE_TYPES,
+} from '@/api/composables/useCertificates';
 
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const toast = useToastComposable();
 
-const certificate = stores.CertificatesStore();
+// Use the certificates composable
+const {
+  certificates: certificatesData,
+  availableUploadTypes,
+  isLoading,
+  refetchAll,
+  addNewACFCertificate,
+  addNewCertificate,
+  replaceACFCertificate,
+  replaceCertificate,
+  deleteACFCertificate,
+  deleteCertificate,
+} = useCertificates();
+
 const userManagement = stores.UserManagementStore();
 const global = stores.GlobalStore();
 
@@ -213,14 +240,23 @@ onBeforeRouteLeave(() => {
   hideLoader();
 });
 
+// Watch loading state
+watch(
+  isLoading,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+      isBusy.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 onMounted(() => {
   startLoader();
-  Promise.all([
-    global.getBmcTime(),
-    certificate.getAcfCertificate(),
-    certificate.getCertificates(),
-    userManagement.getUsers(),
-  ]).finally(() => {
+  Promise.all([global.getBmcTime(), userManagement.getUsers()]).finally(() => {
     endLoader();
     isBusy.value = false;
     userRoleId.value = global.currentUser?.RoleId;
@@ -228,11 +264,9 @@ onMounted(() => {
 });
 
 const certificates = computed(() => {
-  const acfCertificate = certificate.acfCertificateGetter;
-  const otherCertificates = certificate.allCertificatesGetter;
-  const allCertificates = [...acfCertificate, ...otherCertificates];
-  return allCertificates;
+  return certificatesData.value || [];
 });
+
 const tableItems = computed(() => {
   return certificates.value.map((certificate) => {
     return {
@@ -240,9 +274,12 @@ const tableItems = computed(() => {
       actions: [
         {
           value: 'replace',
+          title: '',
+          enabled: true,
         },
         {
           value: 'delete',
+          title: '',
           enabled:
             certificate.type === 'TrustStore Certificate' ||
             certificate.certificate === 'ServiceLogin Certificate' ||
@@ -252,30 +289,39 @@ const tableItems = computed(() => {
     };
   });
 });
+
 const certificatesForUpload = computed(() => {
-  return certificate.availableUploadTypes;
+  return availableUploadTypes.value || [];
 });
+
 const bmcTime = computed(() => {
   return global.bmcTime;
 });
+
 const expiredCertificateTypes = computed(() => {
   return certificates.value.reduce((acc, val) => {
     const daysUntilExpired = getDaysUntilExpired(val.validUntil);
     if (daysUntilExpired < 0) {
-      acc.push(val.certificate);
+      acc.push(getCertificateLabel(val.certificate));
     }
     return acc;
   }, []);
 });
+
 const expiringCertificateTypes = computed(() => {
   return certificates.value.reduce((acc, val) => {
     const daysUntilExpired = getDaysUntilExpired(val.validUntil);
     if (daysUntilExpired < 31 && daysUntilExpired >= 0) {
-      acc.push(val.certificate);
+      acc.push(getCertificateLabel(val.certificate));
     }
     return acc;
   }, []);
 });
+
+const getCertificateLabel = (certificateType) => {
+  const certConfig = CERTIFICATE_TYPES.find((c) => c.type === certificateType);
+  return certConfig ? i18n.global.t(certConfig.labelKey) : certificateType;
+};
 
 const onTableRowAction = (event, rowItem) => {
   switch (event) {
@@ -289,65 +335,82 @@ const onTableRowAction = (event, rowItem) => {
       break;
   }
 };
+
 const initModalUploadCertificate = (certificate = null) => {
   modalCertificate.value = certificate;
   eventBus.emit('upload-certificate');
 };
+
 const initModalDeleteCertificate = (certificate) => {
-  modalContent.value = certificate.certificate;
+  modalContent.value = getCertificateLabel(certificate.certificate);
   modalCertificate.value = certificate;
-  certificate.actions.forEach((action) => {
-    if (action.enabled !== undefined) {
-      modal.value = action.enabled;
-    }
-  });
+  const tableItem = tableItems.value.find(
+    (item) => item.location === certificate.location,
+  );
+  if (tableItem) {
+    tableItem.actions.forEach((action) => {
+      if (action.enabled !== undefined) {
+        modal.value = action.enabled;
+      }
+    });
+  }
 };
-const onModalDelete = (deleteConfirmed) => {
+
+const onModalCancel = () => {
+  modal.value = false;
+};
+
+const onModalHide = () => {
+  modal.value = false;
+};
+
+const onModalDeleteHandler = () => {
   const certificate = modalCertificate.value;
-  if (deleteConfirmed)
-    deleteCertificate({
+  if (certificate) {
+    deleteCertificateHandler({
       type: certificate.certificate,
       location: certificate.location,
     });
+  }
 };
+
 const onModalOk = ({ addNew, file, type, location }) => {
   if (addNew) {
     // Upload a new certificate
-    addNewCertificate(file, type);
+    addNewCertificateHandler(file, type);
   } else {
     // Replace an existing certificate
-    replaceCertificate(file, type, location);
+    replaceCertificateHandler(file, type, location);
   }
 };
-const addNewCertificate = (file, type) => {
+
+const addNewCertificateHandler = (file, type) => {
   startLoader();
   if (
     type === 'ServiceLogin Certificate' ||
     type === 'BMC shell ACF certificate' ||
     type === 'Resource dump ACF certificate'
   ) {
-    certificate
-      .addNewACFCertificate({ file, type })
+    addNewACFCertificate({ file, type })
       .then((success) => toast.successToast(success))
       .catch(({ message }) => toast.errorToast(message))
       .finally(() => endLoader());
   } else {
-    certificate
-      .addNewCertificate({ file, type })
+    addNewCertificate({ file, type })
       .then((success) => toast.successToast(success))
       .catch(({ message }) => toast.errorToast(message))
       .finally(() => endLoader());
   }
 };
-const replaceCertificate = (file, type, location) => {
+
+const replaceCertificateHandler = (file, type, location) => {
   startLoader();
   if (type === 'ServiceLogin Certificate') {
-    return certificate
-      .replaceACFCertificate({
-        file,
-        type,
-        location,
-      })
+    return replaceACFCertificate({
+      file,
+      type,
+      location,
+    })
       .then((success) => toast.successToast(success))
       .catch(({ message }) => toast.errorToast(message))
       .finally(() => endLoader());
@@ -356,51 +419,53 @@ const replaceCertificate = (file, type, location) => {
     reader.readAsBinaryString(file);
     reader.onloadend = (event) => {
       const certificateString = event.target.result;
-      return certificate
-        .replaceCertificate({
-          certificateString,
-          type,
-          location,
-        })
+      return replaceCertificate({
+        certificateString,
+        type,
+        location,
+      })
         .then((success) => toast.successToast(success))
         .catch(({ message }) => toast.errorToast(message))
         .finally(() => endLoader());
     };
   }
 };
-const deleteCertificate = ({ type, location }) => {
+
+const deleteCertificateHandler = ({ type, location }) => {
   startLoader();
   Promise.all([deleteCertificateChecker(type, location)])
     .then((success) => {
       toast.successToast(success[0]);
-      certificate.getAcfCertificate();
-      certificate.getCertificates();
+      refetchAll();
     })
     .catch(({ message }) => toast.errorToast(message))
     .finally(() => endLoader());
 };
+
 const deleteCertificateChecker = (type, location) => {
   if (type === 'ServiceLogin Certificate') {
-    return certificate.deleteACFCertificate({
+    return deleteACFCertificate({
       type,
       location,
     });
   } else {
-    return certificate.deleteCertificate({
+    return deleteCertificate({
       type,
       location,
     });
   }
 };
+
 const getDaysUntilExpired = (date) => {
   if (bmcTime.value) {
-    const validUntilMs = date.getTime();
+    const validUntilMs = new Date(date).getTime();
     const currentBmcTimeMs = bmcTime.value.getTime();
     const oneDayInMs = 24 * 60 * 60 * 1000;
     return Math.round((validUntilMs - currentBmcTimeMs) / oneDayInMs);
   }
-  return new Date();
+  return 0;
 };
+
 const getIconStatus = (date) => {
   const daysUntilExpired = getDaysUntilExpired(date);
   if (daysUntilExpired < 0) {
@@ -408,6 +473,7 @@ const getIconStatus = (date) => {
   } else if (daysUntilExpired < 31) {
     return 'warning';
   }
+  return 'success';
 };
 </script>
 

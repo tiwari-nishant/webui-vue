@@ -18,7 +18,7 @@
       <template v-if="certificate !== null">
         <dl class="mb-4">
           <dt>{{ $t('pageCertificates.modal.certificateType') }}</dt>
-          <dd>{{ certificate.certificate }}</dd>
+          <dd>{{ getCertificateLabel(certificate.certificate) }}</dd>
         </dl>
       </template>
       <!-- Add new Certificate type -->
@@ -88,18 +88,27 @@
 </template>
 
 <script setup>
+// @ts-ignore
 import Alert from '@/components/Global/Alert.vue';
 import { required, requiredIf } from '@vuelidate/validators';
 import { useVuelidate } from '@vuelidate/core';
 import { computed, ref, watch } from 'vue';
-import stores from '@/store';
+// @ts-ignore
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
+// @ts-ignore
 import FormFile from '@/components/Global/FormFile.vue';
+// @ts-ignore
 import eventBus from '@/eventBus';
+// @ts-ignore
+import i18n from '@/i18n';
+import {
+  useCertificates,
+  CERTIFICATE_TYPES,
+} from '@/api/composables/useCertificates';
 
 const { getValidationState } = useVuelidateComposable();
 
-const uploadCertificate = stores.CertificatesStore();
+const { availableUploadTypes } = useCertificates();
 
 const props = defineProps({
   certificate: {
@@ -129,7 +138,7 @@ const form = ref({
 });
 const fileTypeMismatch = ref(false);
 const certificateTypes = computed(() => {
-  return uploadCertificate.availableUploadTypesGetter;
+  return availableUploadTypes.value || [];
 });
 const certificateOptions = computed(() => {
   const filteredCertificates = certificateTypes.value
@@ -142,9 +151,9 @@ const certificateOptions = computed(() => {
       }
       return certificate === certificate;
     })
-    .map(({ type, label }) => {
+    .map(({ type, labelKey }) => {
       return {
-        text: label,
+        text: i18n.global.t(labelKey),
         value: type,
       };
     });
@@ -170,6 +179,11 @@ const fileFormat = computed(() => {
 const isNotAdmin = computed(() => {
   return props.userRoleId !== 'Administrator';
 });
+
+const getCertificateLabel = (certificateType) => {
+  const certConfig = CERTIFICATE_TYPES.find((c) => c.type === certificateType);
+  return certConfig ? i18n.global.t(certConfig.labelKey) : certificateType;
+};
 
 watch(
   () => form.value.file,

@@ -274,14 +274,21 @@ onBeforeRouteLeave(() => {
   hideLoader();
 });
 
+watch(
+  () => isLoading.value,
+  (loading) => {
+    if (loading) startLoader();
+    else endLoader();
+  },
+  { immediate: true },
+);
+
 onBeforeMount(() => {
-  startLoader();
   Promise.all([
     loadAccountSettings(),
     certificatesStore.getCertificates(),
   ]).finally(() => {
     setFormValues();
-    endLoader();
   });
 });
 
@@ -325,7 +332,7 @@ const rules = computed(() => ({
 
 const v$ = useVuelidate(rules, { formLdap });
 
-const isBusy = computed(() => isLoading.value || isFetching.value);
+const isBusy = computed(() => isLoading.value);
 
 const sslCertificates = computed(() => {
   return certificatesStore.allCertificatesGetter;
