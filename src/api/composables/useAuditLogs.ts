@@ -62,7 +62,8 @@ function getDefaultUIState(): AuditLogUIState {
  * Composable for managing audit logs with TanStack Query
  */
 export function useAuditLogs() {
-  // Fetch audit logs using useRedfishCollection with realtime preset
+  // Fetch audit logs using the dedicated auditLogs preset (30 s stale,
+  // 2 min gc, background poll every 30 s)
   const {
     data: auditLogsRaw,
     isLoading,
@@ -70,7 +71,7 @@ export function useAuditLogs() {
   } = useRedfishCollection<AuditLog>(
     '/redfish/v1/Systems/system/LogServices/AuditLog/Entries',
     {
-      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+      queryConfig: RedfishQueryPresets.auditLogs,
     },
   );
 

@@ -76,7 +76,7 @@ export function usePostCodeLogs() {
   } = useRedfishCollection<any>(
     '/redfish/v1/Systems/system/LogServices/PostCodes/Entries',
     {
-      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+      queryConfig: RedfishQueryPresets.progressLogs,
     },
   );
 

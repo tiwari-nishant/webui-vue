@@ -669,6 +669,10 @@ export default {
       this.refetchAll();
     },
     async changelogStatus(row) {
+      // Capture the new (toggled) value before the API call so we can revert on
+      // failure.  v-model has already flipped row.status by the time this method
+      // runs, so the previous value is the opposite.
+      const newStatus = row.status;
       let toastShown = false;
       try {
         await this.updateEventLogStatusApi({
@@ -676,7 +680,7 @@ export default {
           onSuccessCallback: () => {
             if (!toastShown) {
               this.toast.successToast(
-                row.status
+                newStatus
                   ? this.$t('pageEventLogs.toast.successResolveLogs', 1)
                   : this.$t('pageEventLogs.toast.successUnresolveLogs', 1),
               );
@@ -685,6 +689,8 @@ export default {
           },
         });
       } catch (error) {
+        // Revert the toggle to its original state on failure
+        row.status = !newStatus;
         this.toast.errorToast(error.message);
       }
     },

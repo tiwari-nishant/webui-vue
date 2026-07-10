@@ -102,7 +102,7 @@ export function useEventLogs() {
   } = useRedfishCollection<EventLog>(
     '/redfish/v1/Systems/system/LogServices/EventLog/Entries',
     {
-      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+      queryConfig: RedfishQueryPresets.eventLogs,
     },
   );
 
@@ -116,8 +116,7 @@ export function useEventLogs() {
   } = useRedfishCollection<EventLog>(
     '/redfish/v1/Systems/system/LogServices/CELog/Entries',
     {
-      enabled: false,
-      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+      queryConfig: RedfishQueryPresets.eventLogs,
     },
   );
 
