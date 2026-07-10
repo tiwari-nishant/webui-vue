@@ -161,16 +161,17 @@ export function usePatchResource() {
         onError(error);
       }
 
-      // On error: Invalidate queries to force immediate refetch from server
-      // This ensures the UI reverts to the actual server state
+      // On error: fire-and-forget invalidation so the UI reverts to the
+      // actual server state in the background, but do NOT await it — the
+      // error must be re-thrown immediately so the caller's catch block
+      // (e.g. the error toast) runs right away, not after the GET completes.
       if (invalidateQueries && invalidateQueries.length > 0) {
-        const invalidatePromises = invalidateQueries.map((queryKey) =>
+        invalidateQueries.forEach((queryKey) =>
           queryClient.invalidateQueries({
             queryKey: Array.isArray(queryKey) ? queryKey : [queryKey],
-            refetchType: 'active', // Only refetch active queries
+            refetchType: 'active',
           }),
         );
-        await Promise.all(invalidatePromises);
       }
 
       // Re-throw the error so the caller can handle it

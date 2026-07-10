@@ -72,12 +72,8 @@
           sticky-header="75vh"
           show-empty
           :fields="fields"
-          :items="filteredLogs"
-          :per-page="perPage === 0 ? filteredLogs.length || 1 : perPage"
-          :current-page="currentPage"
-          :filter="searchFilter"
-          @filtered="onFiltered"
-          @row-selected="onRowSelected($event, filteredLogs.length)"
+          :items="paginatedLogs"
+          @row-selected="onRowSelected($event, paginatedLogs.length)"
         >
           <!-- Checkbox column -->
           <template #head(checkbox)>
@@ -291,11 +287,10 @@
         <b-pagination
           v-model="currentPage"
           class="b-pagination"
-          :tabindex="currentPageNo - 1"
           first-number
           last-number
           :per-page="perPage === 0 ? filteredLogs.length || 1 : perPage"
-          :total-rows="getTotalRowCount(filteredRows)"
+          :total-rows="filteredRows"
           aria-controls="table-event-logs"
         />
       </b-col>
@@ -337,12 +332,12 @@ import usePaginationComposable from '../../../components/Composables/usePaginati
 import useTableSelectableComposable from '@/components/Composables/useTableSelectableComposable';
 import useToastComposable from '@/components/Composables/useToastComposable';
 import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
-import useTableSortComposable from '../../../components/Composables/useTableSortComposable';
 import useTableRowExpandComposable from '../../../components/Composables/useTableRowExpandComposable';
 import useSearchFilterComposable from '../../../components/Composables/useSearchFilterComposable';
-import { nextTick, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import eventBus from '@/eventBus';
 import { useEventLogs } from '@/api/composables/useEventLogs';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 
 import stores from '../../../store';
 
@@ -384,6 +379,63 @@ export default {
     } = useEventLogs();
 
     const { startLoader, endLoader } = useLoadingBar();
+    const { perPage } = usePaginationComposable();
+
+    // Reactive filter state — must live in setup() so usePaginatedData can
+    // watch them as proper Vue refs.
+    const activeFilters = ref([]);
+    const filterStartDate = ref(null);
+    const filterEndDate = ref(null);
+    const searchFilter = ref(useSearchFilterComposable().searchFilterInput);
+    const perPageRef = ref(perPage);
+
+    const allLogs = computed(() => eventLogsData.value || []);
+
+    const filteredLogs = computed(() => {
+      if (!allLogs.value) return [];
+      let data = useTableFilter().getFilteredTableDataByDate(
+        allLogs.value,
+        filterStartDate.value,
+        filterEndDate.value,
+      );
+      data = useTableFilter().getFilteredTableData(data, activeFilters.value);
+      if (searchFilter.value) {
+        const search = searchFilter.value.toLowerCase();
+        data = data.filter((item) => {
+          const expandColumn = ['eventId', 'name', 'type', 'modifiedDate'];
+          const searchableFields = [
+            'expandRow',
+            'checkbox',
+            'id',
+            'severity',
+            'date',
+            'description',
+            'status',
+            'actions',
+          ]
+            .filter((key) => key in item)
+            .map((key) => item[key])
+            .concat(expandColumn.map((key) => item[key]));
+          return searchableFields.some((field) =>
+            String(field || '')
+              .toLowerCase()
+              .includes(search),
+          );
+        });
+      }
+      return data;
+    });
+
+    const pagination = usePaginatedData({
+      data: filteredLogs,
+      pageSize: perPageRef.value,
+      initialPage: 1,
+    });
+
+    // Keep pageSize in sync with the perPage select
+    watch(perPageRef, (newSize) => {
+      pagination.pageSize.value = newSize;
+    });
 
     // Watch loading state
     watch(
@@ -409,10 +461,25 @@ export default {
       downloadLogData,
       refetchAll,
       refetchCELogs,
+      // Pagination
+      pagination,
+      perPageRef,
+      // Filter state (exposed so data() methods / template can reach them)
+      activeFilters,
+      filterStartDate,
+      filterEndDate,
+      searchFilter,
+      // Computed
+      filteredLogs,
+      paginatedLogs: pagination.paginatedData,
+      currentPage: pagination.currentPage,
+      filteredRows: pagination.totalItems,
     };
   },
   data() {
     const rowExpandComposable = useTableRowExpandComposable();
+    const { itemsPerPageOptions, perPage } = usePaginationComposable();
+
     return {
       toast: useToastComposable(),
       rowExpandComposable,
@@ -421,7 +488,6 @@ export default {
       deleteTitle: '',
       deleteType: '',
       uris: [],
-      isBusy: true,
       fields: [
         {
           key: 'expandRow',
@@ -501,20 +567,14 @@ export default {
         },
       ],
       expandRowLabel: rowExpandComposable.expandRowLabel,
-      activeFilters: [],
       batchActions: [
         {
           value: 'delete',
           label: this.$t('global.action.delete'),
         },
       ],
-      currentPage: usePaginationComposable().currentPage,
-      filterStartDate: null,
-      filterEndDate: null,
-      itemsPerPageOptions: usePaginationComposable().itemsPerPageOptions,
-      perPage: usePaginationComposable().perPage,
-      searchFilter: useSearchFilterComposable().searchFilterInput,
-      searchTotalFilteredRows: 0,
+      itemsPerPageOptions,
+      perPage,
       selectedRows: useTableSelectableComposable().selectedRowsList,
       tableHeaderCheckboxModel:
         useTableSelectableComposable().tableHeaderCheckboxModel,
@@ -530,47 +590,18 @@ export default {
     isServiceUser() {
       return stores.GlobalStore().isServiceUser;
     },
-    filteredRows() {
-      return this.searchFilter
-        ? this.searchTotalFilteredRows
-        : this.filteredLogs.length;
-    },
     allLogs() {
       return this.eventLogsData || [];
     },
-    filteredLogsByDate() {
-      return useTableFilter().getFilteredTableDataByDate(
-        this.allLogs,
-        this.filterStartDate,
-        this.filterEndDate,
-      );
-    },
-    filteredLogs() {
-      if (!this.filteredLogsByDate) return [];
-      let data = useTableFilter().getFilteredTableData(
-        this.filteredLogsByDate,
-        this.activeFilters,
-      );
-      if (this.searchFilter) {
-        const search = this.searchFilter.toLowerCase();
-        const allowedKeys = this.fields.map((item) => item.key);
-        data = data.filter((item) => {
-          const searchableFields = [
-            ...allowedKeys.filter((key) => key in item).map((key) => item[key]),
-            ...this.expandColumn.map((key) => item[key]),
-            this.resolutionValue(item),
-          ];
-          return searchableFields.some((field) =>
-            String(field || '')
-              .toLowerCase()
-              .includes(search),
-          );
-        });
-      }
-      return data;
+    isBusy() {
+      return this.isLoading;
     },
   },
   watch: {
+    // Keep perPageRef (setup ref) in sync with the perPage data property
+    perPage(newSize) {
+      this.perPageRef = newSize;
+    },
     filteredLogs: function (value) {
       this.$nextTick(() => {
         document
@@ -598,7 +629,6 @@ export default {
     if (this.isServiceUser) {
       this.refetchCELogs();
     }
-    this.isBusy = false;
   },
   methods: {
     onChangeSearchInput(event) {
@@ -808,9 +838,6 @@ export default {
       this.filterStartDate = fromDate;
       this.filterEndDate = toDate;
     },
-    onFiltered(filteredItems) {
-      this.searchTotalFilteredRows = filteredItems.length;
-    },
     async resolveLogs() {
       try {
         const messages = await this.resolveEventLogsApi({
@@ -892,9 +919,6 @@ export default {
         }
       }
     },
-    getTotalRowCount(rows, perPage) {
-      return usePaginationComposable().getTotalRowCount(rows, perPage);
-    },
     dataFormatter(value) {
       return useDataFormatterGlobal().dataFormatter(value);
     },
@@ -922,6 +946,9 @@ export default {
         table,
         tableHeaderCheckboxModel,
       );
+    },
+    clearSelectedRows(table) {
+      return useTableSelectableComposable().clearSelectedRowsOptions(table);
     },
   },
 };

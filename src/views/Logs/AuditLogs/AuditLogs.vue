@@ -49,11 +49,7 @@
           :sort-desc="true"
           show-empty
           :fields="fields"
-          :items="filteredLogs"
-          :per-page="itemPerPage === 0 ? filteredLogs.length || 1 : itemPerPage"
-          :current-page="currentPageNo"
-          :filter="searchFilterInput"
-          @filtered="onFiltered"
+          :items="paginatedLogs"
         >
           <!-- Expand chevron icon -->
           <template #cell(expandRow)="row">
@@ -135,7 +131,7 @@
           first-number
           last-number
           :per-page="itemPerPage === 0 ? filteredLogs.length || 1 : itemPerPage"
-          :total-rows="getTotalRowCount(filteredRows)"
+          :total-rows="filteredRows"
           aria-controls="table-audit-logs"
         />
       </BCol>
@@ -144,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeMount, watch, nextTick } from 'vue';
+import { ref, onMounted, computed, onBeforeMount, watch } from 'vue';
 import i18n from '@/i18n';
 import IconDownload from '@carbon/icons-vue/es/download/20';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
@@ -157,11 +153,11 @@ import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useDataFormatterGlobal from '@/components/Composables/useDataFormatterGlobal';
 import TableDateFilter from '@/components/Global/TableDateFilter.vue';
 import useTableRowExpandComposable from '@/components/Composables/useTableRowExpandComposable';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 import eventBus from '@/eventBus';
 import { useAuditLogs } from '@/api/composables/useAuditLogs';
 
-const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
-  usePaginationComposable();
+const { perPage, itemsPerPageOptions } = usePaginationComposable();
 const { successToast, infoToast, errorToast } = useToast();
 const { startLoader, endLoader } = useLoadingBar();
 const { dataFormatter } = useDataFormatterGlobal();
@@ -173,7 +169,6 @@ const { getFilteredTableData, getFilteredTableDataByDate } =
 const { auditLogs, isLoading, refetch, downloadAuditLog, isDownloading } =
   useAuditLogs();
 
-const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
 const isBusy = ref(true);
 const fields = ref([
@@ -215,7 +210,6 @@ const fields = ref([
     tdAttr: { scope: null },
   },
 ]);
-const searchTotalFilteredRows = ref(0);
 const searchFilterInput = ref('');
 const activeFilters = ref([]);
 const filterStartDate = ref(null);
@@ -247,11 +241,6 @@ onBeforeMount(() => {
   });
 });
 
-const filteredRows = computed(() => {
-  return searchFilterInput.value
-    ? searchTotalFilteredRows.value
-    : filteredLogs.value.length;
-});
 const filteredLogsByDate = computed(() => {
   return getFilteredTableDataByDate(
     auditLogs.value,
@@ -282,10 +271,22 @@ const filteredLogs = computed(() => {
   }
   return data;
 });
-const allLogs = computed(() => {
-  console.log('allLogs', auditLogs.value);
-  return auditLogs.value;
+const allLogs = computed(() => auditLogs.value);
+
+// ── Client-side pagination via usePaginatedData ───────────────────────────────
+const pagination = usePaginatedData({
+  data: filteredLogs,
+  pageSize: itemPerPage.value,
+  initialPage: 1,
 });
+
+watch(itemPerPage, (newSize) => {
+  pagination.pageSize.value = newSize;
+});
+
+const paginatedLogs = pagination.paginatedData;
+const currentPageNo = pagination.currentPage;
+const filteredRows = pagination.totalItems;
 
 const onChangeDateTimeFilter = ({ fromDate, toDate }) => {
   filterStartDate.value = fromDate;
@@ -301,9 +302,6 @@ const toggleRow = (row) => {
   row.item.toggleDetails = !row.item.toggleDetails;
   toggleRowDetails(row);
 };
-function onFiltered(filteredItems) {
-  searchTotalFilteredRows.value = filteredItems.length;
-}
 const downloadFile = (data) => {
   const decodedData = atob(data);
   let date = new Date();

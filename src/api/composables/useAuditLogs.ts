@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { useRedfishCollection } from './useRedfishCollection';
+import { RedfishQueryPresets } from './shared/queryConfig';
 import type { AuditLog } from '@/types/redfish';
 import api from '@/store/api';
 
@@ -61,13 +62,16 @@ function getDefaultUIState(): AuditLogUIState {
  * Composable for managing audit logs with TanStack Query
  */
 export function useAuditLogs() {
-  // Fetch audit logs using useRedfishCollection
+  // Fetch audit logs using useRedfishCollection with realtime preset
   const {
     data: auditLogsRaw,
     isLoading,
     refetch,
   } = useRedfishCollection<AuditLog>(
     '/redfish/v1/Systems/system/LogServices/AuditLog/Entries',
+    {
+      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+    },
   );
 
   // Use ref to track deep changes to log objects (including toggleDetails)

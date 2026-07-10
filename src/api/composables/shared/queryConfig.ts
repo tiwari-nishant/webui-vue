@@ -110,13 +110,9 @@ export const RedfishQueryPresets = {
     gcTime: 2 * 60 * 1000, // 2 minutes
   }),
 
-  /**
-   * For static/rarely changing data (e.g., hardware inventory, BIOS settings)
-   * Longer stale time to reduce unnecessary requests
-   */
-  static: createRedfishQueryConfig({
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+  concurrentMaintenance: createRedfishQueryConfig({
+    gcTime: 5 * 60 * 1000, // 5 minutes,
+    refetchInterval: 30 * 1000,
   }),
 
   /**

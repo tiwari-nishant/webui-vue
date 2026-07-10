@@ -2,9 +2,11 @@ import { computed } from 'vue';
 import { useAllSubResources } from './useAllSubResources';
 import { usePatchResource } from './usePatchResource';
 import { useWritableQueryState } from './useWritableQueryState';
+import { RedfishQueryPresets } from './shared/queryConfig';
 // @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
 import type { Assembly, AssemblyItem } from '@/types/redfish';
+import type { UseQueryOptions } from '@tanstack/vue-query';
 
 export interface AssemblyData {
   /** Redfish unique identifier — preserved for deduplication and future deep-links */
@@ -30,14 +32,19 @@ export interface ConcurrentMaintenanceData {
 export function useConcurrentMaintenance() {
   const { patchResource, isPending: isUpdating } = usePatchResource();
 
-  // Fetch assembly data from all chassis using useAllSubResources
+  // Fetch assembly data from all chassis using useAllSubResources.
+  // Assembly data is configuration-like — use the config preset (1 min stale).
   const {
     data: assembliesData,
     isLoading,
     error,
     isError,
     refetch,
-  } = useAllSubResources<Assembly>('/redfish/v1/Chassis', 'Assembly');
+  } = useAllSubResources<Assembly>('/redfish/v1/Chassis', 'Assembly', {
+    queryConfig: RedfishQueryPresets.concurrentMaintenance as Partial<
+      UseQueryOptions<Assembly[]>
+    >,
+  });
   // Process assembly data to extract concurrent maintenance info
   const assemblyData = computed<ConcurrentMaintenanceData>(() => {
     if (!assembliesData.value) {

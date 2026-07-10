@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue';
 import { useQueryClient } from '@tanstack/vue-query';
 import { useRedfishCollection } from './useRedfishCollection';
+import { RedfishQueryPresets } from './shared/queryConfig';
 // @ts-ignore - api.js is a JavaScript module
 import api from '@/store/api';
 // @ts-ignore - i18n.js is a JavaScript module
@@ -65,7 +66,7 @@ export function usePostCodeLogs() {
     };
   };
 
-  // Fetch Post Code Logs using useRedfishCollection
+  // Fetch Post Code Logs using useRedfishCollection with realtime preset
   const {
     data: postCodeLogsRaw,
     isLoading: isLoadingPostCodeLogs,
@@ -74,6 +75,9 @@ export function usePostCodeLogs() {
     refetch: refetchPostCodeLogs,
   } = useRedfishCollection<any>(
     '/redfish/v1/Systems/system/LogServices/PostCodes/Entries',
+    {
+      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+    },
   );
 
   // Process the raw data into ProcessedPostCodeLog format

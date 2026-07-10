@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { useRedfishCollection } from './useRedfishCollection';
 import { usePatchResource } from './usePatchResource';
+import { RedfishQueryPresets } from './shared/queryConfig';
 // @ts-ignore - api.js is a JavaScript module
 import api from '@/store/api';
 // @ts-ignore - api.js is a JavaScript module
@@ -91,7 +92,7 @@ export function useEventLogs() {
     };
   };
 
-  // Fetch Event Logs using useRedfishCollection
+  // Fetch Event Logs using useRedfishCollection with realtime preset
   const {
     data: eventLogsRaw,
     isLoading: isLoadingEventLogs,
@@ -100,6 +101,9 @@ export function useEventLogs() {
     refetch: refetchEventLogs,
   } = useRedfishCollection<EventLog>(
     '/redfish/v1/Systems/system/LogServices/EventLog/Entries',
+    {
+      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+    },
   );
 
   // Fetch CE Logs using useRedfishCollection (disabled by default)
@@ -111,7 +115,10 @@ export function useEventLogs() {
     refetch: refetchCELogs,
   } = useRedfishCollection<EventLog>(
     '/redfish/v1/Systems/system/LogServices/CELog/Entries',
-    { enabled: false },
+    {
+      enabled: false,
+      staleTime: RedfishQueryPresets.realtime.staleTime as number,
+    },
   );
 
   // Process the raw data into ProcessedEventLog format

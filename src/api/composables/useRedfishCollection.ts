@@ -7,6 +7,7 @@ import type {
   ExpandedCollection,
 } from '@/types/redfish';
 import { createRedfishQueryConfig } from './shared/queryConfig';
+import { batchFetch } from './shared/useBatchedRequests';
 
 interface UseRedfishCollectionOptions {
   expand?: boolean;
@@ -63,16 +64,13 @@ export function useRedfishCollection<T extends Resource>(
         }
 
         if (data.Members && data.Members.length > 0) {
-          const memberPromises = data.Members.map((member: any) => {
-            const memberId =
-              typeof member === 'object' && '@odata.id' in member
-                ? member['@odata.id']
-                : member;
-            return api.get<T>(memberId as string);
-          });
+          const memberIds = data.Members.map((member: any) =>
+            typeof member === 'object' && '@odata.id' in member
+              ? (member['@odata.id'] as string)
+              : (member as string),
+          );
 
-          const responses = await Promise.all(memberPromises);
-          return responses.map((res: any) => res.data);
+          return batchFetch<T>(memberIds, { concurrency: 6, retry: true });
         }
 
         return [];
