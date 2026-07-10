@@ -41,7 +41,7 @@ export function useConcurrentMaintenance() {
     isError,
     refetch,
   } = useAllSubResources<Assembly>('/redfish/v1/Chassis', 'Assembly', {
-    queryConfig: RedfishQueryPresets.config as Partial<
+    queryConfig: RedfishQueryPresets.concurrentMaintenance as Partial<
       UseQueryOptions<Assembly[]>
     >,
   });

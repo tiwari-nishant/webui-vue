@@ -110,6 +110,11 @@ export const RedfishQueryPresets = {
     gcTime: 2 * 60 * 1000, // 2 minutes
   }),
 
+  concurrentMaintenance: createRedfishQueryConfig({
+    gcTime: 5 * 60 * 1000, // 5 minutes,
+    refetchInterval: 30 * 1000,
+  }),
+
   /**
    * For configuration data (e.g., network settings, date/time)
    * Balanced between realtime and static
