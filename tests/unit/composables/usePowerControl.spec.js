@@ -162,7 +162,7 @@ describe('usePowerControl', () => {
 
       expect(useRedfishResource).toHaveBeenCalledWith(
         '/redfish/v1/Chassis/chassis/EnvironmentMetrics',
-        { refetchInterval: 60 * 1000 },
+        { staleTime: 0, refetchInterval: 60000 },
       );
     });
   });
@@ -358,7 +358,7 @@ describe('usePowerPerformanceMode', () => {
 
       expect(useRedfishResource).toHaveBeenCalledWith(
         '/redfish/v1/Systems/system',
-        { refetchInterval: 60 * 1000 },
+        { staleTime: 0, refetchInterval: 60000 },
       );
     });
   });
@@ -500,7 +500,7 @@ describe('useIdlePowerSaver', () => {
 
       expect(useRedfishResource).toHaveBeenCalledWith(
         '/redfish/v1/Systems/system',
-        { refetchInterval: 60 * 1000 },
+        { staleTime: 0, refetchInterval: 60000 },
       );
     });
 
@@ -644,6 +644,61 @@ describe('useIdlePowerSaver', () => {
         onSuccess: expect.any(Function),
         onError: expect.any(Function),
       });
+
+      it('calls success callback when setIdlePowerSaverEnable succeeds', async () => {
+        useRedfishResource.mockReturnValue({
+          data: ref(null),
+          isFetching: ref(false),
+          isError: ref(false),
+          error: ref(null),
+          refetch: vi.fn(),
+        });
+
+        let successCallback;
+        mockPatchResource.mockImplementation((params) => {
+          successCallback = params.onSuccess;
+          return Promise.resolve();
+        });
+
+        const { setIdlePowerSaverEnable } = useIdlePowerSaver();
+
+        await setIdlePowerSaverEnable(true);
+
+        // Trigger the success callback
+        successCallback();
+
+        expect(mockSuccessToast).toHaveBeenCalledWith(
+          'pagePower.toast.successPowerPerformanceModes',
+        );
+      });
+
+      it('calls error callback when setIdlePowerSaverEnable fails', async () => {
+        useRedfishResource.mockReturnValue({
+          data: ref(null),
+          isFetching: ref(false),
+          isError: ref(false),
+          error: ref(null),
+          refetch: vi.fn(),
+        });
+
+        const mockError = new Error('Test error');
+        let errorCallback;
+        mockPatchResource.mockImplementation((params) => {
+          errorCallback = params.onError;
+          return Promise.resolve();
+        });
+
+        const { setIdlePowerSaverEnable } = useIdlePowerSaver();
+
+        await setIdlePowerSaverEnable(true);
+
+        // Trigger the error callback
+        errorCallback(mockError);
+
+        expect(mockErrorToast).toHaveBeenCalledWith(
+          'pagePower.toast.errorPowerPerformanceModes',
+        );
+      });
     });
   });
 
@@ -681,5 +736,3 @@ describe('useIdlePowerSaver', () => {
     });
   });
 });
-
-// Made with Bob

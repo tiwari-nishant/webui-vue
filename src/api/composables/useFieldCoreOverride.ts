@@ -21,6 +21,7 @@ export function useFieldCoreOverride() {
 
   const {
     data: biosData,
+    isLoading,
     isFetching,
     isError,
     error,
@@ -33,7 +34,8 @@ export function useFieldCoreOverride() {
       );
       return response.data?.Attributes ?? {};
     },
-    refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
+    staleTime: 0,
+    refetchInterval: 60 * 1000,
     gcTime: 5 * 60 * 1000, // 5 minutes
     // Don't retry client errors (4xx) — they won't succeed on retry.
     // Do retry transient server errors (5xx) and network failures.
@@ -76,6 +78,7 @@ export function useFieldCoreOverride() {
   });
 
   return {
+    isLoading,
     isFetching,
     isError,
     error,
@@ -86,3 +89,5 @@ export function useFieldCoreOverride() {
     setFieldCoreOverride: setFieldCoreOverrideMutation.mutateAsync,
   };
 }
+
+// Made with Bob

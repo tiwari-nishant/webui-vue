@@ -10,8 +10,6 @@ export interface RedfishQueryConfig {
   staleTime?: number;
   /** Time in ms before unused cache is garbage collected (default: 5min) */
   gcTime?: number;
-  /** Auto-refetch interval in ms (default: undefined - no auto-refetch) */
-  refetchInterval?: number | false;
   /** Whether to refetch on window focus (default: false) */
   refetchOnWindowFocus?: boolean;
   /** Whether to refetch on network reconnect (default: true) */

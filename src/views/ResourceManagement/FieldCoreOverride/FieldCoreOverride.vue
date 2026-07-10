@@ -38,7 +38,7 @@ const { startLoader, endLoader, hideLoader } = useLoadingBar();
 const systemStore = stores.SystemStore();
 const licenseStore = stores.LicenseStore();
 
-const { isFetching, isError, refetch } = useFieldCoreOverride();
+const { isLoading, isError, refetch } = useFieldCoreOverride();
 
 // Expose refetch for parent components
 defineExpose({
@@ -52,9 +52,9 @@ onBeforeMount(() => {
   );
 });
 
-// Manage loading bar for BIOS query fetching state
-watch(isFetching, (fetching) => {
-  if (fetching) {
+// Only show loading bar on initial load, not during background refetches
+watch(isLoading, (loading) => {
+  if (loading) {
     startLoader();
   } else {
     endLoader();

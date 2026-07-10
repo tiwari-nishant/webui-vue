@@ -83,7 +83,8 @@ describe('useFirmware', () => {
       useFirmware();
 
       expect(queryConfig).toBeDefined();
-      expect(queryConfig.refetchInterval).toBe(60 * 1000);
+      expect(queryConfig.staleTime).toBe(0);
+      expect(queryConfig.refetchInterval).toBe(false);
       expect(queryConfig.gcTime).toBe(5 * 60 * 1000);
       expect(queryConfig.retry).toBe(2);
     });
@@ -113,7 +114,8 @@ describe('useFirmware', () => {
       useFirmware();
 
       expect(queryConfig).toBeDefined();
-      expect(queryConfig.refetchInterval).toBe(60 * 1000);
+      expect(queryConfig.staleTime).toBe(0);
+      expect(queryConfig.refetchInterval).toBe(false);
     });
 
     it('configures firmware inventory query with refetchInterval and custom retry', () => {
@@ -140,7 +142,8 @@ describe('useFirmware', () => {
       useFirmware();
 
       expect(queryConfig).toBeDefined();
-      expect(queryConfig.refetchInterval).toBe(60 * 1000);
+      expect(queryConfig.staleTime).toBe(0);
+      expect(queryConfig.refetchInterval).toBe(false);
       expect(queryConfig.gcTime).toBe(5 * 60 * 1000);
       expect(typeof queryConfig.retry).toBe('function');
       expect(typeof queryConfig.retryDelay).toBe('function');
@@ -587,6 +590,73 @@ describe('useFirmware', () => {
       const { setApplyTimeImmediate } = useFirmware();
 
       expect(typeof setApplyTimeImmediate).toBe('function');
+
+      it('calls uploadFirmware mutation when uploadFirmware is invoked', async () => {
+        useQuery.mockReturnValue({
+          data: ref(null),
+          isFetching: ref(false),
+          isError: ref(false),
+          error: ref(null),
+          refetch: vi.fn(),
+        });
+
+        const mockMutateAsync = vi.fn().mockResolvedValue(undefined);
+        useMutation.mockReturnValue({
+          mutateAsync: mockMutateAsync,
+          isPending: ref(false),
+        });
+
+        const { uploadFirmware } = useFirmware();
+        const mockFile = new File(['test'], 'test.bin');
+
+        await uploadFirmware(mockFile);
+
+        expect(mockMutateAsync).toHaveBeenCalledWith(mockFile);
+      });
+
+      it('calls switchBmcFirmware mutation when switchBmcFirmwareAndReboot is invoked', async () => {
+        useQuery.mockReturnValue({
+          data: ref(null),
+          isFetching: ref(false),
+          isError: ref(false),
+          error: ref(null),
+          refetch: vi.fn(),
+        });
+
+        const mockMutateAsync = vi.fn().mockResolvedValue(undefined);
+        useMutation.mockReturnValue({
+          mutateAsync: mockMutateAsync,
+          isPending: ref(false),
+        });
+
+        const { switchBmcFirmwareAndReboot } = useFirmware();
+
+        await switchBmcFirmwareAndReboot();
+
+        expect(mockMutateAsync).toHaveBeenCalled();
+      });
+
+      it('calls setApplyTimeImmediate mutation when setApplyTimeImmediate is invoked', async () => {
+        useQuery.mockReturnValue({
+          data: ref(null),
+          isFetching: ref(false),
+          isError: ref(false),
+          error: ref(null),
+          refetch: vi.fn(),
+        });
+
+        const mockMutateAsync = vi.fn().mockResolvedValue(undefined);
+        useMutation.mockReturnValue({
+          mutateAsync: mockMutateAsync,
+          isPending: ref(false),
+        });
+
+        const { setApplyTimeImmediate } = useFirmware();
+
+        await setApplyTimeImmediate();
+
+        expect(mockMutateAsync).toHaveBeenCalled();
+      });
     });
 
     it('exposes isUploading state', () => {
@@ -811,5 +881,3 @@ describe('useFirmware', () => {
     });
   });
 });
-
-// Made with Bob

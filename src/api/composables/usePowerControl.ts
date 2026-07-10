@@ -53,7 +53,10 @@ export function usePowerControl() {
     error: powerControlError,
   } = useRedfishResource<EnvironmentMetrics>(
     '/redfish/v1/Chassis/chassis/EnvironmentMetrics',
-    { refetchInterval: 60 * 1000 }, // Auto-refetch every 1 minute
+    {
+      staleTime: 0,
+      refetchInterval: 60 * 1000,
+    },
   );
 
   const powerControlData = computed<PowerControlData>(() => {
@@ -136,13 +139,14 @@ export function usePowerPerformanceMode() {
 
   const {
     data: systemPowerMode,
+    isLoading: isPowerPerformanceLoading,
     isFetching: isPowerPerformanceFetching,
     isError: isPowerPerformanceError,
     error: powerPerformanceError,
-  } = useRedfishResource<SystemPowerMode>(
-    '/redfish/v1/Systems/system',
-    { refetchInterval: 60 * 1000 }, // Auto-refetch every 1 minute
-  );
+  } = useRedfishResource<SystemPowerMode>('/redfish/v1/Systems/system', {
+    staleTime: 0,
+    refetchInterval: 60 * 1000,
+  });
 
   const powerPerformanceData = computed<PowerPerformanceData>(() => {
     if (!systemPowerMode.value) {
@@ -191,6 +195,7 @@ export function usePowerPerformanceMode() {
     oemMode: computed(
       () => powerPerformanceData.value.powerPerformanceMode === 'OEM',
     ),
+    isPowerPerformanceLoading,
     isPowerPerformanceFetching,
     isPowerPerformanceMutating: isMutating,
     isPowerPerformanceError,
@@ -209,14 +214,15 @@ export function useIdlePowerSaver() {
 
   const {
     data: systemPowerMode,
+    isLoading: isIdlePowerSaverLoading,
     isFetching: isIdlePowerSaverFetching,
     isError: isIdlePowerSaverError,
     error: idlePowerSaverError,
-    refetch,
-  } = useRedfishResource<SystemPowerMode>(
-    '/redfish/v1/Systems/system',
-    { refetchInterval: 60 * 1000 }, // Auto-refetch every 1 minute
-  );
+    refetch: refetchIdlePowerSaver,
+  } = useRedfishResource<SystemPowerMode>('/redfish/v1/Systems/system', {
+    staleTime: 0,
+    refetchInterval: 60 * 1000,
+  });
 
   const idlePowerSaverData = computed<IdlePowerSaver | null>(() => {
     return systemPowerMode.value?.IdlePowerSaver ?? null;
@@ -288,11 +294,12 @@ export function useIdlePowerSaver() {
 
   return {
     idlePowerSaverData,
+    isIdlePowerSaverLoading,
     isIdlePowerSaverFetching,
     isIdlePowerSaverMutating: isMutating,
     isIdlePowerSaverError,
     idlePowerSaverError,
-    refetch,
+    refetch: refetchIdlePowerSaver,
     setIdlePowerSaver,
     resetIdlePowerSaver,
     setIdlePowerSaverEnable,

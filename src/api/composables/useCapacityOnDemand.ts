@@ -49,6 +49,7 @@ export function useCapacityOnDemand() {
   // Fetch licenses data
   const {
     data: licensesData,
+    isLoading,
     isFetching,
     isError,
     error,
@@ -75,7 +76,8 @@ export function useCapacityOnDemand() {
 
       return data;
     },
-    refetchInterval: 60 * 1000, // Auto-refetch every 1 minute
+    staleTime: 0,
+    refetchInterval: 60 * 1000,
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount: number, err: any) => {
       const status = err?.response?.status;
@@ -169,6 +171,7 @@ export function useCapacityOnDemand() {
     aixAccessKeyInfo,
 
     // Loading and error states
+    isLoading,
     isFetching,
     isError,
     error,

@@ -12,6 +12,7 @@ export function useRebootBmc() {
 
   const {
     data: managerData,
+    isLoading,
     isFetching,
     isError,
     error,
@@ -23,6 +24,7 @@ export function useRebootBmc() {
     },
     staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false, // Disable automatic refetch
     // Don't retry client errors (4xx) — they won't succeed on retry.
     // Do retry transient server errors (5xx) and network failures.
     retry: (failureCount: number, err: any) => {
@@ -56,6 +58,7 @@ export function useRebootBmc() {
 
   return {
     lastBmcRebootTime,
+    isLoading,
     isFetching,
     isError,
     error,

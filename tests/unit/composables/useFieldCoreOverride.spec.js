@@ -136,7 +136,8 @@ describe('useFieldCoreOverride', () => {
         expect.objectContaining({
           queryKey: ['redfish', 'systems', 'system', 'bios'],
           queryFn: expect.any(Function),
-          refetchInterval: 60 * 1000,
+          staleTime: 0,
+          refetchInterval: 60000,
           gcTime: 5 * 60 * 1000,
           retry: expect.any(Function),
           retryDelay: expect.any(Function),
@@ -635,5 +636,3 @@ describe('useFieldCoreOverride', () => {
     });
   });
 });
-
-// Made with Bob

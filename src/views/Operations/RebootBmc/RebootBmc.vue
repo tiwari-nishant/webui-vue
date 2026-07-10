@@ -70,7 +70,7 @@ const { hideLoader, startLoader, endLoader } = useLoadingBar();
 
 const bootSettingsStore = stores.BootSettingsStore();
 
-const { lastBmcRebootTime, isFetching, isError, rebootBmc } = useRebootBmc();
+const { lastBmcRebootTime, isLoading, isError, rebootBmc } = useRebootBmc();
 
 const openModal = ref(false);
 
@@ -79,14 +79,18 @@ onBeforeMount(() => {
   bootSettingsStore.fetchBiosAttributes();
 });
 
-// Manage loading bar based on query fetching state
-watch(isFetching, (fetching) => {
-  if (fetching) {
-    startLoader();
-  } else {
-    endLoader();
-  }
-});
+// Only show loading bar on initial load, not during background refetches
+watch(
+  isLoading,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+    }
+  },
+  { immediate: true },
+);
 
 // Stop the loading bar when the BMC manager fetch fails
 watch(isError, (hasError) => {

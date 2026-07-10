@@ -471,5 +471,3 @@ describe('useRebootBmc', () => {
     });
   });
 });
-
-// Made with Bob

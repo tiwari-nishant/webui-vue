@@ -77,7 +77,7 @@ const controlStore = stores.ControlStore();
 const {
   isSingleFileUploadEnabled,
   lowestSupportedFirmwareVersion: lowestSupportedData,
-  isFetching,
+  isLoading: isFirmwareLoading,
   isError,
 } = useFirmware();
 
@@ -87,11 +87,11 @@ useCapacityOnDemand();
 const isServerPowerOffRequired = ref('true');
 const isLoading = ref(loading.value);
 
-// Manage loading bar for query fetching state
+// Only show loading bar on initial load, not during background refetches
 watch(
-  isFetching,
-  (fetching) => {
-    if (fetching) {
+  isFirmwareLoading,
+  (loading) => {
+    if (loading) {
       startLoader();
     } else {
       endLoader();
