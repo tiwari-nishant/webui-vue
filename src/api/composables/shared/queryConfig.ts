@@ -115,6 +115,21 @@ export const RedfishQueryPresets = {
     refetchInterval: 30 * 1000,
   }),
 
+  auditLogs: createRedfishQueryConfig({
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 30 * 1000,
+  }),
+
+  progressLogs: createRedfishQueryConfig({
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 30 * 1000,
+  }),
+
+  eventLogs: createRedfishQueryConfig({
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 30 * 1000,
+  }),
+
   /**
    * For configuration data (e.g., network settings, date/time)
    * Balanced between realtime and static

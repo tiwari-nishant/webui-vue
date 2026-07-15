@@ -120,6 +120,8 @@ function mountEventLogs(hookOverrides = {}) {
         $t: (key) => key,
         $filters: { formatDate: () => '', formatTime: () => '' },
       },
+      // TableDateFilter uses v-calendar which requires ResizeObserver (not in jsdom)
+      stubs: { TableDateFilter: true },
     },
   });
 }

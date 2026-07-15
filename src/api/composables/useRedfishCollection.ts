@@ -14,7 +14,10 @@ interface UseRedfishCollectionOptions {
   expandLevels?: number;
   select?: string[];
   enabled?: boolean;
+  /** @deprecated Use queryConfig instead for full preset support */
   staleTime?: number;
+  /** Full TanStack Query options — spreads over the default config.
+   *  Pass a RedfishQueryPresets entry to apply a complete preset. */
   queryConfig?: Partial<UseQueryOptions<any>>;
 }
 
@@ -61,6 +64,7 @@ export function useRedfishCollection<T extends Resource>(
               return data.Members as T[];
             }
           }
+
         }
 
         if (data.Members && data.Members.length > 0) {
@@ -80,13 +84,13 @@ export function useRedfishCollection<T extends Resource>(
       }
     },
     enabled,
+    // Base defaults, then legacy staleTime override, then full queryConfig preset
     ...createRedfishQueryConfig<T[]>({
       staleTime: staleTimeMs,
     }),
     ...queryConfig,
   });
 }
-
 /**
  * Fetch a single resource by path
  */
