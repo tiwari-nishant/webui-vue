@@ -54,11 +54,14 @@ jobs:
           tar -xzf github-mcp-server.tar.gz
           chmod +x ./github-mcp-server
           rm github-mcp-server.tar.gz
-      - name: 'Copy bob-action from base branch'
+      - name: 'Copy bob-action and commands from base branch'
         run: |
           mkdir -p ${{ github.workspace }}/.github/actions/bob-action
           cp -r ${{ github.workspace }}/base/.github/actions/bob-action/. \
                 ${{ github.workspace }}/.github/actions/bob-action/
+          mkdir -p ${{ github.workspace }}/pr/.github/commands
+          cp -r ${{ github.workspace }}/base/.github/commands/. \
+                ${{ github.workspace }}/pr/.github/commands/
       - name: 'Run automatic pull request review'
         uses: './.github/actions/bob-action'
         id: 'bobshell_pr_review'
