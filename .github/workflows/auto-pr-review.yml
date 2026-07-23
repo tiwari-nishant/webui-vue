@@ -59,9 +59,9 @@ jobs:
           mkdir -p ${{ github.workspace }}/.github/actions/bob-action
           cp -r ${{ github.workspace }}/base/.github/actions/bob-action/. \
                 ${{ github.workspace }}/.github/actions/bob-action/
-          mkdir -p ${{ github.workspace }}/pr/.github/commands
+          mkdir -p ${{ github.workspace }}/.github/commands
           cp -r ${{ github.workspace }}/base/.github/commands/. \
-                ${{ github.workspace }}/pr/.github/commands/
+                ${{ github.workspace }}/.github/commands/
       - name: 'Run automatic pull request review'
         uses: './.github/actions/bob-action'
         id: 'bobshell_pr_review'
