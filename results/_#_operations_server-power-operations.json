@@ -1,0 +1,572 @@
+{
+    "results": [
+        {
+            "ruleId": "aria_hidden_nontabbable",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/header[1]/nav[1]/div[1]/button[1]",
+                "aria": "/document[1]/banner[1]/navigation[1]/button[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Element \"button\" should not be focusable within the subtree of an element with an 'aria-hidden' attribute with value 'true'",
+            "messageArgs": [
+                "button"
+            ],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 26,
+                "height": 29,
+                "width": 36
+            },
+            "snippet": "<button aria-hidden=\"true\" id=\"app-header-trigger\" type=\"button\" class=\"btn btn-md btn-link nav-trigger\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_hidden_nontabbable.html#%7B%22message%22%3A%22Element%20%5C%22button%5C%22%20should%20not%20be%20focusable%20within%20the%20subtree%20of%20an%20element%20with%20an%20'aria-hidden'%20attribute%20with%20value%20'true'%22%2C%22snippet%22%3A%22%3Cbutton%20aria-hidden%3D%5C%22true%5C%22%20id%3D%5C%22app-header-trigger%5C%22%20type%3D%5C%22button%5C%22%20class%3D%5C%22btn%20btn-md%20btn-link%20nav-trigger%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_hidden_nontabbable%22%2C%22msgArgs%22%3A%5B%22button%22%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[2]/li[1]/button[1]",
+                "aria": "/document[1]/button[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 329,
+                "height": 25,
+                "width": 194
+            },
+            "snippet": "<button aria-expanded=\"false\" aria-controls=\"resource-management\" data-test-id=\"nav-button-resource-management\" type=\"button\" class=\"btn btn-md btn-link collapsed\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Cbutton%20aria-expanded%3D%5C%22false%5C%22%20aria-controls%3D%5C%22resource-management%5C%22%20data-test-id%3D%5C%22nav-button-resource-management%5C%22%20type%3D%5C%22button%5C%22%20class%3D%5C%22btn%20btn-md%20btn-link%20collapsed%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/div[1]/div[1]/div[2]/li[2]/a[1]",
+                "aria": "/document[1]/link[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 354,
+                "height": 17,
+                "width": 56
+            },
+            "snippet": "<a class=\"nav-link\" data-test-id=\"nav-item-memory\" href=\"#/resource-management/memory\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Ca%20class%3D%5C%22nav-link%5C%22%20data-test-id%3D%5C%22nav-item-memory%5C%22%20href%3D%5C%22%23%2Fresource-management%2Fmemory%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/div[1]/div[1]/li[1]/button[1]",
+                "aria": "/document[1]/button[2]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 372,
+                "height": 25,
+                "width": 153
+            },
+            "snippet": "<button aria-expanded=\"false\" aria-controls=\"hardware-status\" data-test-id=\"nav-button-hardware-status\" type=\"button\" class=\"btn btn-md btn-link collapsed\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Cbutton%20aria-expanded%3D%5C%22false%5C%22%20aria-controls%3D%5C%22hardware-status%5C%22%20data-test-id%3D%5C%22nav-button-hardware-status%5C%22%20type%3D%5C%22button%5C%22%20class%3D%5C%22btn%20btn-md%20btn-link%20collapsed%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/div[1]/div[1]/li[2]/a[1]",
+                "aria": "/document[1]/link[6]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 397,
+                "height": 17,
+                "width": 131
+            },
+            "snippet": "<a class=\"nav-link\" data-test-id=\"nav-item-inventory\" href=\"#/hardware-status/inventory\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Ca%20class%3D%5C%22nav-link%5C%22%20data-test-id%3D%5C%22nav-item-inventory%5C%22%20href%3D%5C%22%23%2Fhardware-status%2Finventory%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/div[1]/li[1]/button[1]",
+                "aria": "/document[1]/button[3]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 415,
+                "height": 25,
+                "width": 163
+            },
+            "snippet": "<button aria-expanded=\"false\" aria-controls=\"logs\" data-test-id=\"nav-button-logs\" type=\"button\" class=\"btn btn-md btn-link collapsed\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Cbutton%20aria-expanded%3D%5C%22false%5C%22%20aria-controls%3D%5C%22logs%5C%22%20data-test-id%3D%5C%22nav-button-logs%5C%22%20type%3D%5C%22button%5C%22%20class%3D%5C%22btn%20btn-md%20btn-link%20collapsed%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/div[1]/li[2]/a[1]",
+                "aria": "/document[1]/link[11]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 440,
+                "height": 17,
+                "width": 86
+            },
+            "snippet": "<a class=\"nav-link\" data-test-id=\"nav-item-post-code-logs\" href=\"#/logs/post-code-logs\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Ca%20class%3D%5C%22nav-link%5C%22%20data-test-id%3D%5C%22nav-item-post-code-logs%5C%22%20href%3D%5C%22%23%2Flogs%2Fpost-code-logs%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/li[1]/button[1]",
+                "aria": "/document[1]/button[4]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 458,
+                "height": 25,
+                "width": 104
+            },
+            "snippet": "<button aria-expanded=\"false\" aria-controls=\"settings\" data-test-id=\"nav-button-settings\" type=\"button\" class=\"btn btn-md btn-link collapsed\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Cbutton%20aria-expanded%3D%5C%22false%5C%22%20aria-controls%3D%5C%22settings%5C%22%20data-test-id%3D%5C%22nav-button-settings%5C%22%20type%3D%5C%22button%5C%22%20class%3D%5C%22btn%20btn-md%20btn-link%20collapsed%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/div[1]/li[2]/a[1]",
+                "aria": "/document[1]/link[17]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 483,
+                "height": 17,
+                "width": 90
+            },
+            "snippet": "<a class=\"nav-link\" data-test-id=\"nav-item-date-time\" href=\"#/settings/date-time\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Ca%20class%3D%5C%22nav-link%5C%22%20data-test-id%3D%5C%22nav-item-date-time%5C%22%20href%3D%5C%22%23%2Fsettings%2Fdate-time%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/li[1]/button[1]",
+                "aria": "/document[1]/button[5]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 501,
+                "height": 25,
+                "width": 175
+            },
+            "snippet": "<button aria-expanded=\"false\" aria-controls=\"security-and-access\" data-test-id=\"nav-button-security-and-access\" type=\"button\" class=\"btn btn-md btn-link collapsed\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Cbutton%20aria-expanded%3D%5C%22false%5C%22%20aria-controls%3D%5C%22security-and-access%5C%22%20data-test-id%3D%5C%22nav-button-security-and-access%5C%22%20type%3D%5C%22button%5C%22%20class%3D%5C%22btn%20btn-md%20btn-link%20collapsed%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/li[2]/a[1]",
+                "aria": "/document[1]/link[22]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 526,
+                "height": 17,
+                "width": 151
+            },
+            "snippet": "<a class=\"nav-link\" data-test-id=\"nav-item-sessions\" href=\"#/security-and-access/sessions\" data-v-d50da7aa=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Ca%20class%3D%5C%22nav-link%5C%22%20data-test-id%3D%5C%22nav-item-sessions%5C%22%20href%3D%5C%22%23%2Fsecurity-and-access%2Fsessions%5C%22%20data-v-d50da7aa%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "aria_content_in_landmark",
+            "value": [
+                "VIOLATION",
+                "FAIL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/li[3]/a[1]",
+                "aria": "/document[1]/link[28]"
+            },
+            "ruleTime": 0,
+            "reasonId": "Fail_1",
+            "message": "Content is not within a landmark element",
+            "messageArgs": [],
+            "apiArgs": [],
+            "bounds": {
+                "left": 8,
+                "top": 546,
+                "height": 17,
+                "width": 69
+            },
+            "snippet": "<a href=\"#/notices\" class=\"nav-link\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "violation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/aria_content_in_landmark.html#%7B%22message%22%3A%22Content%20is%20not%20within%20a%20landmark%20element%22%2C%22snippet%22%3A%22%3Ca%20href%3D%5C%22%23%2Fnotices%5C%22%20class%3D%5C%22nav-link%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22FAIL%22%5D%2C%22reasonId%22%3A%22Fail_1%22%2C%22ruleId%22%3A%22aria_content_in_landmark%22%2C%22msgArgs%22%3A%5B%5D%7D"
+        },
+        {
+            "ruleId": "element_id_unique",
+            "value": [
+                "VIOLATION",
+                "POTENTIAL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/main[1]/div[1]/div[1]/div[4]/div[1]/div[1]/form[1]/div[1]/div[1]/div[4]/fieldset[1]/div[1]/select[1]",
+                "aria": "/document[1]/main[1]/form[3]/group[4]/combobox[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "potential_in_use",
+            "message": "The <select> element has the id \"bios-option-sysOp-mode\" that is already in use",
+            "messageArgs": [
+                "select",
+                "bios-option-sysOp-mode"
+            ],
+            "apiArgs": [],
+            "bounds": {
+                "left": 24,
+                "top": 1551,
+                "height": 19,
+                "width": 87
+            },
+            "snippet": "<select aria-label=\"bios-option-sysOp-mode\" class=\"form-select\" id=\"bios-option-sysOp-mode\" data-v-6c141a69=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "potentialviolation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/element_id_unique.html#%7B%22message%22%3A%22The%20%3Cselect%3E%20element%20has%20the%20id%20%5C%22bios-option-sysOp-mode%5C%22%20that%20is%20already%20in%20use%22%2C%22snippet%22%3A%22%3Cselect%20aria-label%3D%5C%22bios-option-sysOp-mode%5C%22%20class%3D%5C%22form-select%5C%22%20id%3D%5C%22bios-option-sysOp-mode%5C%22%20data-v-6c141a69%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22POTENTIAL%22%5D%2C%22reasonId%22%3A%22potential_in_use%22%2C%22ruleId%22%3A%22element_id_unique%22%2C%22msgArgs%22%3A%5B%22select%22%2C%22bios-option-sysOp-mode%22%5D%7D"
+        },
+        {
+            "ruleId": "element_id_unique",
+            "value": [
+                "VIOLATION",
+                "POTENTIAL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/main[1]/div[1]/div[1]/div[4]/div[1]/div[1]/form[1]/div[1]/div[1]/div[5]/fieldset[1]/div[1]/select[1]",
+                "aria": "/document[1]/main[1]/form[3]/group[5]/combobox[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "potential_in_use",
+            "message": "The <select> element has the id \"bios-option-sysOp-mode\" that is already in use",
+            "messageArgs": [
+                "select",
+                "bios-option-sysOp-mode"
+            ],
+            "apiArgs": [],
+            "bounds": {
+                "left": 24,
+                "top": 1606,
+                "height": 19,
+                "width": 321
+            },
+            "snippet": "<select aria-label=\"bios-option-sysOp-mode\" class=\"form-select\" id=\"bios-option-sysOp-mode\" data-v-6c141a69=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "potentialviolation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/element_id_unique.html#%7B%22message%22%3A%22The%20%3Cselect%3E%20element%20has%20the%20id%20%5C%22bios-option-sysOp-mode%5C%22%20that%20is%20already%20in%20use%22%2C%22snippet%22%3A%22%3Cselect%20aria-label%3D%5C%22bios-option-sysOp-mode%5C%22%20class%3D%5C%22form-select%5C%22%20id%3D%5C%22bios-option-sysOp-mode%5C%22%20data-v-6c141a69%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22POTENTIAL%22%5D%2C%22reasonId%22%3A%22potential_in_use%22%2C%22ruleId%22%3A%22element_id_unique%22%2C%22msgArgs%22%3A%5B%22select%22%2C%22bios-option-sysOp-mode%22%5D%7D"
+        },
+        {
+            "ruleId": "element_id_unique",
+            "value": [
+                "VIOLATION",
+                "POTENTIAL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/main[1]/div[1]/div[1]/div[4]/div[1]/div[1]/form[1]/div[1]/div[1]/div[6]/fieldset[1]/div[1]/select[1]",
+                "aria": "/document[1]/main[1]/form[3]/group[6]/combobox[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "potential_in_use",
+            "message": "The <select> element has the id \"bios-option-sysOp-mode\" that is already in use",
+            "messageArgs": [
+                "select",
+                "bios-option-sysOp-mode"
+            ],
+            "apiArgs": [],
+            "bounds": {
+                "left": 24,
+                "top": 1661,
+                "height": 19,
+                "width": 223
+            },
+            "snippet": "<select aria-label=\"bios-option-sysOp-mode\" class=\"form-select\" id=\"bios-option-sysOp-mode\" data-v-6c141a69=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "potentialviolation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/element_id_unique.html#%7B%22message%22%3A%22The%20%3Cselect%3E%20element%20has%20the%20id%20%5C%22bios-option-sysOp-mode%5C%22%20that%20is%20already%20in%20use%22%2C%22snippet%22%3A%22%3Cselect%20aria-label%3D%5C%22bios-option-sysOp-mode%5C%22%20class%3D%5C%22form-select%5C%22%20id%3D%5C%22bios-option-sysOp-mode%5C%22%20data-v-6c141a69%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22POTENTIAL%22%5D%2C%22reasonId%22%3A%22potential_in_use%22%2C%22ruleId%22%3A%22element_id_unique%22%2C%22msgArgs%22%3A%5B%22select%22%2C%22bios-option-sysOp-mode%22%5D%7D"
+        },
+        {
+            "ruleId": "element_id_unique",
+            "value": [
+                "VIOLATION",
+                "POTENTIAL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/main[1]/div[1]/div[1]/div[4]/div[1]/div[1]/form[1]/div[1]/div[1]/div[7]/fieldset[1]/div[1]/select[1]",
+                "aria": "/document[1]/main[1]/form[3]/group[7]/combobox[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "potential_in_use",
+            "message": "The <select> element has the id \"bios-option-sysOp-mode\" that is already in use",
+            "messageArgs": [
+                "select",
+                "bios-option-sysOp-mode"
+            ],
+            "apiArgs": [],
+            "bounds": {
+                "left": 24,
+                "top": 1715,
+                "height": 19,
+                "width": 147
+            },
+            "snippet": "<select aria-label=\"bios-option-sysOp-mode\" class=\"form-select\" id=\"bios-option-sysOp-mode\" data-v-6c141a69=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "potentialviolation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/element_id_unique.html#%7B%22message%22%3A%22The%20%3Cselect%3E%20element%20has%20the%20id%20%5C%22bios-option-sysOp-mode%5C%22%20that%20is%20already%20in%20use%22%2C%22snippet%22%3A%22%3Cselect%20aria-label%3D%5C%22bios-option-sysOp-mode%5C%22%20class%3D%5C%22form-select%5C%22%20id%3D%5C%22bios-option-sysOp-mode%5C%22%20data-v-6c141a69%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22POTENTIAL%22%5D%2C%22reasonId%22%3A%22potential_in_use%22%2C%22ruleId%22%3A%22element_id_unique%22%2C%22msgArgs%22%3A%5B%22select%22%2C%22bios-option-sysOp-mode%22%5D%7D"
+        },
+        {
+            "ruleId": "element_id_unique",
+            "value": [
+                "VIOLATION",
+                "POTENTIAL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/main[1]/div[1]/div[1]/div[4]/div[1]/div[1]/form[1]/div[1]/div[1]/div[8]/fieldset[1]/div[1]/select[1]",
+                "aria": "/document[1]/main[1]/form[3]/group[8]/combobox[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "potential_in_use",
+            "message": "The <select> element has the id \"bios-option-sysOp-mode\" that is already in use",
+            "messageArgs": [
+                "select",
+                "bios-option-sysOp-mode"
+            ],
+            "apiArgs": [],
+            "bounds": {
+                "left": 24,
+                "top": 1770,
+                "height": 19,
+                "width": 147
+            },
+            "snippet": "<select aria-label=\"bios-option-sysOp-mode\" class=\"form-select\" id=\"bios-option-sysOp-mode\" data-v-6c141a69=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "potentialviolation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/element_id_unique.html#%7B%22message%22%3A%22The%20%3Cselect%3E%20element%20has%20the%20id%20%5C%22bios-option-sysOp-mode%5C%22%20that%20is%20already%20in%20use%22%2C%22snippet%22%3A%22%3Cselect%20aria-label%3D%5C%22bios-option-sysOp-mode%5C%22%20class%3D%5C%22form-select%5C%22%20id%3D%5C%22bios-option-sysOp-mode%5C%22%20data-v-6c141a69%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22POTENTIAL%22%5D%2C%22reasonId%22%3A%22potential_in_use%22%2C%22ruleId%22%3A%22element_id_unique%22%2C%22msgArgs%22%3A%5B%22select%22%2C%22bios-option-sysOp-mode%22%5D%7D"
+        },
+        {
+            "ruleId": "element_id_unique",
+            "value": [
+                "VIOLATION",
+                "POTENTIAL"
+            ],
+            "path": {
+                "dom": "/html[1]/body[1]/main[1]/div[1]/div[1]/div[4]/div[1]/div[1]/form[1]/div[1]/div[1]/div[9]/fieldset[1]/div[1]/select[1]",
+                "aria": "/document[1]/main[1]/form[3]/group[9]/combobox[1]"
+            },
+            "ruleTime": 0,
+            "reasonId": "potential_in_use",
+            "message": "The <select> element has the id \"bios-option-sysOp-mode\" that is already in use",
+            "messageArgs": [
+                "select",
+                "bios-option-sysOp-mode"
+            ],
+            "apiArgs": [],
+            "bounds": {
+                "left": 24,
+                "top": 1824,
+                "height": 19,
+                "width": 147
+            },
+            "snippet": "<select aria-label=\"bios-option-sysOp-mode\" class=\"form-select\" id=\"bios-option-sysOp-mode\" data-v-6c141a69=\"\">",
+            "source": null,
+            "category": "Accessibility",
+            "level": "potentialviolation",
+            "ignored": false,
+            "help": "https://able.ibm.com/rules/archives/2026.07.13/doc/en-US/element_id_unique.html#%7B%22message%22%3A%22The%20%3Cselect%3E%20element%20has%20the%20id%20%5C%22bios-option-sysOp-mode%5C%22%20that%20is%20already%20in%20use%22%2C%22snippet%22%3A%22%3Cselect%20aria-label%3D%5C%22bios-option-sysOp-mode%5C%22%20class%3D%5C%22form-select%5C%22%20id%3D%5C%22bios-option-sysOp-mode%5C%22%20data-v-6c141a69%3D%5C%22%5C%22%3E%22%2C%22value%22%3A%5B%22VIOLATION%22%2C%22POTENTIAL%22%5D%2C%22reasonId%22%3A%22potential_in_use%22%2C%22ruleId%22%3A%22element_id_unique%22%2C%22msgArgs%22%3A%5B%22select%22%2C%22bios-option-sysOp-mode%22%5D%7D"
+        }
+    ],
+    "numExecuted": 2962,
+    "ruleTime": 43,
+    "nls": {
+        "aria_content_in_landmark": {
+            "0": "All content must reside within an element with a landmark role",
+            "Fail_1": "Content is not within a landmark element"
+        },
+        "element_id_unique": {
+            "0": "Element 'id' attribute values must be unique within a document",
+            "potential_in_use": "The <{0}> element has the id \"{1}\" that is already in use"
+        },
+        "aria_hidden_nontabbable": {
+            "0": "A hidden element should not contain any tabbable elements",
+            "Fail_1": "Element \"{0}\" should not be focusable within the subtree of an element with an 'aria-hidden' attribute with value 'true'"
+        }
+    },
+    "summary": {
+        "counts": {
+            "ignored": 0,
+            "elements": 34,
+            "elementsViolation": 12,
+            "elementsViolationReview": 19,
+            "violation": 12,
+            "potentialviolation": 6,
+            "recommendation": 4,
+            "potentialrecommendation": 12,
+            "manual": 1,
+            "pass": 2927
+        },
+        "scanTime": 108,
+        "ruleArchive": "Latest Deployment (latest)",
+        "policies": [
+            "IBM_Accessibility"
+        ],
+        "reportLevels": [
+            "violation",
+            "potentialviolation"
+        ],
+        "startScan": 1784776439391,
+        "URL": "data:text/html;charset=utf-8,%3C!DOCTYPE%20html%3E%3Chtml%20lang%3D%22en%22%3E%3Chead%3E%0A%20%20%20%20%3Cmeta%20http-equiv%3D%22Content-Security-Policy%22%3E%0A%20%20%20%20%3Cmeta%20charset%3D%22utf-8%22%3E%0A%20%20%20%20%3Cmeta%20http-equiv%3D%22X-UA-Compatible%22%20content%3D%22IE%3Dedge%22%3E%0A%20%20%20%20%3Cmeta%20name%3D%22viewport%22%20content%3D%22width%3Ddevice-width%2Cinitial-scale%3D1.0%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22icon%22%20href%3D%22.%2Fbee-2-light.svg%22%3E%0A%20%20%20%20%3Ctitle%3EOpenBMC%20Web%20UI%3C%2Ftitle%3E%0A%20%20%20%20%3Cscript%20type%3D%22module%22%20crossorigin%3D%22%22%20src%3D%22.%2Fassets%2Findex-DJJa5gcI.js%22%3E%3C%2Fscript%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2F%40vue-BuYklNSf.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fpinia-DmG8F65e.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fbootstrap-vue-next-Bj-zkZzm.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fvue-router-Bkg1Zyc5.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fbase64-js-BCBabPth.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Ftiny-emitter-Aml74ZTj.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fvue-sz5iFpeD.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2F%40carbon-V3NRGCUi.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2F%40intlify-C_-ucKJJ.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fvue-i18n-D4z6uz9M.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Faxios-ngrFHoWO.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fvue3-cookies-CDotfG1_.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fjs-cookie-Cz0CWeBA.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Flodash-CanICBe0.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fdate-fns-C0xfXwiF.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2F%40popperjs-CMBiYTiD.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fv-calendar-CjucPWDO.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2F%40vuelidate-B7nvBlmv.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fqrcode.vue-WHbC6x9H.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fdate-fns-tz-C79Lqbbr.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fjssha-D-YnCnaR.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Ftotp-generator-0tKDZk-0.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fn64-BQ9IA3M_.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fieee754-DSYfm7We.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fbuffer-D6XjThUU.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fxterm-addon-attach-DF3UrfLS.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fxterm-addon-fit-DogtZYcJ.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fxterm-D1Cl0SVB.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fbignumber.js-Bs6BwvNJ.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22modulepreload%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fjson-bigint-D661-o0H.js%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22stylesheet%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fbootstrap-vue-next-hA7rx8St.css%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22stylesheet%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Fv-calendar-BmOrERFa.css%22%3E%0A%20%20%20%20%3Clink%20rel%3D%22stylesheet%22%20crossorigin%3D%22%22%20href%3D%22.%2Fassets%2Findex-DoZBlsEL.css%22%3E%0A%20%20%3C%2Fhead%3E%0A%20%20%3Cbody%3E%0A%20%20%20%20%3Cnoscript%3E%0A%20%20%20%20%20%20%3Cstrong%3EWe're%20sorry%20but%20this%20application%20does%20not%20work%20properly%20without%20JavaScript%20enabled.%20Please%20enable%20it%20to%20continue.%3C%2Fstrong%3E%0A%20%20%20%20%3C%2Fnoscript%3E%0A%20%20%20%20%3Cdiv%20id%3D%22app%22%20data-v-app%3D%22%22%3E%3Cdiv%3E%3Cdiv%20data-v-2b5f60de%3D%22%22%20class%3D%22app-container%22%3E%3Cdiv%20data-v-2b5f60de%3D%22%22%20class%3D%22app-header%22%3E%3Cheader%20id%3D%22page-header%22%3E%3Ca%20class%3D%22link-skip-nav%20btn%20btn-light%22%20href%3D%22%23main-content%22%3ESkip%20to%20content%3C%2Fa%3E%3Cnav%20class%3D%22navbar%20navbar-expand%22%20type%3D%22dark%22%20aria-label%3D%22Application%20header%22%3E%3Cdiv%20class%3D%22container-fluid%22%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-link%20nav-trigger%22%20type%3D%22button%22%20id%3D%22app-header-trigger%22%20aria-hidden%3D%22true%22%3E%3C!----%3E%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20title%3D%22Show%20navigation%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20role%3D%22img%22%3E%3Ctitle%3EShow%20navigation%3C%2Ftitle%3E%3Cpath%20d%3D%22M2%2014.8H18V16H2zM2%2011.2H18V12.399999999999999H2zM2%207.6H18V8.799999999999999H2zM2%204H18V5.2H2z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cul%20class%3D%22navbar-nav%22%3E%3Ca%20href%3D%22%2F%22%20class%3D%22router-link-active%20navbar-brand%20me-0%20logo-header%20navbar-brand%20me-0%20logo-header%22%20data-test-id%3D%22appHeader-container-overview%22%3E%3Cimg%20width%3D%2250px%22%20class%3D%22header-logo%22%20src%3D%22data%3Aimage%2Fsvg%2Bxml%2C%253csvg%2520width%3D'425'%2520height%3D'158'%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%253e%253cpath%2520d%3D'm307.325%252073-3.47-10H242v10h33v-9.491L278.362%252073h28.963ZM282%25200h-62v10h65.47L282%25200Zm7.285%252021H220v10h72.755l-3.47-10Zm33.961%252010H396V21h-69.285l-3.469%252010ZM242%252052h58.04l-3.47-10H242v10Zm43.776%252042h44.448l3.53-10h-51.508l3.53%252010Zm7.414%252021h29.62l3.53-10h-36.68l3.53%252010Zm7.415%252021h14.791l3.53-10h-21.852l3.531%252010ZM308%2520157l3.512-10h-7.024L308%2520157ZM334%25200l-3.469%252010H396V0h-62Zm40%252042h-54.57l-3.47%252010H374V42Zm-33%252031h33V63h-61.855l-3.47%252010h28.963L341%252063.477V73Zm0%252021h33V84h-33v10Zm0%252021h33v-10h-33v10Zm0%252021h55v-10h-55v10Zm0%252021h55v-10h-55v10Zm-99-63h33V84h-33v10Zm0%252021h33v-10h-33v10Zm-22%252021h55v-10h-55v10Zm0%252021h55v-10h-55v10ZM196.188%252010C188.861%25203.768%2520179.374%25200%2520169%25200H88v10h108.188Zm1.103%252074H110v10h95.361a42.194%252042.194%25200%25200%25200-8.07-10ZM174%2520105v10h37c0-3.45-.438-6.793-1.223-10H174Zm0-53h35.777A41.982%252041.982%25200%25200%25200%2520211%252042h-37v10Zm-64%25200h33V42h-33v10Zm99.535-21a41.722%252041.722%25200%25200%25200-4.167-10H88v10h121.535ZM110%252063v10h87.291a42.194%252042.194%25200%25200%25200%25208.07-10H110Zm0%252052h33v-10h-33v10Zm-22%252021h117.368a41.763%252041.763%25200%25200%25200%25204.167-10H88v10Zm0%252021h81c10.373%25200%252019.861-3.769%252027.188-10H88v10ZM0%252010h77V0H0v10Zm0%252021h77V21H0v10Zm22%252021h33V42H22v10Zm0%252021h33V63H22v10Zm0%252021h33V84H22v10Zm0%252021h33v-10H22v10ZM0%2520136h77v-10H0v10Zm0%252021h77v-10H0v10Zm416.59-8.373c.672%25200%25201.05-.294%25201.05-.924v-.63c0-.63-.378-.924-1.05-.924h-1.597v2.478h1.597Zm-1.597%25204.621h-2.142v-8.779h3.991c1.974%25200%25202.982%25201.176%25202.982%25202.772%25200%25201.386-.63%25202.269-1.596%25202.647l1.974%25203.36h-2.352l-1.638-3.024h-1.219v3.024Zm7.688-3.906v-1.093c0-3.528-2.773-6.301-6.427-6.301-3.655%25200-6.428%25202.773-6.428%25206.301v1.093c0%25203.528%25202.773%25206.301%25206.428%25206.301%25203.654%25200%25206.427-2.773%25206.427-6.301Zm-14.828-.547c0-4.914%25203.738-8.653%25208.401-8.653%25204.662%25200%25208.401%25203.739%25208.401%25208.653%25200%25204.915-3.739%25208.654-8.401%25208.654-4.663%25200-8.401-3.739-8.401-8.654Z'%2520fill%3D'%2523FFFFFE'%2520fill-rule%3D'evenodd'%2F%253e%253c%2Fsvg%253e%22%20alt%3D%22Built%20on%20OpenBMC%22%3E%3Cspan%20class%3D%22ps-1%20nav-tags%20header-text%22%3EASMI%3C%2Fspan%3E%3C%2Fa%3E%3Cdiv%20class%3D%22ps-2%20nav-tags%22%3E%3Cspan%3E%7C%3C%2Fspan%3E%3Cspan%20class%3D%22ps-3%20asset-tag%22%3EServer-9043-MRX-13E8D2X%3C%2Fspan%3E%3Cspan%20class%3D%22ps-3%22%3E9043-MRX%3C%2Fspan%3E%3Cspan%20class%3D%22ps-3%22%3E13E8D2X%3C%2Fspan%3E%3C%2Fdiv%3E%3C%2Ful%3E%3Cul%20class%3D%22navbar-nav%20ms-auto%20helper-menu%22%3E%3Cli%20class%3D%22nav-item%22%3E%3Ca%20href%3D%22%23%2Flogs%2Fevent-logs%22%20class%3D%22nav-link%22%20data-test-id%3D%22appHeader-container-health%22%3E%3Cspan%20data-v-91f98089%3D%22%22%20class%3D%22status-icon%20danger%22%3E%3Csvg%20data-v-91f98089%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M10%2C1c-4.9%2C0-9%2C4.1-9%2C9s4.1%2C9%2C9%2C9s9-4%2C9-9S15%2C1%2C10%2C1z%20M13.5%2C14.5L10%2C11l-3.5%2C3.5l-1-1L9%2C10L5.5%2C6.5l1-1L10%2C9l3.5-3.5l1%2C1%09L11%2C10l3.5%2C3.5L13.5%2C14.5z%22%3E%3C%2Fpath%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M13.5%2C14.5L10%2C11l-3.5%2C3.5l-1-1L9%2C10L5.5%2C6.5l1-1L10%2C9l3.5-3.5l1%2C1L11%2C10l3.5%2C3.5L13.5%2C14.5z%22%20data-icon-path%3D%22inner-path%22%20opacity%3D%220%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fspan%3E%20Health%3C%2Fa%3E%3C%2Fli%3E%3Cli%20class%3D%22nav-item%22%3E%3Ca%20href%3D%22%23%2Foperations%2Fserver-power-operations%22%20class%3D%22nav-link%22%20data-test-id%3D%22appHeader-container-power%22%3E%3Cspan%20data-v-91f98089%3D%22%22%20class%3D%22status-icon%20success%22%3E%3Csvg%20data-v-91f98089%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M10%2C1c-4.9%2C0-9%2C4.1-9%2C9s4.1%2C9%2C9%2C9s9-4%2C9-9S15%2C1%2C10%2C1z%20M8.7%2C13.5l-3.2-3.2l1-1l2.2%2C2.2l4.8-4.8l1%2C1L8.7%2C13.5z%22%3E%3C%2Fpath%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M8.7%2C13.5l-3.2-3.2l1-1l2.2%2C2.2l4.8-4.8l1%2C1L8.7%2C13.5z%22%20data-icon-path%3D%22inner-path%22%20opacity%3D%220%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fspan%3E%20Power%3C%2Fa%3E%3C%2Fli%3E%3Cli%20class%3D%22nav-item%22%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-link%22%20type%3D%22button%22%20id%3D%22app-header-refresh%22%20data-test-id%3D%22appHeader-button-refresh%22%3E%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20title%3D%22Refresh%20application%20data%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%20role%3D%22img%22%3E%3Ctitle%3ERefresh%20application%20data%3C%2Ftitle%3E%3Cpath%20d%3D%22M12%2010H6.78A11%2011%200%200127%2016h2A13%2013%200%20006%207.68V4H4v8h8zM20%2022h5.22A11%2011%200%20015%2016H3a13%2013%200%200023%208.32V28h2V20H20z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3Cspan%20class%3D%22responsive-text%22%3ERefresh%3C%2Fspan%3E%3C%2Fbutton%3E%3C%2Fli%3E%3Cli%20class%3D%22nav-item%22%3E%3Cdiv%20class%3D%22btn-group%22%20right%3D%22%22%20data-test-id%3D%22appHeader-container-user%22%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-link%20dropdown-toggle%22%20type%3D%22button%22%20id%3D%22app-header-user%22%20aria-expanded%3D%22false%22%20aria-haspopup%3D%22menu%22%3E%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20title%3D%22Show%20profile%20menu%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%20role%3D%22img%22%3E%3Ctitle%3EShow%20profile%20menu%3C%2Ftitle%3E%3Cpath%20d%3D%22M16%2C8a5%2C5%2C0%2C1%2C0%2C5%2C5A5%2C5%2C0%2C0%2C0%2C16%2C8Zm0%2C8a3%2C3%2C0%2C1%2C1%2C3-3A3.0034%2C3.0034%2C0%2C0%2C1%2C16%2C16Z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2C2A14%2C14%2C0%2C1%2C0%2C30%2C16%2C14.0158%2C14.0158%2C0%2C0%2C0%2C16%2C2ZM10%2C26.3765V25a3.0033%2C3.0033%2C0%2C0%2C1%2C3-3h6a3.0033%2C3.0033%2C0%2C0%2C1%2C3%2C3v1.3765a11.8989%2C11.8989%2C0%2C0%2C1-12%2C0Zm13.9925-1.4507A5.0016%2C5.0016%2C0%2C0%2C0%2C19%2C20H13a5.0016%2C5.0016%2C0%2C0%2C0-4.9925%2C4.9258%2C12%2C12%2C0%2C1%2C1%2C15.985%2C0Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3Cspan%20class%3D%22responsive-text%22%3Eservice%3C%2Fspan%3E%3C%2Fbutton%3E%3C!----%3E%3Cul%20class%3D%22dropdown-menu%20overflow-auto%22%20aria-labelledby%3D%22app-header-user%22%20role%3D%22menu%22%20style%3D%22position%3A%20absolute%3B%20left%3A%200px%3B%20top%3A%200px%3B%20display%3A%20none%3B%20transform%3A%20translate(1142px%2C%2048px)%3B%22%3E%3Cli%20role%3D%22presentation%22%3E%3Ca%20class%3D%22dropdown-item%22%20href%3D%22%23%2Fprofile-settings%22%20role%3D%22menuitem%22%20data-test-id%3D%22appHeader-link-profile%22%3EProfile%20settings%3C%2Fa%3E%3C%2Fli%3E%3Cli%20role%3D%22presentation%22%3E%3Cbutton%20class%3D%22dropdown-item%22%20role%3D%22menuitem%22%20type%3D%22button%22%20data-test-id%3D%22appHeader-link-logout%22%3ELog%20out%3C%2Fbutton%3E%3C%2Fli%3E%3C%2Ful%3E%3C%2Fdiv%3E%3C%2Fli%3E%3C%2Ful%3E%3C%2Fdiv%3E%3C%2Fnav%3E%3C%2Fheader%3E%3C!----%3E%3C%2Fdiv%3E%3Cdiv%20data-v-d50da7aa%3D%22%22%20data-v-2b5f60de%3D%22%22%20class%3D%22app-navigation%22%3E%3Cdiv%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-container%22%3E%3Cnav%20data-v-d50da7aa%3D%22%22%20aria-label%3D%22Primary%20navigation%22%3E%3Cul%20data-v-d50da7aa%3D%22%22%20class%3D%22nav%20flex-column%20mb-4%22%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%20nav-nochild%22%20data-test-id%3D%22nav-item-overview%22%3E%3Ca%20class%3D%22nav-link%22%20href%3D%22%23%2F%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M24%2021H26V26H24zM20%2016H22V26H20zM11%2026a5.0059%205.0059%200%2001-5-5H8a3%203%200%20103-3V16a5%205%200%20010%2010z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M28%2C2H4A2.002%2C2.002%2C0%2C0%2C0%2C2%2C4V28a2.0023%2C2.0023%2C0%2C0%2C0%2C2%2C2H28a2.0027%2C2.0027%2C0%2C0%2C0%2C2-2V4A2.0023%2C2.0023%2C0%2C0%2C0%2C28%2C2Zm0%2C9H14V4H28ZM12%2C4v7H4V4ZM4%2C28V13H28.0007l.0013%2C15Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Overview%3C%2Fa%3E%3C%2Fli%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%22%3E%3Cbutton%20data-v-d50da7aa%3D%22%22%20class%3D%22btn%20btn-md%20btn-link%20collapsed%22%20type%3D%22button%22%20data-test-id%3D%22nav-button-operations%22%20aria-controls%3D%22operations%22%20aria-expanded%3D%22false%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M30%208h-4.1c-.5-2.3-2.5-4-4.9-4s-4.4%201.7-4.9%204H2v2h14.1c.5%202.3%202.5%204%204.9%204s4.4-1.7%204.9-4H30V8zM21%2012c-1.7%200-3-1.3-3-3s1.3-3%203-3%203%201.3%203%203S22.7%2012%2021%2012zM2%2024h4.1c.5%202.3%202.5%204%204.9%204s4.4-1.7%204.9-4H30v-2H15.9c-.5-2.3-2.5-4-4.9-4s-4.4%201.7-4.9%204H2V24zM11%2020c1.7%200%203%201.3%203%203s-1.3%203-3%203-3-1.3-3-3S9.3%2020%2011%2020z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Operations%20%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20class%3D%22icon-expand%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M8%205L13%2010%2012.3%2010.7%208%206.4%203.7%2010.7%203%2010z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cdiv%20id%3D%22operations%22%20class%3D%22collapse%20nav-item__nav%22%20is-nav%3D%22false%22%3E%3Cli%20data-v-d50da7aa%3D%22%22%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Foperations%2Fserver-power-operations%22%20data-test-id%3D%22nav-item-server-power-operations%22%20class%3D%22nav-link%20nav-link--current%22%3EServer%20power%20operations%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Foperations%2Fhost-console%22%20data-test-id%3D%22nav-item-host-console%22%20class%3D%22nav-link%22%3EHost%20console%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Foperations%2Fservice-login%22%20data-test-id%3D%22nav-item-service-login%22%20class%3D%22nav-link%22%3EService%20login%20consoles%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Foperations%2Ffirmware%22%20data-test-id%3D%22nav-item-firmware%22%20class%3D%22nav-link%22%3EFirmware%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Foperations%2Freboot-bmc%22%20data-test-id%3D%22nav-item-reboot-bmc%22%20class%3D%22nav-link%22%3EReboot%20BMC%3C%2Fa%3E%3C%2Fli%3E%3C%2Fdiv%3E%3C%2Fli%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%22%3E%3Cbutton%20data-v-d50da7aa%3D%22%22%20class%3D%22btn%20btn-md%20btn-link%20collapsed%22%20type%3D%22button%22%20data-test-id%3D%22nav-button-resource-management%22%20aria-controls%3D%22resource-management%22%20aria-expanded%3D%22false%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M19%2024H26V26H19zM19%2020H26V22H19zM19%2016H26V18H19zM6%2024H13V26H6zM6%2020H13V22H6z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M28%2C4H17a2.0023%2C2.0023%2C0%2C0%2C0-2%2C2v6H4a2.0023%2C2.0023%2C0%2C0%2C0-2%2C2V28a2.0023%2C2.0023%2C0%2C0%2C0%2C2%2C2H28a2.0023%2C2.0023%2C0%2C0%2C0%2C2-2V6A2.0023%2C2.0023%2C0%2C0%2C0%2C28%2C4ZM15%2C28H4V14H15Zm2%2C0V6H28V28Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Resource%20management%20%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20class%3D%22icon-expand%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M8%205L13%2010%2012.3%2010.7%208%206.4%203.7%2010.7%203%2010z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cdiv%20id%3D%22resource-management%22%20class%3D%22collapse%20nav-item__nav%22%20is-nav%3D%22false%22%3E%3Cli%20data-v-d50da7aa%3D%22%22%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fresource-management%2Fmemory%22%20data-test-id%3D%22nav-item-memory%22%20class%3D%22nav-link%22%3EMemory%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fresource-management%2Fpower%22%20data-test-id%3D%22nav-item-power%22%20class%3D%22nav-link%22%3EPower%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fresource-management%2Fcapacity-on-demand%22%20data-test-id%3D%22nav-item-capacity-on-demand%22%20class%3D%22nav-link%22%3ECapacity%20on%20demand%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fresource-management%2Ffield-core-override%22%20data-test-id%3D%22nav-item-field-core-override%22%20class%3D%22nav-link%22%3EField%20core%20override%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fresource-management%2Fsystem-parameters%22%20data-test-id%3D%22nav-item-system-parameters%22%20class%3D%22nav-link%22%3ESystem%20parameters%3C%2Fa%3E%3C%2Fli%3E%3C%2Fdiv%3E%3C%2Fli%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%22%3E%3Cbutton%20data-v-d50da7aa%3D%22%22%20class%3D%22btn%20btn-md%20btn-link%20collapsed%22%20type%3D%22button%22%20data-test-id%3D%22nav-button-hardware-status%22%20aria-controls%3D%22hardware-status%22%20aria-expanded%3D%22false%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M23%2027.18L20.41%2024.59%2019%2026%2023%2030%2030%2023%2028.59%2021.59%2023%2027.18z%22%3E%3C%2Fpath%3E%3Ccircle%20cx%3D%2211%22%20cy%3D%228%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2211%22%20cy%3D%2216%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Ccircle%20cx%3D%2211%22%20cy%3D%2224%22%20r%3D%221%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M24%2C3H8A2%2C2%2C0%2C0%2C0%2C6%2C5V27a2%2C2%2C0%2C0%2C0%2C2%2C2h8V27H8V21H26V5A2%2C2%2C0%2C0%2C0%2C24%2C3Zm0%2C16H8V13H24Zm0-8H8V5H24Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Hardware%20status%20%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20class%3D%22icon-expand%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M8%205L13%2010%2012.3%2010.7%208%206.4%203.7%2010.7%203%2010z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cdiv%20id%3D%22hardware-status%22%20class%3D%22collapse%20nav-item__nav%22%20is-nav%3D%22false%22%3E%3Cli%20data-v-d50da7aa%3D%22%22%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fhardware-status%2Finventory%22%20data-test-id%3D%22nav-item-inventory%22%20class%3D%22nav-link%22%3EInventory%20and%20LEDs%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fhardware-status%2Fsensors%22%20data-test-id%3D%22nav-item-sensors%22%20class%3D%22nav-link%22%3ESensors%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsettings%2Fhardware-deconfiguration%22%20data-test-id%3D%22nav-item-hardware-deconfiguration%22%20class%3D%22nav-link%22%3EHardware%20deconfiguration%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fhardware-status%2Fpcie-topology%22%20data-test-id%3D%22nav-item-pcie-topology%22%20class%3D%22nav-link%22%3EPCIe%20hardware%20topology%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fhardware-status%2Fconcurrent-maintenance%22%20data-test-id%3D%22nav-item-concurrent-maintenance%22%20class%3D%22nav-link%22%3EConcurrent%20maintenance%3C%2Fa%3E%3C%2Fli%3E%3C%2Fdiv%3E%3C%2Fli%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%22%3E%3Cbutton%20data-v-d50da7aa%3D%22%22%20class%3D%22btn%20btn-md%20btn-link%20collapsed%22%20type%3D%22button%22%20data-test-id%3D%22nav-button-logs%22%20aria-controls%3D%22logs%22%20aria-expanded%3D%22false%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M8%2010H16V12H8zM8%206H20V8H8zM8%202H20V4H8z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M4.7111%2C28l5.6312-9.9961%2C7.4341%2C6.49A2%2C2%2C0%2C0%2C0%2C20.86%2C23.96l6.9707-10.4034-1.6622-1.1132-7%2C10.4472-.07.1035-7.4345-6.4907a2.0032%2C2.0032%2C0%2C0%2C0-3.0806.5308L4%2C25.1826V2H2V28a2.0023%2C2.0023%2C0%2C0%2C0%2C2%2C2H30V28Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Logs%20and%20services%20%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20class%3D%22icon-expand%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M8%205L13%2010%2012.3%2010.7%208%206.4%203.7%2010.7%203%2010z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cdiv%20id%3D%22logs%22%20class%3D%22collapse%20nav-item__nav%22%20is-nav%3D%22false%22%3E%3Cli%20data-v-d50da7aa%3D%22%22%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Flogs%2Fpost-code-logs%22%20data-test-id%3D%22nav-item-post-code-logs%22%20class%3D%22nav-link%22%3EProgress%20logs%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Flogs%2Fevent-logs%22%20data-test-id%3D%22nav-item-event-logs%22%20class%3D%22nav-link%22%3EEvent%20logs%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Flogs%2Faudit-logs%22%20data-test-id%3D%22nav-item-audit-logs%22%20class%3D%22nav-link%22%3EAudit%20logs%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Flogs%2Fdumps%22%20data-test-id%3D%22nav-item-dumps%22%20class%3D%22nav-link%22%3EDumps%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Flogs%2Fibmi-service-functions%22%20data-test-id%3D%22nav-item-ibmi-service-functions%22%20class%3D%22nav-link%22%3EIBM%20i%20service%20functions%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Flogs%2Fdeconfiguration-records%22%20data-test-id%3D%22nav-item-deconfiguration-records%22%20class%3D%22nav-link%22%3EDeconfiguration%20records%3C%2Fa%3E%3C%2Fli%3E%3C%2Fdiv%3E%3C%2Fli%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%22%3E%3Cbutton%20data-v-d50da7aa%3D%22%22%20class%3D%22btn%20btn-md%20btn-link%20collapsed%22%20type%3D%22button%22%20data-test-id%3D%22nav-button-settings%22%20aria-controls%3D%22settings%22%20aria-expanded%3D%22false%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M13.5%2C8.4c0-0.1%2C0-0.3%2C0-0.4c0-0.1%2C0-0.3%2C0-0.4l1-0.8c0.4-0.3%2C0.4-0.9%2C0.2-1.3l-1.2-2C13.3%2C3.2%2C13%2C3%2C12.6%2C3%09c-0.1%2C0-0.2%2C0-0.3%2C0.1l-1.2%2C0.4c-0.2-0.1-0.4-0.3-0.7-0.4l-0.3-1.3C10.1%2C1.3%2C9.7%2C1%2C9.2%2C1H6.8c-0.5%2C0-0.9%2C0.3-1%2C0.8L5.6%2C3.1%09C5.3%2C3.2%2C5.1%2C3.3%2C4.9%2C3.4L3.7%2C3C3.6%2C3%2C3.5%2C3%2C3.4%2C3C3%2C3%2C2.7%2C3.2%2C2.5%2C3.5l-1.2%2C2C1.1%2C5.9%2C1.2%2C6.4%2C1.6%2C6.8l0.9%2C0.9c0%2C0.1%2C0%2C0.3%2C0%2C0.4%09c0%2C0.1%2C0%2C0.3%2C0%2C0.4L1.6%2C9.2c-0.4%2C0.3-0.5%2C0.9-0.2%2C1.3l1.2%2C2C2.7%2C12.8%2C3%2C13%2C3.4%2C13c0.1%2C0%2C0.2%2C0%2C0.3-0.1l1.2-0.4%09c0.2%2C0.1%2C0.4%2C0.3%2C0.7%2C0.4l0.3%2C1.3c0.1%2C0.5%2C0.5%2C0.8%2C1%2C0.8h2.4c0.5%2C0%2C0.9-0.3%2C1-0.8l0.3-1.3c0.2-0.1%2C0.4-0.2%2C0.7-0.4l1.2%2C0.4%09c0.1%2C0%2C0.2%2C0.1%2C0.3%2C0.1c0.4%2C0%2C0.7-0.2%2C0.9-0.5l1.1-2c0.2-0.4%2C0.2-0.9-0.2-1.3L13.5%2C8.4z%20M12.6%2C12l-1.7-0.6c-0.4%2C0.3-0.9%2C0.6-1.4%2C0.8%09L9.2%2C14H6.8l-0.4-1.8c-0.5-0.2-0.9-0.5-1.4-0.8L3.4%2C12l-1.2-2l1.4-1.2c-0.1-0.5-0.1-1.1%2C0-1.6L2.2%2C6l1.2-2l1.7%2C0.6%09C5.5%2C4.2%2C6%2C4%2C6.5%2C3.8L6.8%2C2h2.4l0.4%2C1.8c0.5%2C0.2%2C0.9%2C0.5%2C1.4%2C0.8L12.6%2C4l1.2%2C2l-1.4%2C1.2c0.1%2C0.5%2C0.1%2C1.1%2C0%2C1.6l1.4%2C1.2L12.6%2C12z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M8%2C11c-1.7%2C0-3-1.3-3-3s1.3-3%2C3-3s3%2C1.3%2C3%2C3C11%2C9.6%2C9.7%2C11%2C8%2C11C8%2C11%2C8%2C11%2C8%2C11z%20M8%2C6C6.9%2C6%2C6%2C6.8%2C6%2C7.9C6%2C7.9%2C6%2C8%2C6%2C8%09c0%2C1.1%2C0.8%2C2%2C1.9%2C2c0%2C0%2C0.1%2C0%2C0.1%2C0c1.1%2C0%2C2-0.8%2C2-1.9c0%2C0%2C0-0.1%2C0-0.1C10%2C6.9%2C9.2%2C6%2C8%2C6C8.1%2C6%2C8%2C6%2C8%2C6z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Settings%20%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20class%3D%22icon-expand%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M8%205L13%2010%2012.3%2010.7%208%206.4%203.7%2010.7%203%2010z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cdiv%20id%3D%22settings%22%20class%3D%22collapse%20nav-item__nav%22%20is-nav%3D%22false%22%3E%3Cli%20data-v-d50da7aa%3D%22%22%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsettings%2Fdate-time%22%20data-test-id%3D%22nav-item-date-time%22%20class%3D%22nav-link%22%3EDate%20and%20time%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsettings%2Fnetwork%22%20data-test-id%3D%22nav-item-network%22%20class%3D%22nav-link%22%3ENetwork%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsettings%2Fpower-restore-policy%22%20data-test-id%3D%22nav-item-power-restore-policy%22%20class%3D%22nav-link%22%3EPower%20restore%20policy%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsettings%2Fsnmp-alerts%22%20data-test-id%3D%22nav-item-snmp-alerts%22%20class%3D%22nav-link%22%3ESNMP%20alerts%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Foperations%2Ffactory-reset%22%20data-test-id%3D%22nav-item-factory-reset%22%20class%3D%22nav-link%22%3EFactory%20reset%3C%2Fa%3E%3C%2Fli%3E%3C%2Fdiv%3E%3C%2Fli%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%22%3E%3Cbutton%20data-v-d50da7aa%3D%22%22%20class%3D%22btn%20btn-md%20btn-link%20collapsed%22%20type%3D%22button%22%20data-test-id%3D%22nav-button-security-and-access%22%20aria-controls%3D%22security-and-access%22%20aria-expanded%3D%22false%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M14%2016.59L11.41%2014%2010%2015.41%2014%2019.41%2022%2011.41%2020.59%2010%2014%2016.59z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2C30%2C9.8242%2C26.7071A10.9818%2C10.9818%2C0%2C0%2C1%2C4%2C17V4A2.0021%2C2.0021%2C0%2C0%2C1%2C6%2C2H26a2.0021%2C2.0021%2C0%2C0%2C1%2C2%2C2V17a10.9818%2C10.9818%2C0%2C0%2C1-5.8242%2C9.7071ZM6%2C4V17a8.9852%2C8.9852%2C0%2C0%2C0%2C4.7656%2C7.9423L16%2C27.7333l5.2344-2.791A8.9852%2C8.9852%2C0%2C0%2C0%2C26%2C17V4Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Security%20and%20access%20%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20class%3D%22icon-expand%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M8%205L13%2010%2012.3%2010.7%208%206.4%203.7%2010.7%203%2010z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cdiv%20id%3D%22security-and-access%22%20class%3D%22collapse%20nav-item__nav%22%20is-nav%3D%22false%22%3E%3Cli%20data-v-d50da7aa%3D%22%22%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsecurity-and-access%2Fsessions%22%20data-test-id%3D%22nav-item-sessions%22%20class%3D%22nav-link%22%3EHMC%20and%20user%20sessions%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsecurity-and-access%2Fuser-management%22%20data-test-id%3D%22nav-item-user-management%22%20class%3D%22nav-link%22%3EUser%20management%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsecurity-and-access%2Fldap%22%20data-test-id%3D%22nav-item-ldap%22%20class%3D%22nav-link%22%3ELDAP%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsecurity-and-access%2Fcertificates%22%20data-test-id%3D%22nav-item-certificates%22%20class%3D%22nav-link%22%3ECertificates%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Fsecurity-and-access%2Fpolicies%22%20data-test-id%3D%22nav-item-policies%22%20class%3D%22nav-link%22%3EPolicies%3C%2Fa%3E%3Ca%20data-v-d50da7aa%3D%22%22%20href%3D%22%23%2Foperations%2Fkey-clear%22%20data-test-id%3D%22nav-item-key-clear%22%20class%3D%22nav-link%22%3EKey%20clear%3C%2Fa%3E%3C%2Fli%3E%3C%2Fdiv%3E%3C%2Fli%3E%3Cli%20data-v-d50da7aa%3D%22%22%20class%3D%22nav-item%20nav-nochild%22%20data-test-id%3D%22nav-item-notices%22%3E%3Ca%20class%3D%22nav-link%22%20href%3D%22%23%2Fnotices%22%3E%3Csvg%20data-v-d50da7aa%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M25.7%2C9.3l-7-7C18.5%2C2.1%2C18.3%2C2%2C18%2C2H8C6.9%2C2%2C6%2C2.9%2C6%2C4v24c0%2C1.1%2C0.9%2C2%2C2%2C2h16c1.1%2C0%2C2-0.9%2C2-2V10C26%2C9.7%2C25.9%2C9.5%2C25.7%2C9.3%09z%20M18%2C4.4l5.6%2C5.6H18V4.4z%20M24%2C28H8V4h8v6c0%2C1.1%2C0.9%2C2%2C2%2C2h6V28z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M10%2022H22V24H10zM10%2016H22V18H10z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20Notices%3C%2Fa%3E%3C%2Fli%3E%3C%2Ful%3E%3C%2Fnav%3E%3C%2Fdiv%3E%3C!----%3E%3C%2Fdiv%3E%3Cmain%20data-v-744e1245%3D%22%22%20data-v-2b5f60de%3D%22%22%20id%3D%22main-content%22%20class%3D%22page-container%20app-content%22%3E%3Cdiv%20data-v-2b5f60de%3D%22%22%3E%3Cdiv%20class%3D%22container-xl%22%3E%3Cdiv%20data-v-d7409342%3D%22%22%20class%3D%22page-title%22%3E%3Ch1%20data-v-d7409342%3D%22%22%3EServer%20power%20operations%3C%2Fh1%3E%3C!----%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22row%20mb-4%22%3E%3Cdiv%20class%3D%22col-sm-10%22%3E%3Cdiv%20data-v-f96d1d0f%3D%22%22%20class%3D%22page-section%20mb-0%22%3E%3Ch2%20data-v-f96d1d0f%3D%22%22%3ECurrent%20status%3C%2Fh2%3E%3Cdiv%20class%3D%22row%22%3E%3Cdiv%20class%3D%22col%22%3E%3Cdiv%20data-v-80abc89a%3D%22%22%20class%3D%22alert%20alert-info%22%20role%3D%22alert%22%20aria-live%3D%22polite%22%20aria-atomic%3D%22true%22%3E%3Cdiv%20class%3D%22alert-icon%22%3E%3Cspan%20data-v-91f98089%3D%22%22%20class%3D%22status-icon%20info%22%3E%3Csvg%20data-v-91f98089%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20fill%3D%22none%22%20d%3D%22M16%2C8a1.5%2C1.5%2C0%2C1%2C1-1.5%2C1.5A1.5%2C1.5%2C0%2C0%2C1%2C16%2C8Zm4%2C13.875H17.125v-8H13v2.25h1.875v5.75H12v2.25h8Z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M16%2C2A14%2C14%2C0%2C1%2C0%2C30%2C16%2C14%2C14%2C0%2C0%2C0%2C16%2C2Zm0%2C6a1.5%2C1.5%2C0%2C1%2C1-1.5%2C1.5A1.5%2C1.5%2C0%2C0%2C1%2C16%2C8Zm4%2C16.125H12v-2.25h2.875v-5.75H13v-2.25h4.125v8H20Z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fspan%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22alert-content%22%3E%3Cdiv%20class%3D%22alert-msg%22%3E%3Ch5%20class%3D%22fw-bold%22%3ESystem%20is%20in%20PHYP%20standby.%3C%2Fh5%3E%3Cp%20class%3D%22mt-1%22%3EContinue%20to%20OS%20running%20state%20to%20continue%20to%20runtime.%3C%2Fp%3E%3Cp%3ESave%20changes%20and%20continue%20to%20OS%20running%20state%20to%20continue%20to%20runtime.%3C%2Fp%3E%3Cp%3EDiscard%20changes%20and%20continue%20to%20OS%20running%20state%20to%20continue%20to%20runtime.%3C%2Fp%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22alert-action%22%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-link%20mt-3%20d-flex%20justify-content-between%20align-items-center%22%20type%3D%22button%22%3E%3Cspan%20class%3D%22pr-1%22%3EContinue%20to%20OS%20running%3C%2Fspan%3E%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9.3%203.7L13.1%207.5%201%207.5%201%208.5%2013.1%208.5%209.3%2012.3%2010%2013%2015%208%2010%203z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-link%20d-flex%20justify-content-between%20align-items-center%22%20type%3D%22button%22%3E%3Cspan%20class%3D%22pr-1%22%3ESave%20and%20continue%20to%20OS%20running%3C%2Fspan%3E%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9.3%203.7L13.1%207.5%201%207.5%201%208.5%2013.1%208.5%209.3%2012.3%2010%2013%2015%208%2010%203z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-link%20d-flex%20justify-content-between%20align-items-center%22%20type%3D%22button%22%3E%3Cspan%20class%3D%22pr-1%22%3EDiscard%20and%20continue%20to%20OS%20running%3C%2Fspan%3E%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M9.3%203.7L13.1%207.5%201%207.5%201%208.5%2013.1%208.5%209.3%2012.3%2010%2013%2015%208%2010%203z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3C%2Fdiv%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22row%22%3E%3Cdiv%20class%3D%22col%22%3E%3Cdiv%20data-v-f96d1d0f%3D%22%22%20class%3D%22page-section%22%3E%3Ch2%20data-v-f96d1d0f%3D%22%22%3EOperations%3C%2Fh2%3E%3Cdiv%20class%3D%22row%22%3E%3Cdiv%20class%3D%22col-sm-5%22%3E%3Cform%20novalidate%3D%22%22%20class%3D%22mb-5%22%20aria-label%3D%22reboot%22%3E%3Cfieldset%20class%3D%22form-group%22%20id%3D%22__BVID__201167___BV___%22%3E%3C!----%3E%3Cdiv%20class%3D%22%22%3E%3Clabel%3EReboot%20server%3C%2Flabel%3E%3Cdiv%20id%3D%22orderly-reboot%22%3EOrderly%20%E2%80%93%20operating%20system%20shuts%20down%2C%20then%20server%20reboots%3C%2Fdiv%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-primary%22%20type%3D%22submit%22%20data-test-id%3D%22serverPowerOperations-button-reboot%22%3EReboot%3C%2Fbutton%3E%3C%2Fform%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22col-sm-5%22%3E%3Cform%20novalidate%3D%22%22%20class%3D%22%22%20aria-label%3D%22shutdown-server-ops%22%3E%3Cfieldset%20class%3D%22form-group%22%20id%3D%22__BVID__647058___BV___%22%3E%3Clegend%20id%3D%22__BVID__936946___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EShutdown%20server%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cdiv%20class%3D%22form-check%22%3E%3Cinput%20id%3D%22__BVID__538852___BV_form-check__%22%20data-test-id%3D%22serverPowerOperations-radio-shutdownOrderly%22%20class%3D%22form-check-input%22%20type%3D%22radio%22%20name%3D%22shutdown-option%22%20value%3D%22orderly%22%3E%3Clabel%20for%3D%22__BVID__538852___BV_form-check__%22%20class%3D%22form-check-label%22%3EOrderly%20-%20operating%20system%20shuts%20down%2C%20then%20server%20shuts%20down%3C%2Flabel%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22form-check%22%3E%3Cinput%20id%3D%22__BVID__757395___BV_form-check__%22%20data-test-id%3D%22serverPowerOperations-radio-shutdownImmediate%22%20class%3D%22form-check-input%22%20type%3D%22radio%22%20name%3D%22shutdown-option%22%20value%3D%22immediate%22%3E%3Clabel%20for%3D%22__BVID__757395___BV_form-check__%22%20class%3D%22form-check-label%22%3EImmediate%20-%20Server%20shuts%20down%20without%20operating%20system%20shutting%20down%3B%20may%20cause%20data%20corruption%3C%2Flabel%3E%3C%2Fdiv%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-primary%22%20type%3D%22submit%22%20data-test-id%3D%22serverPowerOperations-button-shutDown%22%3EShut%20down%3C%2Fbutton%3E%3C%2Fform%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22row%22%3E%3Cdiv%20class%3D%22col-sm-8%20col-md-7%20col-lg-7%20col-xl-9%22%3E%3Cdiv%20data-v-f96d1d0f%3D%22%22%20class%3D%22page-section%22%3E%3Ch2%20data-v-f96d1d0f%3D%22%22%3ESettings%3C%2Fh2%3E%3Cdiv%20class%3D%22row%20mt-3%20mb-3%22%3E%3Cdiv%20class%3D%22col%22%3E%3Cbutton%20class%3D%22btn%20btn-md%20btn-primary%22%20type%3D%22button%22%20data-test-id%3D%22network-settings%22%3ENetwork%20settings%3C%2Fbutton%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cform%20novalidate%3D%22%22%20class%3D%22%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22row%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-12%20mb-3%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22m-0%20form-group%22%20id%3D%22__BVID__820483___BV___%22%3E%3Clegend%20id%3D%22__BVID__195335___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EServer%20operating%20mode%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22row%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-5%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22form-check%22%3E%3Cinput%20id%3D%22Normal%22%20aria-describedby%3D%22Normal%22%20class%3D%22form-check-input%22%20type%3D%22radio%22%20value%3D%22Normal%22%3E%3Clabel%20for%3D%22Normal%22%20class%3D%22form-check-label%22%3ENormal%20-%20Automatic%3C%2Flabel%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22form-check%22%3E%3Cinput%20id%3D%22Manual%22%20aria-describedby%3D%22Manual%22%20class%3D%22form-check-input%22%20type%3D%22radio%22%20value%3D%22Manual%22%3E%3Clabel%20for%3D%22Manual%22%20class%3D%22form-check-label%22%3EManual%20-%20Service%20%2F%20Maintenance%3C%2Flabel%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-12%20mb-3%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22m-0%20form-group%22%20id%3D%22__BVID__846522___BV___%22%3E%3Clegend%20id%3D%22__BVID__207868___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EServer%20power%20policy%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3C!----%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22form-check%22%3E%3Cinput%20id%3D%22power-off%22%20aria-describedby%3D%22power-off%22%20class%3D%22form-check-input%22%20type%3D%22radio%22%20value%3D%22Power%20Off%22%3E%3Clabel%20for%3D%22power-off%22%20class%3D%22form-check-label%22%3EPower%20Off%3C!----%3E%3C!----%3E%3C%2Flabel%3E%3C%2Fdiv%3E%3Csmall%20data-v-6c141a69%3D%22%22%20id%3D%22Power%20Off%22%20class%3D%22text-body-secondary%20form-text%20ms-4%22%3EWhen%20the%20last%20partition%20powers%20off%2C%20the%20server%20will%20power%20off%3C%2Fsmall%3E%3C!----%3E%3C!----%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22form-check%22%3E%3Cinput%20id%3D%22stay-on%22%20aria-describedby%3D%22stay-on%22%20class%3D%22form-check-input%22%20type%3D%22radio%22%20value%3D%22Stay%20On%22%3E%3Clabel%20for%3D%22stay-on%22%20class%3D%22form-check-label%22%3E%3C!----%3EStay%20On%3C!----%3E%3C%2Flabel%3E%3C%2Fdiv%3E%3C!----%3E%3C!----%3E%3Csmall%20data-v-6c141a69%3D%22%22%20id%3D%22Stay%20On%22%20class%3D%22text-body-secondary%20form-text%20ms-4%22%3EWhen%20the%20last%20partition%20powers%20off%2C%20the%20server%20will%20stay%20on%3C%2Fsmall%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22form-check%22%3E%3Cinput%20id%3D%22automatic%22%20aria-describedby%3D%22automatic%22%20class%3D%22form-check-input%22%20type%3D%22radio%22%20value%3D%22Automatic%22%3E%3Clabel%20for%3D%22automatic%22%20class%3D%22form-check-label%22%3E%3C!----%3E%3C!----%3EAutomatic%3C%2Flabel%3E%3C%2Fdiv%3E%3C!----%3E%3Csmall%20data-v-6c141a69%3D%22%22%20id%3D%22Automatic%22%20class%3D%22text-body-secondary%20form-text%20ms-4%22%3EWith%20this%20setting%2C%20when%20the%20system%20is%20not%20partitioned%2C%20the%20behavior%20is%20the%20same%20as%20power%20off%2C%20and%20when%20the%20system%20is%20partitioned%2C%20the%20behavior%20of%20the%20system%20is%20the%20same%20as%20stay%20on%3C%2Fsmall%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-8%20col-xl-6%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22mb-4%20form-group%22%20id%3D%22__BVID__931511___BV___%22%3E%3Clegend%20id%3D%22__BVID__910372___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EServer%20firmware%20start%20policy%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20data-v-6c141a69%3D%22%22%20id%3D%22bios-option-sysOp-mode%22%20class%3D%22form-select%22%20aria-label%3D%22bios-option-sysOp-mode%22%3E%3Coption%20value%3D%22Disabled%22%3EAuto-start%20always%3C%2Foption%3E%3Coption%20value%3D%22Enabled%22%3EStandby%20(User-initiated)%3C%2Foption%3E%3Coption%20value%3D%22ManualOnly%22%3EAuto-start%20only%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-8%20col-xl-6%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22mb-4%20form-group%22%20id%3D%22__BVID__288875___BV___%22%3E%3Clegend%20id%3D%22__BVID__100386___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EDefault%20partition%20environment%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20data-v-6c141a69%3D%22%22%20id%3D%22bios-option-sysOp-mode%22%20class%3D%22form-select%22%20aria-label%3D%22bios-option-sysOp-mode%22%3E%3Coption%20value%3D%22AIX%22%3EAIX%3C%2Foption%3E%3Coption%20value%3D%22Linux%22%3ELinux%3C%2Foption%3E%3Coption%20value%3D%22IBM%20I%22%3EIBM%20i%3C%2Foption%3E%3Coption%20value%3D%22Linux%20KVM%22%3ELinux%20KVM%3C%2Foption%3E%3Coption%20value%3D%22Default%22%3EDefault%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-8%20col-xl-6%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22mb-4%20form-group%22%20id%3D%22__BVID__955448___BV___%22%3E%3Clegend%20id%3D%22__BVID__292555___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EAIX%2FLINUX%20partition%20boot%20mode%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20data-v-6c141a69%3D%22%22%20id%3D%22bios-option-sysOp-mode%22%20class%3D%22form-select%22%20aria-label%3D%22bios-option-sysOp-mode%22%3E%3Coption%20value%3D%22Normal%22%3EThe%20partition%20boots%20directly%20to%20the%20operating%20system%3C%2Foption%3E%3Coption%20value%3D%22SavedList%22%3EService%20mode%20boot%20from%20saved%20list%3C%2Foption%3E%3Coption%20value%3D%22SmsMenu%22%3EBoot%20to%20SMS%20menu%3C%2Foption%3E%3Coption%20value%3D%22OkPrompt%22%3EBoot%20to%20open%20firmware%20prompt%3C%2Foption%3E%3Coption%20value%3D%22DefaultList%22%3EService%20mode%20boot%20from%20default%20list%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-8%20col-xl-6%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22mb-4%20form-group%22%20id%3D%22__BVID__801620___BV___%22%3E%3Clegend%20id%3D%22__BVID__587492___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EIBM%20i%20partition%20boot%20mode%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20data-v-6c141a69%3D%22%22%20id%3D%22bios-option-sysOp-mode%22%20class%3D%22form-select%22%20aria-label%3D%22bios-option-sysOp-mode%22%3E%3Coption%20value%3D%22A_Mode%22%3EA%20(Boot%20from%20disk%20using%20copy%20A)%3C%2Foption%3E%3Coption%20value%3D%22B_Mode%22%3EB%20(Boot%20from%20disk%20using%20copy%20B)%3C%2Foption%3E%3Coption%20value%3D%22C_Mode%22%3EC%20(Reserved%20for%20IBM%20lab%20use%20only)%3C%2Foption%3E%3Coption%20value%3D%22D_Mode%22%3ED%20(Boot%20from%20media%20%2F%20drives)%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3C!----%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-8%20col-xl-6%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22mb-4%20form-group%22%20id%3D%22__BVID__622630___BV___%22%3E%3Clegend%20id%3D%22__BVID__601467___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EIBM%20i%20load%20source%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20data-v-6c141a69%3D%22%22%20id%3D%22bios-option-sysOp-mode%22%20class%3D%22form-select%22%20aria-label%3D%22bios-option-sysOp-mode%22%3E%3Coption%20value%3D%22Current%20configuration%22%3ECurrent%20configuration%3C%2Foption%3E%3Coption%20value%3D%22none%22%3Enone%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-8%20col-xl-6%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22mb-4%20form-group%22%20id%3D%22__BVID__080108___BV___%22%3E%3Clegend%20id%3D%22__BVID__022774___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EIBM%20i%20alternate%20restart%20device%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20data-v-6c141a69%3D%22%22%20id%3D%22bios-option-sysOp-mode%22%20class%3D%22form-select%22%20aria-label%3D%22bios-option-sysOp-mode%22%3E%3Coption%20value%3D%22Current%20configuration%22%3ECurrent%20configuration%3C%2Foption%3E%3Coption%20value%3D%22none%22%3Enone%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-sm-8%20col-xl-6%22%3E%3Cfieldset%20data-v-6c141a69%3D%22%22%20class%3D%22mb-4%20form-group%22%20id%3D%22__BVID__148309___BV___%22%3E%3Clegend%20id%3D%22__BVID__385606___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3EIBM%20i%20console%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20data-v-6c141a69%3D%22%22%20id%3D%22bios-option-sysOp-mode%22%20class%3D%22form-select%22%20aria-label%3D%22bios-option-sysOp-mode%22%3E%3Coption%20value%3D%22Current%20configuration%22%3ECurrent%20configuration%3C%2Foption%3E%3Coption%20value%3D%22none%22%3Enone%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22row%22%3E%3C%2Fdiv%3E%3Cbutton%20data-v-6c141a69%3D%22%22%20class%3D%22btn%20btn-md%20btn-primary%20mb-3%22%20type%3D%22submit%22%3ESave%3C%2Fbutton%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22row%20mb-3%22%3E%3Cdiv%20data-v-6c141a69%3D%22%22%20class%3D%22col-xl-10%22%3E%3Cbutton%20data-v-6c141a69%3D%22%22%20class%3D%22btn%20btn-md%20btn-link%20collapsed%22%20type%3D%22button%22%20aria-controls%3D%22collapse-role-table%22%20aria-expanded%3D%22false%22%3E%3Csvg%20data-v-6c141a69%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M16%2010L26%2020%2024.6%2021.4%2016%2012.8%207.4%2021.4%206%2020z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%20View%20power%20setting%20descriptions%3C%2Fbutton%3E%3Cdiv%20id%3D%22collapse-role-table%22%20class%3D%22collapse%20mt-3%22%20is-nav%3D%22false%22%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3ESetting%20%3C!----%3E%3C%2Fth%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EAuto-start%20only%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EActivate%20server%20firmware%20and%20partitions%20automatically%20only%20in%20the%20case%20of%20a%20recovery%20power%20on%20after%20an%20abnormal%20termination%20(e.g.%20auto%20power%20restart%20or%20system%20termination%20auto-reboot).%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EAuto-start%20always%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EActivate%20certain%20partitions%20automatically.%20If%20the%20server%20is%20powered%20on%20using%20the%20HMC%20or%20ASMI%20menus%2C%20the%20server%20automatically%20activates%20the%20partitions%20configured%20for%20'auto-start'.%20If%20an%20auto-power%20restart%20or%20a%20reboot%20is%20performed%20after%20the%20server%20stops%20abnormally%2C%20the%20server%20activates%20the%20partitions%20that%20were%20running%20at%20the%20time%20the%20system%20stopped.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EStandby%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EDo%20not%20activate%20server%20firmware%20and%20partitions%20automatically%20for%20either%20a%20user-initiated%20power%20on%20or%20a%20recovery%20power%20on.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3EServer%20firmware%20start%20policy%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3ESetting%20%3C!----%3E%3C%2Fth%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EAIX%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ESystem%20firmware%20will%20select%20AIX%2FLinux%20as%20default%20partition%20environment.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ELinux%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ESystem%20firmware%20will%20select%20AIX%2FLinux%20as%20default%20partition%20environment.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EIBM%20i%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EServer%20firmware%20will%20select%20IBM%20i%20as%20default%20partition%20environment.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ELinux%20KVM%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ESystem%20firmware%20will%20select%20Linux%20KVM%20as%20default%20partition%20environment.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EDefault%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ESystem%20firmware%20will%20automatically%20select%20the%20default%20partition%20environment%20based%20on%20system%20brand%20type.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3EDefault%20partition%20environment%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3ESetting%20%3C!----%3E%3C%2Fth%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThis%20partition%20boots%20directly%20to%20the%20operating%20system%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20partition%20boots%20to%20the%20operating%20system%20without%20stopping.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EService%20boot%20mode%20from%20saved%20list%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20system%20boots%20from%20the%20saved%20service%20mode%20boot%20list.%20This%20is%20typically%20a%20shorthand%20method%20of%20executing%20the%20partition's%20diagnostics.%20%20To%20make%20this%20option%20useful%2C%20the%20partition%20operating%20system%20must%20support%20diagnostic%20boot%20and%20diagnostics%20must%20be%20loaded%20on%20the%20partition's%20disk%20drive.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EBoot%20to%20SMS%20menu%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20partition%20stops%20at%20the%20System%20Management%20Services%20(SMS)%20menu.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EBoot%20to%20open%20firmware%20prompt%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20system%20stops%20at%20the%20open%20firmware%20prompt.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EService%20mode%20boot%20from%20default%20list%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20system%20boots%20from%20the%20default%20boot%20list.%20%20This%20option%20is%20the%20preferred%20way%20to%20run%20stand-alone%20diagnostics%20from%20a%20CD-ROM%20drive.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3EAIX%2FLINUX%20partition%20boot%20mode%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3ESetting%20%3C!----%3E%3C%2Fth%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EA%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EIPL%20from%20disk%20using%20copy%20A%20of%20the%20system%20Licensed%20Internal%20Code.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EB%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EIPL%20from%20disk%20using%20copy%20B%20of%20the%20system%20Licensed%20Internal%20Code.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EC%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EReserved%20for%20hardware%20service%20use%20only.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ED%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EIPL%20from%20media%20other%20than%20load-source%20disk.%20Alternate%20IPL%20for%20code%20installation%20support.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3EIBM%20i%20partition%20boot%20mode%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20slot%20or%20device%20used%20for%20the%20IBM%20i%20load%20source%2C%20which%20contains%20the%20Licensed%20Internal%20Code%20and%20the%20configuration%20data%20for%20the%20logical%20partition.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3EIBM%20i%20load%20source%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20slot%20or%20device%20used%20for%20the%20IBM%20i%20alternate%20restart%20device%2C%20which%20is%20the%20device%20used%20to%20install%20the%20logical%20partition.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3EIBM%20i%20alternate%20restart%20device%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20slot%20or%20device%20used%20for%20the%20IBM%20i%20console%2C%20which%20is%20the%20dedicated%20IBM%20i%20Operations%20Console%20for%20the%20logical%20partition.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3EIBM%20i%20console%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3ESetting%20%3C!----%3E%3C%2Fth%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EAutomatic%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20system%20will%20determine%20the%20percentage%20of%20available%20system%20memory%20to%20be%20reserved%20for%20the%20management%20of%20KVM%20guests.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ECustom%3C%2Ftd%3E%3Ctd%20class%3D%22%22%3E%3C!----%3EThe%20user%20specified%20percentage%20of%20available%20system%20memory%20will%20be%20reserved%20for%20the%20management%20of%20KVM%20guests.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3ELinux%20KVM%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3Ctable%20data-v-6c141a69%3D%22%22%20class%3D%22table%20b-table%20caption-top%20table-hover%22%20noproviderpaging%3D%22false%22%20noprovidersorting%3D%22false%22%20noproviderfiltering%3D%22false%22%20sortdesc%3D%22false%22%20selectable%3D%22false%22%20stickyselect%3D%22false%22%20selecthead%3D%22true%22%20selectmode%3D%22multi%22%20selectionvariant%3D%22primary%22%20busy%3D%22false%22%20busyloadingtext%3D%22Loading...%22%20perpage%3D%22Infinity%22%20currentpage%3D%221%22%20nolocalsorting%3D%22false%22%20noselectonclick%3D%22false%22%20sortcompareoptions%3D%22%5Bobject%20Object%5D%22%20selecteditems%3D%22%22%20nosortableicon%3D%22false%22%20aria-busy%3D%22false%22%3E%3Cthead%20class%3D%22thead-light%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Cth%20scope%3D%22col%22%20class%3D%22%22%3EDescription%20%3C!----%3E%3C%2Fth%3E%3C%2Ftr%3E%3C!----%3E%3C%2Fthead%3E%3Ctbody%20class%3D%22%22%3E%3C!----%3E%3Ctr%20class%3D%22%22%3E%3Ctd%20class%3D%22%22%3E%3C!----%3ESpecifies%20the%20percentage%20of%20available%20system%20memory%20that%20will%20be%20reserved%20for%20the%20management%20of%20KVM%20guests.%20The%20percentage%20is%20specified%20to%20the%2010th%20of%20a%20percent.%3C%2Ftd%3E%3C%2Ftr%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Ftbody%3E%3C!----%3E%3Ccaption%3ESystem%20Memory%20Reserved%20for%20KVM%20Guest%20Management%20(%25)%20(Enabled%20only%20when%20the%20system%20is%20non%20HMC-managed)%20%3C%2Fcaption%3E%3C%2Ftable%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fform%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cbutton%20data-v-5e8e7888%3D%22%22%20data-v-2b5f60de%3D%22%22%20class%3D%22btn%20btn-md%20btn-secondary%20btn-top%20btn-icon-only%22%20type%3D%22button%22%20id%3D%22scrollToTopBtn%22%20title%3D%22Scroll%20to%20top%22%3E%3Csvg%20data-v-5e8e7888%3D%22%22%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22currentColor%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2032%2032%22%20aria-hidden%3D%22true%22%3E%3Cpath%20d%3D%22M16%2014L6%2024%207.4%2025.4%2016%2016.8%2024.6%2025.4%2026%2024zM4%208H28V10H4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E%3C%2Fbutton%3E%3C%2Fmain%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%0A%20%20%0A%0A%3Cdiv%20id%3D%22__BVID__toaster-container%22%3E%3Cdiv%20class%3D%22top-0%20start-0%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22top-0%20start-50%20translate-middle-x%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22top-0%20end-0%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22top-50%20start-0%20translate-middle-y%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22top-50%20start-50%20translate-middle%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22top-50%20end-0%20translate-middle-y%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22bottom-0%20start-0%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22bottom-0%20start-50%20translate-middle-x%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22bottom-0%20end-0%20toast-container%20position-fixed%20p-3%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20id%3D%22modal-network-settings%22%20class%3D%22modal%20fade%22%20role%3D%22dialog%22%20aria-labelledby%3D%22modal-network-settings-label%22%20aria-describedby%3D%22modal-network-settings-body%22%20tabindex%3D%22-1%22%20style%3D%22z-index%3A%201056%3B%20display%3A%20none%3B%22%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-dialog%20modal-xl%20modal-dialog-centered%20modal-dialog-scrollable%22%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-content%22%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-header%22%3E%3Ch2%20data-v-e2619669%3D%22%22%20id%3D%22modal-network-settings-label%22%20class%3D%22modal-title%22%3ENetwork%20settings%3C%2Fh2%3E%3Cbutton%20data-v-e2619669%3D%22%22%20type%3D%22button%22%20class%3D%22btn-close%22%20aria-label%3D%22Close%22%3E%3C%2Fbutton%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20id%3D%22modal-network-settings-body%22%20class%3D%22modal-body%22%3E%3Cform%20id%3D%22network-settings-form%22%20novalidate%3D%22%22%20class%3D%22%22%3E%3Cdiv%20class%3D%22container-xl%22%3E%3Ch3%3EConfigure%20Network%20settings%3C%2Fh3%3E%3Cspan%3EConfigure%20the%20network%20boot%20settings%20for%20the%20IBM%20i%20partition.%3C%2Fspan%3E%3Cdiv%20class%3D%22row%20mt-3%20mb-3%22%3E%3Cdiv%20class%3D%22col%22%3E%3Cdiv%20class%3D%22col-sm-6%20col-xl-6%22%3E%3Cfieldset%20class%3D%22mb-2%22%20id%3D%22__BVID__372239___BV___%22%3E%3Clegend%20id%3D%22__BVID__807607___BV__BV_label___%22%20tabindex%3D%22-1%22%20class%3D%22form-label%20bv-no-focus-ring%20col-form-label%20pt-0%22%3ENetwork%20Install%20Type%3C%2Flegend%3E%3Cdiv%20class%3D%22%22%3E%3Cselect%20id%3D%22network-install-type%22%20class%3D%22form-select%20form-select-sm%22%3E%3Coption%20value%3D%22Disabled%22%3EDisabled%3C%2Foption%3E%3Coption%20value%3D%22NFS%22%3ENFS%3C%2Foption%3E%3Coption%20value%3D%22iSCSI%22%3EiSCSI%3C%2Foption%3E%3C%2Fselect%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Ffieldset%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22col-sm-6%20col-xl-6%22%3E%3C%2Fdiv%3E%3C!----%3E%3C!----%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fform%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-footer%22%3E%3Cbutton%20data-v-e2619669%3D%22%22%20class%3D%22btn%20btn-md%20btn-secondary%22%20type%3D%22button%22%3ECancel%3C%2Fbutton%3E%3Cbutton%20data-v-e2619669%3D%22%22%20class%3D%22btn%20btn-md%20btn-primary%22%20type%3D%22button%22%3ESubmit%3C%2Fbutton%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22b-overlay-wrap%20position-relative%22%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20id%3D%22__BVID__718018___BV_modal__%22%20class%3D%22modal%20fade%22%20role%3D%22dialog%22%20aria-labelledby%3D%22__BVID__718018___BV_modal__-label%22%20aria-describedby%3D%22__BVID__718018___BV_modal__-body%22%20tabindex%3D%22-1%22%20style%3D%22z-index%3A%201056%3B%20display%3A%20none%3B%22%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-dialog%22%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-content%22%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-header%22%3E%3Ch5%20data-v-e2619669%3D%22%22%20id%3D%22__BVID__718018___BV_modal__-label%22%20class%3D%22modal-title%22%3E%3C%2Fh5%3E%3C!----%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20id%3D%22__BVID__718018___BV_modal__-body%22%20class%3D%22modal-body%22%3E%3Cp%3E%3C%2Fp%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22modal-footer%22%3E%3Cbutton%20data-v-e2619669%3D%22%22%20class%3D%22btn%20btn-md%20btn-secondary%22%20type%3D%22button%22%3E%3C%2Fbutton%3E%3Cbutton%20data-v-e2619669%3D%22%22%20class%3D%22btn%20btn-md%20btn-%22%20type%3D%22button%22%3E%3C%2Fbutton%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3Cdiv%20data-v-e2619669%3D%22%22%20class%3D%22b-overlay-wrap%20position-relative%22%3E%3C!----%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E"
+    },
+    "scanID": "6c4d99fb-1d75-496e-b66d-66fab4827b46",
+    "toolID": "accessibility-checker-v4.0.29",
+    "label": "_#_operations_server-power-operations"
+}

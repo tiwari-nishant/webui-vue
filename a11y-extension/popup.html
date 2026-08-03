@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>A11y Scanner</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <span class="header-title">A11y Scanner</span>
+    </header>
+
+    <!-- URL input panel -->
+    <section id="setup-panel" class="panel">
+      <label class="label" for="url-input">URLs to scan <span class="muted">(one per line)</span></label>
+      <textarea id="url-input" rows="5" placeholder="https://example.com&#10;https://example.com/about"></textarea>
+      <div class="row gap">
+        <button id="scan-btn" class="btn btn-primary">▶ Start Scan</button>
+        <button id="clear-btn" class="btn btn-ghost">✕ Clear</button>
+      </div>
+    </section>
+
+    <!-- Progress / status bar -->
+    <div id="progress-bar-wrap" class="progress-bar-wrap hidden">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+    <div id="status-line" class="status-line hidden"></div>
+
+    <!-- Results -->
+    <section id="results-panel" class="panel hidden">
+      <div class="results-header row gap">
+        <span class="results-title">Results</span>
+        <button id="download-btn" class="btn btn-success">⬇ Download Excel</button>
+      </div>
+      <div id="results-list"></div>
+    </section>
+  </div>
+
+  <script src="xlsx.full.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

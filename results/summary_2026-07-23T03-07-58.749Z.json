@@ -1,0 +1,91 @@
+{
+    "counts": {
+        "ignored": 0,
+        "violation": 51,
+        "recommendation": 13,
+        "pass": 9504,
+        "potentialviolation": 80,
+        "potentialrecommendation": 52,
+        "manual": 12,
+        "elements": 175,
+        "elementsViolation": 51,
+        "elementsViolationReview": 117
+    },
+    "startReport": 1784776078749,
+    "endReport": 1784776131201,
+    "toolID": "accessibility-checker-v4.0.29",
+    "policies": [
+        "IBM_Accessibility"
+    ],
+    "reportLevels": [
+        "violation",
+        "potentialviolation"
+    ],
+    "failLevels": [
+        "violation",
+        "potentialviolation"
+    ],
+    "scanID": "43d03578-5873-4568-b32b-fe48dabc363b",
+    "pageScanSummary": [
+        {
+            "label": "_",
+            "counts": {
+                "ignored": 0,
+                "elements": 40,
+                "elementsViolation": 12,
+                "elementsViolationReview": 25,
+                "violation": 12,
+                "potentialviolation": 17,
+                "recommendation": 3,
+                "potentialrecommendation": 13,
+                "manual": 1,
+                "pass": 2402
+            }
+        },
+        {
+            "label": "_#_operations_server-power-operations",
+            "counts": {
+                "ignored": 0,
+                "elements": 53,
+                "elementsViolation": 15,
+                "elementsViolationReview": 38,
+                "violation": 15,
+                "potentialviolation": 26,
+                "recommendation": 4,
+                "potentialrecommendation": 15,
+                "manual": 8,
+                "pass": 3014
+            }
+        },
+        {
+            "label": "_#_operations_firmware",
+            "counts": {
+                "ignored": 0,
+                "elements": 39,
+                "elementsViolation": 12,
+                "elementsViolationReview": 25,
+                "violation": 12,
+                "potentialviolation": 17,
+                "recommendation": 3,
+                "potentialrecommendation": 12,
+                "manual": 1,
+                "pass": 1848
+            }
+        },
+        {
+            "label": "_#_resource-management_memory",
+            "counts": {
+                "ignored": 0,
+                "elements": 43,
+                "elementsViolation": 12,
+                "elementsViolationReview": 29,
+                "violation": 12,
+                "potentialviolation": 20,
+                "recommendation": 3,
+                "potentialrecommendation": 12,
+                "manual": 2,
+                "pass": 2240
+            }
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "A11y Scanner",
+  "version": "1.0.0",
+  "description": "Accessibility scanner powered by IBM Equal Access Checker",
+  "permissions": [
+    "tabs",
+    "<all_urls>"
+  ],
+  "sidebar_action": {
+    "default_panel": "popup.html",
+    "default_title": "A11y Scanner",
+    "open_at_install": false
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  }
+}
