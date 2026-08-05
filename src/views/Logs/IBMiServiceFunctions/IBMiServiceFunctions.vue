@@ -165,10 +165,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
+import { ref, computed, onBeforeMount, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useToast from '@/components/Composables/useToastComposable';
+import { useIBMiServiceFunctions } from '@/api/composables/useIBMiServiceFunctions';
 import stores from '@/store';
 import Alert from '@/components/Global/Alert.vue';
 
@@ -176,34 +177,53 @@ const { successToast, errorToast } = useToast();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 
 const globalStore = stores.GlobalStore();
-const ibmiServiceFunctionsStore = stores.IBMiServiceFunctionsStore();
 const bootSettingsStore = stores.BootSettingsStore();
 
+// Use the new composable
+const {
+  isLoading: composableIsLoading,
+  executeServiceFunction: executeServiceFunctionApi,
+  fetchAvailableServiceFunctions: fetchAvailableFunctionsApi,
+} = useIBMiServiceFunctions();
+
 const isLoading = ref(false);
+const availableFunctions = ref([]);
 
 onBeforeRouteLeave(() => {
   hideLoader();
 });
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
   startLoader();
   isLoading.value = true;
-  Promise.all([
-    globalStore.getBootProgress(),
-    ibmiServiceFunctionsStore.getAvailableServiceFunctions(),
-    bootSettingsStore.fetchBiosAttributes(),
-  ]).finally(() => {
+  try {
+    const [, functions] = await Promise.all([
+      globalStore.getBootProgress(),
+      fetchAvailableFunctionsApi(),
+      bootSettingsStore.fetchBiosAttributes(),
+    ]);
+    availableFunctions.value = functions ?? [];
+  } catch {
+    errorToast('Failed to load service functions');
+  } finally {
     isLoading.value = false;
     endLoader();
-  });
+  }
+});
+
+// Watch for composable loading state
+watch(composableIsLoading, (loading) => {
+  if (loading) {
+    startLoader();
+  } else {
+    endLoader();
+  }
 });
 
 const isOSRunning = computed(() => {
   return globalStore.isOSRunningGetter;
 });
-const availableFunctions = computed(() => {
-  return ibmiServiceFunctionsStore.serviceFunctionsGetter;
-});
+
 const isIBMi = computed(() => {
   if (
     attributeKeys.value?.pvm_default_os_type === 'Default' ||
@@ -214,15 +234,21 @@ const isIBMi = computed(() => {
     return false;
   }
 });
+
 const attributeKeys = computed(() => {
   return bootSettingsStore.getBiosAttributes;
 });
 
-const exceuteFunction = (value) => {
-  ibmiServiceFunctionsStore
-    .executeServiceFunction(value)
-    .then((message) => successToast(message))
-    .catch(({ message }) => errorToast(message));
+const exceuteFunction = async (value) => {
+  try {
+    const message = await executeServiceFunctionApi(value);
+    successToast(message);
+    // Refresh available functions after execution
+    const updatedFunctions = await fetchAvailableFunctionsApi();
+    availableFunctions.value = updatedFunctions;
+  } catch (error) {
+    errorToast(error.message);
+  }
 };
 const isFunctionDisabled = (value) => {
   if (!isOSRunning.value) {

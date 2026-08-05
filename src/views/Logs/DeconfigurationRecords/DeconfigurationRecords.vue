@@ -69,10 +69,10 @@
           sort-desc.sync="status"
           :actions="batchActions"
           :fields="fields"
-          :items="filteredLogs"
-          :current-page="currentPageNo"
-          :per-page="itemPerPage === 0 ? filteredLogs.length || 1 : itemPerPage"
-          @row-selected="onRowSelected($event, filteredLogs.length)"
+          :items="pagination.paginatedData.value"
+          @row-selected="
+            onRowSelected($event, pagination.paginatedData.value.length)
+          "
         >
           <!-- Expand chevron icon -->
           <template #cell(expandRow)="row">
@@ -238,20 +238,24 @@
         >
           <BFormSelect
             id="pagination-items-per-page"
-            v-model="itemPerPage"
+            v-model="itemPerPageRef"
             :options="itemsPerPageOptions"
           />
         </BFormGroup>
       </BCol>
       <BCol sm="6">
         <b-pagination
-          v-model="currentPageNo"
+          v-model="currentPageRef"
           class="b-pagination"
-          :tabindex="currentPageNo - 1"
+          :tabindex="currentPageRef - 1"
           first-number
           last-number
-          :per-page="itemPerPage === 0 ? filteredLogs.length || 1 : itemPerPage"
-          :total-rows="getTotalRowCount(filteredLogs.length)"
+          :per-page="
+            itemPerPageRef === 0
+              ? pagination.filteredData.value.length || 1
+              : itemPerPageRef
+          "
+          :total-rows="pagination.totalItems.value"
         />
       </BCol>
     </BRow>
@@ -305,6 +309,7 @@ import usePaginationComposable from '@/components/Composables/usePaginationCompo
 import useTableRowExpandComposable from '@/components/Composables/useTableRowExpandComposable';
 import useTableFilterComposable from '@/components/Composables/useTableFilterComposable';
 import useDataFormatterGlobal from '@/components/Composables/useDataFormatterGlobal';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
 import IconDelete from '@carbon/icons-vue/es/trash-can/20';
 import IconDownload from '@carbon/icons-vue/es/download/20';
@@ -331,8 +336,7 @@ const {
   tableHeaderCheckboxModel,
   tableHeaderCheckboxIndeterminate,
 } = useTableSelectableComposable();
-const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
-  usePaginationComposable();
+const { itemsPerPageOptions } = usePaginationComposable();
 const { expandRowLabel, toggleRow } = useTableRowExpandComposable();
 const Toast = useToastComposable();
 const { getFilteredTableData } = useTableFilterComposable();
@@ -433,8 +437,6 @@ const activeFiltersRows = ref([]);
 const selectedRowsLists = ref(selectedRowsList);
 const tableHeaderCheckbox = ref(tableHeaderCheckboxModel);
 const tableHeaderCheckboxIndeterminated = ref(tableHeaderCheckboxIndeterminate);
-const currentPageNo = ref(currentPage);
-const itemPerPage = ref(perPage);
 const openModal = ref(false);
 const openModal2 = ref(false);
 const isAllSelected = ref(false);
@@ -446,6 +448,11 @@ const batchActions = ref([
 ]);
 const count = ref(0);
 const urival = ref();
+
+// Client-side pagination setup
+const currentPageRef = ref(1);
+
+const itemPerPageRef = ref(20);
 
 // Watch loading state - includes both initial fetch and processing
 watch(
@@ -490,6 +497,28 @@ const batchExportData = computed(() => {
 const filteredLogs = computed(() => {
   return getFilteredTableData(recordItems.value, activeFiltersRows.value);
 });
+
+// Client-side pagination composable
+const pagination = usePaginatedData({
+  data: filteredLogs,
+  pageSize: itemPerPageRef.value,
+  initialPage: 1,
+});
+
+// Keep pageSize in sync with itemPerPageRef
+watch(itemPerPageRef, (newSize) => {
+  pagination.pageSize.value = newSize;
+});
+
+// Keep currentPageRef in sync with pagination.currentPage
+watch(currentPageRef, (newPage) => {
+  pagination.currentPage.value = newPage;
+});
+
+watch(pagination.currentPage, (newPage) => {
+  currentPageRef.value = newPage;
+});
+
 const serverStatus = computed(() => {
   return global.serverStatusGetter;
 });
@@ -610,7 +639,7 @@ const onBatchAction = (action) => {
 };
 
 watch(
-  () => filteredLogs,
+  () => pagination.filteredData.value,
   (logs) => {
     nextTick(() => {
       document

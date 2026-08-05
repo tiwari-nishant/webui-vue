@@ -9,6 +9,7 @@ import {
   useRedfishCollection,
 } from './useRedfishCollection';
 import { usePatchResource } from './usePatchResource';
+import { RedfishQueryPresets } from './shared/queryConfig';
 import type { System, EventLog } from '@/types/redfish';
 
 export const HOST_STATE = {
@@ -76,16 +77,18 @@ const SYSTEM_INFO_STORAGE_KEY = 'systemInfoCache';
  * Data is cached in sessionStorage to persist across page reloads
  */
 export function useSystemInfo() {
-  // Fetch system info
+  // Fetch system info using the systemInfo preset
   const {
     data: system,
     isLoading: isSystemLoading,
     error: systemError,
     isError: isSystemError,
     refetch: refetchSystem,
-  } = useRedfishResource<System>('/redfish/v1/Systems/system');
+  } = useRedfishResource<System>('/redfish/v1/Systems/system', {
+    queryConfig: RedfishQueryPresets.systemInfo,
+  });
 
-  // Fetch event logs
+  // Fetch event logs using the systemInfo preset (same cadence)
   const {
     data: eventLogs,
     isLoading: isEventsLoading,
@@ -95,7 +98,7 @@ export function useSystemInfo() {
   } = useRedfishCollection<EventLog>(
     '/redfish/v1/Systems/system/LogServices/EventLog/Entries',
     {
-      staleTime: 30 * 1000, // 30 seconds
+      queryConfig: RedfishQueryPresets.systemInfo,
     },
   );
 
