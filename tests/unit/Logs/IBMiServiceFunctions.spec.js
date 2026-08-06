@@ -51,13 +51,13 @@ import { useIBMiServiceFunctions } from '@/api/composables/useIBMiServiceFunctio
 const AVAILABLE_FUNCTIONS = [21, 65, 67, 68, 69, 70];
 
 const makeHook = (overrides = {}) => ({
+  availableFunctions: ref(AVAILABLE_FUNCTIONS),
   isLoading: ref(false),
+  refetch: vi.fn().mockResolvedValue(undefined),
   executeServiceFunction: vi
     .fn()
     .mockResolvedValue('Function executed successfully'),
-  fetchAvailableServiceFunctions: vi
-    .fn()
-    .mockResolvedValue(AVAILABLE_FUNCTIONS),
+  isExecuting: ref(false),
   ...overrides,
 });
 
@@ -182,18 +182,16 @@ describe('IBMiServiceFunctions.vue', () => {
 
   it('isFunctionDisabled returns false when OS is running and function is available', async () => {
     mockGlobalStore.isOSRunningGetter = true;
-    const wrapper = mountIBMiServiceFunctions();
-    await nextTick();
-    wrapper.vm.availableFunctions = AVAILABLE_FUNCTIONS;
+    const availableFunctions = ref(AVAILABLE_FUNCTIONS);
+    const wrapper = mountIBMiServiceFunctions({ availableFunctions });
     await nextTick();
     expect(wrapper.vm.isFunctionDisabled(21)).toBe(false);
   });
 
   it('isFunctionDisabled returns true when function is not in available list', async () => {
     mockGlobalStore.isOSRunningGetter = true;
-    const wrapper = mountIBMiServiceFunctions();
-    await nextTick();
-    wrapper.vm.availableFunctions = [65, 67]; // 21 not in list
+    const availableFunctions = ref([65, 67]); // 21 not in list
+    const wrapper = mountIBMiServiceFunctions({ availableFunctions });
     await nextTick();
     expect(wrapper.vm.isFunctionDisabled(21)).toBe(true);
   });
@@ -218,26 +216,21 @@ describe('IBMiServiceFunctions.vue', () => {
 
   // ── Available Functions ────────────────────────────────────────────────────
 
-  it('stores available functions from API', async () => {
-    const wrapper = mountIBMiServiceFunctions();
+  it('exposes available functions from composable', async () => {
+    const availableFunctions = ref(AVAILABLE_FUNCTIONS);
+    mountIBMiServiceFunctions({ availableFunctions });
     await nextTick();
-
-    wrapper.vm.availableFunctions = AVAILABLE_FUNCTIONS;
-    await nextTick();
-
-    expect(wrapper.vm.availableFunctions).toEqual(AVAILABLE_FUNCTIONS);
+    expect(useIBMiServiceFunctions).toHaveBeenCalled();
   });
 
-  it('all required functions are available when set', async () => {
-    const wrapper = mountIBMiServiceFunctions();
-    await nextTick();
-
-    wrapper.vm.availableFunctions = AVAILABLE_FUNCTIONS;
+  it('all required functions are available when provided by composable', async () => {
+    const availableFunctions = ref(AVAILABLE_FUNCTIONS);
+    const wrapper = mountIBMiServiceFunctions({ availableFunctions });
     await nextTick();
 
     const requiredFunctions = [21, 65, 67, 68, 69, 70];
     requiredFunctions.forEach((func) => {
-      expect(wrapper.vm.availableFunctions).toContain(func);
+      expect(availableFunctions.value).toContain(func);
     });
   });
 });

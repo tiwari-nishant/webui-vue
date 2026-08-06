@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, watch } from 'vue';
+import { computed, onBeforeMount, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useToast from '@/components/Composables/useToastComposable';
@@ -179,15 +179,11 @@ const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const globalStore = stores.GlobalStore();
 const bootSettingsStore = stores.BootSettingsStore();
 
-// Use the new composable
 const {
-  isLoading: composableIsLoading,
+  availableFunctions,
+  isLoading,
   executeServiceFunction: executeServiceFunctionApi,
-  fetchAvailableServiceFunctions: fetchAvailableFunctionsApi,
 } = useIBMiServiceFunctions();
-
-const isLoading = ref(false);
-const availableFunctions = ref([]);
 
 onBeforeRouteLeave(() => {
   hideLoader();
@@ -195,24 +191,20 @@ onBeforeRouteLeave(() => {
 
 onBeforeMount(async () => {
   startLoader();
-  isLoading.value = true;
   try {
-    const [, functions] = await Promise.all([
+    await Promise.all([
       globalStore.getBootProgress(),
-      fetchAvailableFunctionsApi(),
       bootSettingsStore.fetchBiosAttributes(),
     ]);
-    availableFunctions.value = functions ?? [];
   } catch {
     errorToast('Failed to load service functions');
   } finally {
-    isLoading.value = false;
     endLoader();
   }
 });
 
-// Watch for composable loading state
-watch(composableIsLoading, (loading) => {
+// Sync loading bar with TanStack Query loading state
+watch(isLoading, (loading) => {
   if (loading) {
     startLoader();
   } else {
@@ -243,13 +235,12 @@ const exceuteFunction = async (value) => {
   try {
     const message = await executeServiceFunctionApi(value);
     successToast(message);
-    // Refresh available functions after execution
-    const updatedFunctions = await fetchAvailableFunctionsApi();
-    availableFunctions.value = updatedFunctions;
+    // availableFunctions updates automatically via query invalidation + watch
   } catch (error) {
     errorToast(error.message);
   }
 };
+
 const isFunctionDisabled = (value) => {
   if (!isOSRunning.value) {
     return true;
