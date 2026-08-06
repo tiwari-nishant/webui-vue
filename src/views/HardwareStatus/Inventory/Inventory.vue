@@ -193,19 +193,23 @@ import ServiceIndicator from './InventoryServiceIndicator.vue';
 import { default as IconJumpLink } from '@carbon/icons-vue/es/jump-link/16';
 import { chunk } from 'lodash';
 import { computed, watch, onBeforeMount, ref, reactive } from 'vue';
-import ChassisStore from '../../../store/modules/HardwareStatus/ChassisStore';
-import stores from '@/store';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import eventBus from '@/eventBus';
 import { useI18n } from 'vue-i18n';
 import useJumpLinkComposable from '../../../components/Composables/useJumpLinkComposable';
 import { BLink } from 'bootstrap-vue-next';
+import { useInventory } from '@/api/composables/useInventory';
+import stores from '@/store';
 
 const { startLoader, endLoader } = useLoadingBar();
 const { t } = useI18n();
 const { scrollToOffsetInventory } = useJumpLinkComposable();
 
-const chassisStore = ChassisStore();
+const {
+  chassis,
+  refetch: fetchChassis,
+  isLoading: inventoryLoading,
+} = useInventory();
 const global = stores.GlobalStore();
 
 const isBusy = ref(false);
@@ -310,9 +314,6 @@ const quicklinkColumns = computed(() => {
 const quicklinkMexColumns = computed(() => {
   return chunk(mexLinks, 2);
 });
-const chassis = computed(() => {
-  return chassisStore.chassis;
-});
 const serverStatus = computed(() => global.serverStatus);
 const isPoweredOff = computed(() =>
   serverStatus.value === 'off' ? true : false,
@@ -328,7 +329,7 @@ watch(
 function getAllInfo(val) {
   startLoader();
   isBusy.value = true;
-  chassisStore.fetchGetChassisInfo();
+  fetchChassis();
   const bmcManagerTablePromise = new Promise((resolve) => {
     eventBus.on('hardware-status-bmc-manager-complete', () => resolve());
   });
