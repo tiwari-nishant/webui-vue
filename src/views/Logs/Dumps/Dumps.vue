@@ -93,14 +93,10 @@
             responsive="md"
             sticky-header="75vh"
             :fields="fields"
-            :items="filteredDumps"
-            :per-page="
-              itemPerPage === 0 ? filteredDumps.length || 1 : itemPerPage
+            :items="pagination.paginatedData.value"
+            @row-selected="
+              onRowSelected($event, pagination.paginatedData.value.length)
             "
-            :current-page="currentPageNo"
-            :filter="searchFilterInput"
-            @filtered="onFiltered"
-            @row-selected="onRowSelected($event, filteredDumps.length)"
           >
             <!-- Date and Time column -->
             <template #cell(dateTime)="{ value }">
@@ -161,22 +157,24 @@
         >
           <b-form-select
             id="pagination-items-per-page"
-            v-model="itemPerPage"
+            v-model="itemPerPageRef"
             :options="itemsPerPageOptions"
           />
         </b-form-group>
       </BCol>
       <BCol sm="6" xl="5">
         <b-pagination
-          v-model="currentPageNo"
+          v-model="currentPageRef"
           class="b-pagination"
-          :tabindex="currentPageNo - 1"
+          :tabindex="currentPageRef - 1"
           first-number
           last-number
           :per-page="
-            itemPerPage === 0 ? filteredDumps.length || 1 : itemPerPage
+            itemPerPageRef === 0
+              ? pagination.filteredData.value.length || 1
+              : itemPerPageRef
           "
-          :total-rows="getTotalRowCount(filteredRows)"
+          :total-rows="pagination.totalItems.value"
         />
       </BCol>
     </BRow>
@@ -199,6 +197,7 @@
 import { ref, computed, onBeforeMount, onMounted, watch, nextTick } from 'vue';
 import i18n from '@/i18n';
 import { onBeforeRouteLeave } from 'vue-router';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 import Alert from '@/components/Global/Alert.vue';
 import IconDelete from '@carbon/icons-vue/es/trash-can/20';
 import IconDownload from '@carbon/icons-vue/es/download/20';
@@ -217,8 +216,7 @@ import stores from '@/store';
 import eventBus from '@/eventBus';
 
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
-const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
-  usePaginationComposable();
+const { itemsPerPageOptions } = usePaginationComposable();
 const { getFilteredTableData, getFilteredTableDataByDate } =
   useTableFilterComposable();
 const { successToast, errorToast } = useToast();
@@ -284,12 +282,12 @@ const tableFilters = ref([
   },
 ]);
 const activeFiltersRows = ref([]);
-const currentPageNo = ref(currentPage);
-const itemPerPage = ref(perPage);
+const currentPageRef = ref(1);
+
+const itemPerPageRef = ref(20);
 const filterEndDate = ref(null);
 const filterStartDate = ref(null);
 const searchFilterInput = ref('');
-const searchTotalFilteredRows = ref(0);
 const openModal = ref(false);
 const dumpVal = ref();
 
@@ -315,9 +313,7 @@ onMounted(() => {
 });
 
 const filteredRows = computed(() => {
-  return searchFilterInput.value
-    ? searchTotalFilteredRows.value
-    : filteredDumps.value.length;
+  return filteredDumps.value.length;
 });
 const allDumps = computed(() => {
   return dumps.allDumpsGetter;
@@ -356,6 +352,27 @@ const hmcManaged = computed(() => {
   return resourceMemory.hmcManagedGetter;
 });
 
+// Client-side pagination composable
+const pagination = usePaginatedData({
+  data: filteredDumps,
+  pageSize: itemPerPageRef.value,
+  initialPage: 1,
+});
+
+// Keep pageSize in sync with itemPerPageRef
+watch(itemPerPageRef, (newSize) => {
+  pagination.pageSize.value = newSize;
+});
+
+// Keep currentPageRef in sync with pagination.currentPage
+watch(currentPageRef, (newPage) => {
+  pagination.currentPage.value = newPage;
+});
+
+watch(pagination.currentPage, (newPage) => {
+  currentPageRef.value = newPage;
+});
+
 const updateDumpInfo = (selectedDumpTypeVal) => {
   selectedDumpType.value = selectedDumpTypeVal.toString();
 };
@@ -364,9 +381,6 @@ const convertBytesToMegabytes = (bytes) => {
 };
 const onFilterChange = ({ activeFilters }) => {
   activeFiltersRows.value = activeFilters;
-};
-const onFiltered = (filteredItems) => {
-  searchTotalFilteredRows.value = filteredItems.length;
 };
 const onChangeDateTimeFilter = ({ fromDate, toDate }) => {
   filterStartDate.value = fromDate;
@@ -403,7 +417,7 @@ const exportFileName = (row) => {
 };
 
 watch(
-  () => filteredDumps,
+  () => pagination.filteredData.value,
   (item) => {
     nextTick(() => {
       document

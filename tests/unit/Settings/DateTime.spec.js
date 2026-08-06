@@ -1,9 +1,12 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
-import { nextTick, getCurrentInstance, ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { VueQueryPlugin } from '@tanstack/vue-query';
-import stores from '@/store';
+
+// ---------------------------------------------------------------------------
+// Module mocks
+// ---------------------------------------------------------------------------
 
 // Mock getCurrentInstance before importing the component
 vi.mock('vue', async () => {
@@ -43,10 +46,31 @@ vi.mock('vue-router', async () => {
   };
 });
 
-// Import DateTime component AFTER mocking
-const DateTime = await import('@/views/Settings/DateTime/DateTime.vue').then(
-  (m) => m.default,
-);
+// Mock @/store to avoid real pinia store instantiation
+const mockGlobalStore = {
+  bmcTimeGetter: null,
+  serverStatusGetter: 'off',
+  isUtcDisplayGetter: true,
+  languagePreferenceGetter: 'en-US',
+  getBmcTime: vi.fn().mockResolvedValue(undefined),
+  getSystemInfo: vi.fn().mockResolvedValue(undefined),
+};
+
+vi.mock('@/store', () => ({
+  default: {
+    GlobalStore: () => mockGlobalStore,
+  },
+}));
+
+// UserManagementStore is imported directly in the component (not via stores index)
+const mockUserManagementStore = {
+  isGlobalMfaEnabledGetter: false,
+  getAccountSettings: vi.fn().mockResolvedValue(undefined),
+};
+
+vi.mock('@/store/modules/SecurityAndAccess/UserManagementStore', () => ({
+  default: () => mockUserManagementStore,
+}));
 
 // Mock the useDateTime composable
 vi.mock('@/api/composables/useDateTime', () => ({
@@ -88,10 +112,17 @@ vi.mock('@/components/Composables/useVuelidateComposable', () => ({
   }),
 }));
 
+// Import DateTime component AFTER mocking
+const DateTime = await import('@/views/Settings/DateTime/DateTime.vue').then(
+  (m) => m.default,
+);
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
 describe('DateTime.vue', () => {
   let wrapper;
-  let globalStore;
-  let userManagementStore;
   let pinia;
 
   const mockBmcTime = new Date('2024-01-15T10:30:00Z');
@@ -176,52 +207,17 @@ describe('DateTime.vue', () => {
   beforeEach(() => {
     pinia = createPinia();
     setActivePinia(pinia);
-    globalStore = stores.GlobalStore();
-    userManagementStore = stores.UserManagementStore();
 
-    // Create reactive refs for store getters
-    const bmcTimeRef = ref(mockBmcTime);
-    const serverStatusRef = ref('off');
-    const isUtcDisplayRef = ref(true);
-    const isGlobalMfaEnabledRef = ref(false);
+    // Reset mock store state to defaults before each test
+    mockGlobalStore.bmcTimeGetter = mockBmcTime;
+    mockGlobalStore.serverStatusGetter = 'off';
+    mockGlobalStore.isUtcDisplayGetter = true;
+    mockGlobalStore.languagePreferenceGetter = 'en-US';
+    mockGlobalStore.getBmcTime.mockResolvedValue(undefined);
+    mockGlobalStore.getSystemInfo.mockResolvedValue(undefined);
 
-    // Mock store getters as reactive properties
-    Object.defineProperty(globalStore, 'bmcTimeGetter', {
-      get: () => bmcTimeRef.value,
-      set: (val) => {
-        bmcTimeRef.value = val;
-      },
-      configurable: true,
-    });
-
-    Object.defineProperty(globalStore, 'serverStatusGetter', {
-      get: () => serverStatusRef.value,
-      set: (val) => {
-        serverStatusRef.value = val;
-      },
-      configurable: true,
-    });
-
-    Object.defineProperty(globalStore, 'isUtcDisplayGetter', {
-      get: () => isUtcDisplayRef.value,
-      set: (val) => {
-        isUtcDisplayRef.value = val;
-      },
-      configurable: true,
-    });
-
-    Object.defineProperty(userManagementStore, 'isGlobalMfaEnabledGetter', {
-      get: () => isGlobalMfaEnabledRef.value,
-      set: (val) => {
-        isGlobalMfaEnabledRef.value = val;
-      },
-      configurable: true,
-    });
-
-    globalStore.languagePreferenceGetter = 'en-US';
-    globalStore.getBmcTime = vi.fn().mockResolvedValue();
-    globalStore.getSystemInfo = vi.fn().mockResolvedValue();
-    userManagementStore.getAccountSettings = vi.fn().mockResolvedValue();
+    mockUserManagementStore.isGlobalMfaEnabledGetter = false;
+    mockUserManagementStore.getAccountSettings.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -239,32 +235,25 @@ describe('DateTime.vue', () => {
 
     it('should render PageTitle component', () => {
       wrapper = createWrapper();
-      // PageTitle is stubbed, so check for the h1 element it renders
       expect(wrapper.find('h1').exists()).toBe(true);
     });
 
     it('should render PageSection components', () => {
       wrapper = createWrapper();
-      // PageSection is stubbed as section elements
       const pageSections = wrapper.findAll('section');
       expect(pageSections.length).toBeGreaterThan(0);
     });
 
     it('should display current BMC date when bmcTime is available', async () => {
-      // Set bmcTime BEFORE creating wrapper
-      globalStore.bmcTimeGetter = mockBmcTime;
+      mockGlobalStore.bmcTimeGetter = mockBmcTime;
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
-      // The component should display the formatted date
-      const text = wrapper.text();
-      // Check for date display - the mock formats to '1/15/2024'
-      expect(text).toContain('1/15/2024');
+      expect(wrapper.text()).toContain('1/15/2024');
     });
 
     it('should display "--" when bmcTime is null', async () => {
-      // Set bmcTime to null BEFORE creating wrapper
-      globalStore.bmcTimeGetter = null;
+      mockGlobalStore.bmcTimeGetter = null;
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
@@ -273,34 +262,26 @@ describe('DateTime.vue', () => {
     });
 
     it('should display current BMC time when bmcTime is available', async () => {
-      // Set bmcTime BEFORE creating wrapper
-      globalStore.bmcTimeGetter = mockBmcTime;
+      mockGlobalStore.bmcTimeGetter = mockBmcTime;
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
-      // The component should display the formatted time
-      // The time is displayed in the second <dd> element
       const timeElements = wrapper.findAll('dd');
-      // Should have at least 2 dd elements (date and time)
       expect(timeElements.length).toBeGreaterThanOrEqual(2);
-      // The second dd should contain the time (not "--")
       expect(timeElements[1].text()).not.toBe('--');
     });
 
     it('should render correctly', async () => {
-      // Set default store values BEFORE creating wrapper
-      globalStore.bmcTimeGetter = null;
-      globalStore.serverStatusGetter = 'off';
+      mockGlobalStore.bmcTimeGetter = null;
+      mockGlobalStore.serverStatusGetter = 'off';
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
-      // Remove dynamic IDs before snapshot
       wrapper.element.querySelectorAll('[id]').forEach((el) => {
         if (el.id.startsWith('__BVID__')) {
           el.id = '';
         }
       });
-      // Verify the snapshot matches
       expect(wrapper.element).toMatchSnapshot();
     });
   });
@@ -308,15 +289,13 @@ describe('DateTime.vue', () => {
   describe('Alert Messages', () => {
     it('should display profile settings alert with router link', () => {
       wrapper = createWrapper();
-      // Alert is stubbed as div with class="alert"
       const alerts = wrapper.findAll('.alert');
       expect(alerts.length).toBeGreaterThan(0);
       expect(wrapper.text()).toContain('pageDateTime.alert.message');
     });
 
     it('should display power-off warning alert when server is not off', async () => {
-      // Set server status to 'on' BEFORE creating wrapper
-      globalStore.serverStatusGetter = 'on';
+      mockGlobalStore.serverStatusGetter = 'on';
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
@@ -324,20 +303,17 @@ describe('DateTime.vue', () => {
     });
 
     it('should NOT display power-off warning when server is off', async () => {
-      // Set server status to 'off' BEFORE creating wrapper
-      globalStore.serverStatusGetter = 'off';
+      mockGlobalStore.serverStatusGetter = 'off';
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
-      // When server is off, the power-off warning should NOT be displayed
       expect(wrapper.text()).not.toContain(
         'pageDateTime.alert.messagePowerOff',
       );
     });
 
     it('should display MFA alert when global MFA is enabled', async () => {
-      // Set MFA to enabled BEFORE creating wrapper
-      userManagementStore.isGlobalMfaEnabledGetter = true;
+      mockUserManagementStore.isGlobalMfaEnabledGetter = true;
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
@@ -345,8 +321,7 @@ describe('DateTime.vue', () => {
     });
 
     it('should NOT display MFA alert when global MFA is disabled', async () => {
-      // Set MFA to disabled BEFORE creating wrapper
-      userManagementStore.isGlobalMfaEnabledGetter = false;
+      mockUserManagementStore.isGlobalMfaEnabledGetter = false;
       wrapper = createWrapper();
       await flushPromises();
       await nextTick();
@@ -363,11 +338,9 @@ describe('DateTime.vue', () => {
       await flushPromises();
       await nextTick();
 
-      // Set the form value to trigger the watcher
       wrapper.vm.form.configurationSelected = 'manual';
       await nextTick();
-      
-      // Now switch to NTP
+
       wrapper.vm.form.configurationSelected = 'ntp';
       await nextTick();
 
@@ -464,7 +437,9 @@ describe('DateTime.vue', () => {
       wrapper = createWrapper();
 
       expect(
-        wrapper.find('[data-test-id="dateTime-radio-configureManual"]').exists(),
+        wrapper
+          .find('[data-test-id="dateTime-radio-configureManual"]')
+          .exists(),
       ).toBe(true);
       expect(
         wrapper.find('[data-test-id="dateTime-radio-configureNTP"]').exists(),

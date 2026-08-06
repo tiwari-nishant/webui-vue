@@ -165,10 +165,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
+import { computed, onBeforeMount, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useToast from '@/components/Composables/useToastComposable';
+import { useIBMiServiceFunctions } from '@/api/composables/useIBMiServiceFunctions';
 import stores from '@/store';
 import Alert from '@/components/Global/Alert.vue';
 
@@ -176,34 +177,45 @@ const { successToast, errorToast } = useToast();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 
 const globalStore = stores.GlobalStore();
-const ibmiServiceFunctionsStore = stores.IBMiServiceFunctionsStore();
 const bootSettingsStore = stores.BootSettingsStore();
 
-const isLoading = ref(false);
+const {
+  availableFunctions,
+  isLoading,
+  executeServiceFunction: executeServiceFunctionApi,
+} = useIBMiServiceFunctions();
 
 onBeforeRouteLeave(() => {
   hideLoader();
 });
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
   startLoader();
-  isLoading.value = true;
-  Promise.all([
-    globalStore.getBootProgress(),
-    ibmiServiceFunctionsStore.getAvailableServiceFunctions(),
-    bootSettingsStore.fetchBiosAttributes(),
-  ]).finally(() => {
-    isLoading.value = false;
+  try {
+    await Promise.all([
+      globalStore.getBootProgress(),
+      bootSettingsStore.fetchBiosAttributes(),
+    ]);
+  } catch {
+    errorToast('Failed to load service functions');
+  } finally {
     endLoader();
-  });
+  }
+});
+
+// Sync loading bar with TanStack Query loading state
+watch(isLoading, (loading) => {
+  if (loading) {
+    startLoader();
+  } else {
+    endLoader();
+  }
 });
 
 const isOSRunning = computed(() => {
   return globalStore.isOSRunningGetter;
 });
-const availableFunctions = computed(() => {
-  return ibmiServiceFunctionsStore.serviceFunctionsGetter;
-});
+
 const isIBMi = computed(() => {
   if (
     attributeKeys.value?.pvm_default_os_type === 'Default' ||
@@ -214,16 +226,21 @@ const isIBMi = computed(() => {
     return false;
   }
 });
+
 const attributeKeys = computed(() => {
   return bootSettingsStore.getBiosAttributes;
 });
 
-const exceuteFunction = (value) => {
-  ibmiServiceFunctionsStore
-    .executeServiceFunction(value)
-    .then((message) => successToast(message))
-    .catch(({ message }) => errorToast(message));
+const exceuteFunction = async (value) => {
+  try {
+    const message = await executeServiceFunctionApi(value);
+    successToast(message);
+    // availableFunctions updates automatically via query invalidation + watch
+  } catch (error) {
+    errorToast(error.message);
+  }
 };
+
 const isFunctionDisabled = (value) => {
   if (!isOSRunning.value) {
     return true;

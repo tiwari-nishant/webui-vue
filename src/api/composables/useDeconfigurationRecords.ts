@@ -1,6 +1,8 @@
 import { computed, ref, watch } from 'vue';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { useRedfishCollection } from './useRedfishCollection';
+import { RedfishQueryPresets } from './shared/queryConfig';
+
 // @ts-ignore - api.js is a JavaScript module
 import api from '@/store/api';
 // @ts-ignore - i18n.js is a JavaScript module
@@ -134,7 +136,7 @@ export function useDeconfigurationRecords() {
     };
   };
 
-  // Fetch Deconfiguration Records using useRedfishCollection
+  // Fetch Deconfiguration Records using useRedfishCollection with deconfigurationRecords preset
   const {
     data: deconfigRecordsRaw,
     isLoading: isLoadingRecords,
@@ -143,6 +145,9 @@ export function useDeconfigurationRecords() {
     refetch: refetchRecords,
   } = useRedfishCollection<any>(
     '/redfish/v1/Systems/system/LogServices/HardwareIsolation/Entries',
+    {
+      queryConfig: RedfishQueryPresets.deconfigurationRecords,
+    },
   );
 
   // Process the raw data - this is async and complex

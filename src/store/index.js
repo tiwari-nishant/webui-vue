@@ -26,6 +26,8 @@ import NetworkSettingsStore from './modules/Operations/NetworkSettingsStore';
 import IBMiServiceFunctionsStore from './modules/Logs/IBMiServiceFunctionsStore';
 import ResourceMemoryStore from './modules/ResourceManagement/ResourceMemoryStore';
 import SystemParametersStore from './modules/ResourceManagement/SystemParametersStore';
+import DumpsStore from './modules/Logs/DumpsStore';
+
 import DeconfigurationRecordsStore from './modules/Logs/DeconfigurationRecordsStore';
 import PcieSlotsStore from './modules/HardwareStatus/PcieSlotsStore';
 import FabricAdaptersStore from './modules/HardwareStatus/FabricAdaptersStore';
@@ -100,6 +102,10 @@ Object.assign(stores, {
 Object.assign(stores, {
   PcieSlotsStore: PcieSlotsStore,
 });
+Object.assign(stores, {
+  DumpsStore: DumpsStore,
+});
+
 Object.assign(stores, {
   PostCodeLogsStore: PostCodeLogsStore,
 });

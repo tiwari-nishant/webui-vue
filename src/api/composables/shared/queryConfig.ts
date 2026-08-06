@@ -130,11 +130,36 @@ export const RedfishQueryPresets = {
     refetchInterval: 30 * 1000,
   }),
 
+  deconfigurationRecords: createRedfishQueryConfig({
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 30 * 1000,
+  }),
+
+  dumps: createRedfishQueryConfig({
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 30 * 1000,
+  }),
+
+  ibmiServiceFunctions: createRedfishQueryConfig({
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 30 * 1000,
+  }),
+
+  /**
+   * For system info shown in the header (asset tag, model, serial, server/health
+   * status). Short stale time so the header stays fresh while the user navigates.
+   */
+  systemInfo: createRedfishQueryConfig({
+    staleTime: 30 * 1000,       // 30 seconds
+    gcTime: 2 * 60 * 1000,      // 2 minutes
+    refetchInterval: 30 * 1000, // poll every 30 seconds
+  }),
+
   /**
    * For configuration data (e.g., network settings, date/time)
    * Balanced between realtime and static
    */
-  config: createRedfishQueryConfig({
+   config: createRedfishQueryConfig({
     staleTime: 60 * 1000, // 1 minute
     gcTime: 10 * 60 * 1000, // 10 minutes
   }),
