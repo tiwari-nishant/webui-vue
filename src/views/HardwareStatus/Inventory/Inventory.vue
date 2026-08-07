@@ -89,14 +89,14 @@
                 <table-fans
                   v-if="currentTab === 0"
                   ref="fans"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Power supplies table -->
                 <table-power-supplies
                   v-if="currentTab === 0"
                   ref="powerSupply"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Processors table -->
@@ -106,21 +106,21 @@
                 <table-assembly
                   v-if="currentTab === 0"
                   ref="assembly"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- PCIe slots table -->
                 <table-pcie-slots
                   v-if="currentTab === 0"
                   ref="pcieSlots"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Fabric Adapters -->
                 <table-fabric-adapters
                   v-if="currentTab === 0"
                   ref="fabricAdapters"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Mex Chassis -->
@@ -137,34 +137,34 @@
                 <table-fans
                   v-if="currentTab > 0"
                   ref="fans"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Power supplies table -->
                 <table-power-supplies
                   v-if="currentTab > 0"
                   ref="powerSupply"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Assembly table -->
                 <table-assembly
                   v-if="currentTab > 0"
                   ref="assembly"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
                 <!-- PCIe slots table -->
                 <table-pcie-slots
                   v-if="currentTab > 0"
                   ref="pcieSlots"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Fabric Adapters -->
                 <table-fabric-adapters
                   v-if="currentTab > 0"
                   ref="fabricAdapters"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
               </b-container>
             </b-tab>
@@ -319,12 +319,10 @@ const isPoweredOff = computed(() =>
   serverStatus.value === 'off' ? true : false,
 );
 
-watch(
-  () => currentTab,
-  () => {
-    getAllInfo('watched');
-  },
-);
+watch(currentTab, () => {
+  // pass the Ref directly — Vue unwraps it automatically
+  getAllInfo('watched');
+});
 
 function getAllInfo(val) {
   startLoader();
