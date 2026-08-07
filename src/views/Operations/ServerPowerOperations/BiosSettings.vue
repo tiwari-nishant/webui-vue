@@ -7,7 +7,7 @@
             attriValuesArr.length >= 2 &&
             key !== 'pvm_system_power_off_policy' &&
             key !== 'pvm_system_operating_mode' &&
-            validateAttributeKeys(attributeKeys.pvm_default_os_type, key)
+            validateAttributeKeys(attributeKeys?.pvm_default_os_type, key)
           "
           :key="key"
           sm="8"
@@ -35,7 +35,7 @@
         </BCol>
         <BCol
           v-else-if="
-            validateAttributeKeys(attributeKeys.pvm_default_os_type, key)
+            validateAttributeKeys(attributeKeys?.pvm_default_os_type, key)
           "
           :key="key + '_'"
           class="mb-3"
@@ -264,8 +264,8 @@
       <template v-for="(taggedSetting, index) in taggedSettingValues">
         <b-col
           v-if="
-            attributeKeys.pvm_default_os_type === 'IBM I' ||
-            attributeKeys.pvm_default_os_type === 'Default'
+            attributeKeys?.pvm_default_os_type === 'IBM I' ||
+            attributeKeys?.pvm_default_os_type === 'Default'
           "
           :key="taggedSetting.settingKey"
           sm="8"
@@ -303,7 +303,7 @@
       <BCol
         v-if="
           !isHmcManaged() &&
-          attributeKeys['pvm_default_os_type'] === 'Linux KVM'
+          attributeKeys?.['pvm_default_os_type'] === 'Linux KVM'
         "
         key="percentage"
         sm="8"
@@ -320,16 +320,16 @@
         >
           <BFormInput
             v-if="
-              attributeKeys.pvm_linux_kvm_memory === 'Automatic' &&
+              attributeKeys?.pvm_linux_kvm_memory === 'Automatic' &&
               linuxKvmPercentageCurrentValue === 0
             "
             model-value="--"
             disabled
           ></BFormInput>
           <BFormInput
-            v-else-if="attributeKeys.pvm_linux_kvm_memory === 'Automatic'"
+            v-else-if="attributeKeys?.pvm_linux_kvm_memory === 'Automatic'"
             id="linux_kvm_percentage_current"
-            v-model="linuxKvmPercentageCurrentValue"
+            :value="linuxKvmPercentageCurrentValue"
             type="number"
             disabled
             step="0.1"
@@ -339,10 +339,10 @@
           <BFormInput
             v-else
             id="linux_kvm_percentage"
-            v-model="linuxKvmPercentageValue"
+            v-model="localLinuxKvmPercentage"
             type="number"
             :disabled="
-              attributeKeys.pvm_linux_kvm_memory === 'Automatic' || disabled
+              attributeKeys?.pvm_linux_kvm_memory === 'Automatic' || disabled
             "
             step="0.1"
             min="0.0"
@@ -352,8 +352,8 @@
           />
           <span
             v-if="
-              linuxKvmPercentageValue < 0.0 ||
-              linuxKvmPercentageValue > 100.0 ||
+              localLinuxKvmPercentage < 0.0 ||
+              localLinuxKvmPercentage > 100.0 ||
               !isLinuxKvmValid
             "
             class="error-text"
@@ -373,7 +373,7 @@
       class="mb-3"
       :disabled="
         !isLinuxKvmValid
-          ? form.attributes.pvm_default_os_type === 'Linux KVM'
+          ? attributeKeys?.pvm_default_os_type === 'Linux KVM'
             ? true
             : false
           : false
@@ -531,12 +531,14 @@ import IconChevron from '@carbon/icons-vue/es/chevron--up/20';
 import utilitiesFunctions from '../../../components/Global/UtilitiesFunction';
 import stores from '@/store';
 
-const globalStore = stores.GlobalStore();
-const bootSettingsStore = stores.BootSettingsStore();
-const resourceMemoryStore = stores.ResourceMemoryStore();
 const { spaceFilter } = utilitiesFunctions();
 
-defineProps({
+const globalStore = stores.GlobalStore();
+const resourceMemoryStore = stores.ResourceMemoryStore();
+
+// ─── Props & Emits ───────────────────────────────────────────────────────────
+
+const props = defineProps({
   attributeValues: {
     type: Object,
     default: null,
@@ -549,6 +551,46 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  biosAttributes: {
+    type: Object,
+    default: null,
+  },
+  ibmiLoadSourceValue: {
+    type: String,
+    default: '',
+  },
+  ibmiAltLoadSourceValue: {
+    type: String,
+    default: '',
+  },
+  ibmiConsoleValue: {
+    type: String,
+    default: '',
+  },
+  linuxKvmPercentageValue: {
+    type: Number,
+    default: null,
+  },
+  linuxKvmPercentageInitialValue: {
+    type: Number,
+    default: null,
+  },
+  linuxKvmPercentageCurrentValue: {
+    type: Number,
+    default: null,
+  },
+  powerRestorePolicy: {
+    type: String,
+    default: '',
+  },
+  locationCodes: {
+    type: Array,
+    default: () => [],
+  },
+  saveOperatingModeSettings: {
+    type: Function,
+    required: true,
+  },
 });
 
 const emit = defineEmits(['updated-attributes', 'is-linux-kvm-valid']);
@@ -559,6 +601,7 @@ const normalMode = ref('Normal');
 const currentOperatingMode = ref('');
 const selectedOperatingMode = ref('');
 const taggedSettingsArr = ref(['Current configuration', 'none']);
+const localLinuxKvmPercentage = ref(props.linuxKvmPercentageValue ?? 0);
 
 const taggedSettings = ref([
   {
@@ -811,32 +854,27 @@ const ibmiConsoleItems = ref([
   },
 ]);
 
-const form = ref({
-  attributes: bootSettingsStore.getBiosAttributes,
-  attributeValues: bootSettingsStore.getAttributeValues,
-});
+const attributeKeys = ref({ ...props.biosAttributes });
+
+// Re-populate attributeKeys when biosAttributes prop arrives (async query)
+watch(
+  () => props.biosAttributes,
+  (newVal) => {
+    if (!newVal) return;
+    Object.assign(attributeKeys.value, newVal);
+    currentOperatingMode.value =
+      attributeKeys.value['pvm_system_operating_mode'] ?? '';
+    if (currentOperatingMode.value === manualMode.value) {
+      onChangeSystemOpsMode(manualMode.value);
+    }
+  },
+  { immediate: true },
+);
 
 onBeforeMount(() => {
-  bootSettingsStore.fetchLocationCodes();
-  setTimeout(() => {
-    resourceMemoryStore.getHmcManaged();
-  }, 5000);
-  currentOperatingMode.value = attributeKeys.value['pvm_system_operating_mode'];
-  if (currentOperatingMode.value === manualMode.value) {
-    onChangeSystemOpsMode(manualMode.value);
-  }
-});
-
-const hmcManaged = computed(() => {
-  return resourceMemoryStore.hmcManagedGetter;
-});
-
-const attributeKeys = computed(() => {
-  return bootSettingsStore.getBiosAttributes;
-});
-
-const isAtleastPhypInStandby = computed(() => {
-  return globalStore.isInPhypStandby;
+  taggedSettings.value[0].settingValue = props.ibmiLoadSourceValue;
+  taggedSettings.value[1].settingValue = props.ibmiAltLoadSourceValue;
+  taggedSettings.value[2].settingValue = props.ibmiConsoleValue;
 });
 
 const manualModeSelected = computed(() => {
@@ -844,53 +882,20 @@ const manualModeSelected = computed(() => {
 });
 
 const powerPolicy = computed(() => {
-  return bootSettingsStore.getPowerRestorePolicyValue;
-});
-
-const ibmiLoadSourceValue = computed(() => {
-  return bootSettingsStore.getIbmiLoadSourceValue;
-});
-
-const ibmiAltLoadSourceValue = computed(() => {
-  return bootSettingsStore.getIbmiAltLoadSourceValue;
-});
-
-const ibmiConsoleValue = computed(() => {
-  return bootSettingsStore.getIbmiConsoleValue;
+  return props.powerRestorePolicy;
 });
 
 const taggedSettingValues = computed(() => {
   let taggedSettingsInfo = taggedSettings.value;
-  taggedSettingsInfo[0].settingValue = ibmiLoadSourceValue.value;
-  taggedSettingsInfo[1].settingValue = ibmiAltLoadSourceValue.value;
-  taggedSettingsInfo[2].settingValue = ibmiConsoleValue.value;
+  taggedSettingsInfo[0].settingValue = props.ibmiLoadSourceValue;
+  taggedSettingsInfo[1].settingValue = props.ibmiAltLoadSourceValue;
+  taggedSettingsInfo[2].settingValue = props.ibmiConsoleValue;
   return taggedSettingsInfo;
-});
-
-const linuxKvmPercentageCurrentValue = computed(() => {
-  return bootSettingsStore.getLinuxKvmPercentageCurrentValue;
-});
-
-const linuxKvmPercentageInitialValue = computed(() => {
-  return bootSettingsStore.getLinuxKvmPercentageInitialValue;
-});
-
-const linuxKvmPercentageValue = computed({
-  get() {
-    return bootSettingsStore.getLinuxKvmPercentageValue;
-  },
-  set(newValue) {
-    return newValue;
-  },
-});
-
-const locationCodes = computed(() => {
-  return bootSettingsStore.getLocationCodes;
 });
 
 const taggedSettingsOptions = computed(() => {
   let taggedSettingsList = [...taggedSettingsArr.value];
-  return [...taggedSettingsList, ...locationCodes.value];
+  return [...taggedSettingsList, ...(props.locationCodes ?? [])];
 });
 
 function hmcManagedChecks(value) {
@@ -903,6 +908,14 @@ function hmcManagedChecks(value) {
   return false;
 }
 
+const hmcManaged = computed(() => {
+  return resourceMemoryStore.hmcManagedGetter;
+});
+
+const isAtleastPhypInStandby = computed(() => {
+  return globalStore.isInPhypStandby;
+});
+
 function isHmcManaged() {
   return hmcManaged.value === 'Enabled' ? true : false;
 }
@@ -911,16 +924,20 @@ function onChangeSystemOpsMode(value) {
   selectedOperatingMode.value = value;
   if (selectedOperatingMode.value === normalMode.value) {
     if (currentOperatingMode.value === selectedOperatingMode.value) {
-      bootSettingsStore.getOperatingModeSettings();
+      // no-op: already in normal mode, no patch needed
     } else {
-      bootSettingsStore.automaticRetryConfigValue = 'RetryAttempts';
-      bootSettingsStore.bootFault = 'Never';
-      bootSettingsStore.powerRestorePolicyValue = 'LastState';
+      props.saveOperatingModeSettings({
+        powerRestorePolicy: 'LastState',
+        automaticRetryConfig: 'RetryAttempts',
+        bootFault: 'Never',
+      });
     }
   } else if (selectedOperatingMode.value === manualMode.value) {
-    bootSettingsStore.automaticRetryConfigValue = 'Disabled';
-    bootSettingsStore.bootFault = 'Never';
-    bootSettingsStore.powerRestorePolicyValue = 'AlwaysOff';
+    props.saveOperatingModeSettings({
+      powerRestorePolicy: 'AlwaysOff',
+      automaticRetryConfig: 'Disabled',
+      bootFault: 'Never',
+    });
   }
 }
 
@@ -932,14 +949,12 @@ function changeLinuxKvmPercentageValue(value) {
   } else {
     isLinuxKvmValid.value = false;
   }
-  bootSettingsStore.saveLinuxPercentageValue(value);
+  localLinuxKvmPercentage.value = Number(value);
 }
 
 function changeTaggedSettingsValue(key, value) {
-  bootSettingsStore.saveTaggedSettingsValue({
-    key,
-    value,
-  });
+  const idx = taggedSettings.value.findIndex((s) => s.settingKey === key);
+  if (idx !== -1) taggedSettings.value[idx].settingValue = value;
 }
 
 function validateLinuxKvmPercentage($event) {
@@ -982,15 +997,15 @@ watch(
   () => [
     attributeKeys.value,
     taggedSettingValues.value,
-    linuxKvmPercentageValue.value,
+    localLinuxKvmPercentage.value,
   ],
   () => {
     if (attributeKeys.value['pvm_linux_kvm_memory'] === 'Custom') {
       attributeKeys.value['pvm_linux_kvm_percentage'] =
-        linuxKvmPercentageValue.value * 10;
+        localLinuxKvmPercentage.value * 10;
     } else {
       attributeKeys.value['pvm_linux_kvm_percentage'] =
-        linuxKvmPercentageInitialValue.value * 10;
+        (props.linuxKvmPercentageInitialValue ?? 0) * 10;
     }
     attributeKeys.value['pvm_ibmi_load_source'] =
       taggedSettingValues.value[0].settingValue;
