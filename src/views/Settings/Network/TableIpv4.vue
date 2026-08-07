@@ -44,7 +44,7 @@
         sort-icon-left
         sticky-header="75vh"
         :fields="ipv4TableFields"
-        :items="form.ipv4TableItems"
+        :items="ipv4TableItems"
         class="mb-0"
         show-empty
       >
@@ -97,22 +97,26 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onBeforeMount } from 'vue';
+import { ref, computed, watch } from 'vue';
 import i18n from '@/i18n';
 import eventBus from '@/eventBus';
-import useToast from '@/components/Composables/useToastComposable';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import IconAdd from '@carbon/icons-vue/es/add--alt/20';
 import IconEdit from '@carbon/icons-vue/es/edit/20';
 import IconTrashcan from '@carbon/icons-vue/es/trash-can/20';
 import PageSection from '@/components/Global/PageSection.vue';
 import TableRowAction from '@/components/Global/TableRowAction.vue';
-import stores from '@/store';
+import { useNetwork } from '@/api/composables/useNetwork';
 
-const { successToast, errorToast } = useToast();
 const { startLoader, endLoader } = useLoadingBar();
 
-const networkStore = stores.NetworkStore();
+const {
+  networkSettings,
+  selectedInterfaceIndex,
+  isTableBusy,
+  saveDhcpEnabledState,
+  deleteIpv4Address,
+} = useNetwork();
 
 const props = defineProps({
   tabIndex: {
@@ -138,22 +142,7 @@ const modalOptions = ref({
 });
 const modalValue = ref('');
 
-const form = ref({
-  ipv4TableItems: [],
-});
-
-const actions = ref([
-  {
-    value: 'edit',
-    title: i18n.global.t('global.action.edit'),
-  },
-  {
-    value: 'delete',
-    title: i18n.global.t('global.action.delete'),
-  },
-]);
-
-const ipv4TableFields = ref([
+const ipv4TableFields = [
   {
     key: 'Address',
     label: i18n.global.t('pageNetwork.table.ipAddress'),
@@ -185,61 +174,15 @@ const ipv4TableFields = ref([
     thAttr: { scope: 'col' },
     tdAttr: { scope: null },
   },
-]);
-
-onBeforeMount(() => {
-  getIpv4TableItems();
-});
+];
 
 const isTablesDisabled = computed(() => {
-  return networkStore.isTableBusyGetter;
+  return isTableBusy.value;
 });
 
-const network = computed(() => {
-  return networkStore.networkSettingsGetter;
-});
-
-const selectedInterface = computed(() => {
-  return networkStore.selectedInterfaceIndexGetter;
-});
-
-const dhcpEnabledState = computed({
-  get() {
-    return networkStore.networkSettingsGetter[selectedInterface.value]
-      .dhcpEnabled;
-  },
-  set(newValue) {
-    return newValue;
-  },
-});
-
-// Watch for change in tab index
-watch(
-  () => props.tabIndex,
-  () => {
-    getIpv4TableItems();
-  },
-);
-
-watch(
-  () => form.value.ipv4TableItems,
-  (item) => {
-    if (!item.length) {
-      document
-        .querySelector('tr.b-table-empty-slot td[scope]')
-        ?.removeAttribute('scope');
-    }
-  },
-);
-
-watch(network, () => {
-  getIpv4TableItems();
-});
-
-const getIpv4TableItems = () => {
-  const index = props.tabIndex;
-  const addresses = network.value[index].ipv4 || [];
-  form.value.ipv4TableItems = addresses.map((ipv4) => {
+const ipv4TableItems = computed(() => {
+  const addresses = networkSettings.value[props.tabIndex]?.ipv4 ?? [];
+  return addresses.map((ipv4) => {
     return {
       Address: ipv4.Address,
       SubnetMask: ipv4.SubnetMask,
@@ -263,7 +206,29 @@ const getIpv4TableItems = () => {
       ],
     };
   });
-};
+});
+
+const dhcpEnabledState = computed({
+  get() {
+    return (
+      networkSettings.value[selectedInterfaceIndex.value]?.dhcpEnabled ?? false
+    );
+  },
+  set(newValue) {
+    return newValue;
+  },
+});
+
+watch(
+  () => ipv4TableItems.value,
+  (items) => {
+    if (!items.length) {
+      document
+        .querySelector('tr.b-table-empty-slot td[scope]')
+        ?.removeAttribute('scope');
+    }
+  },
+);
 
 const onIpv4TableAction = (action, $event, item) => {
   if (!isTablesDisabled.value) {
@@ -278,7 +243,7 @@ const onIpv4TableAction = (action, $event, item) => {
 };
 
 const openDeleteIpv4TableRowModal = (item) => {
-  const newIpv4Array = form.value.ipv4TableItems
+  const newIpv4Array = ipv4TableItems.value
     .filter((row) => row.Address !== item.Address)
     .map((ipv4) => {
       const { Address, SubnetMask, Gateway } = ipv4;
@@ -338,34 +303,24 @@ const openChangeDhcpEnabledStateModal = (state) => {
 
 const operationConfirm = () => {
   if (modalValue.value === 'DeleteIpv4TableRow') {
-    networkStore
-      .deleteIpv4Address(modalPayload.value.newIpv4Array)
-      .then((message) => {
-        successToast(message);
-        startLoader();
-        setTimeout(() => {
-          endLoader();
-        }, 15000);
-      })
-      .catch(({ message }) => errorToast(message));
+    startLoader();
+    deleteIpv4Address(modalPayload.value.newIpv4Array).finally(() => {
+      setTimeout(() => {
+        endLoader();
+      }, 15000);
+    });
   } else if (modalValue.value === 'ChangeDhcpEnabledState') {
-    networkStore
-      .saveDhcpEnabledState(modalPayload.value.state)
-      .then((message) => {
-        successToast(message);
-        startLoader();
-        setTimeout(() => {
-          endLoader();
-        }, 15000);
-      })
-      .catch(({ message }) => errorToast(message));
+    startLoader();
+    saveDhcpEnabledState(modalPayload.value.state).finally(() => {
+      setTimeout(() => {
+        endLoader();
+      }, 15000);
+    });
   }
 };
 
 const operationCancel = () => {
   if (modalValue.value === 'ChangeDhcpEnabledState') {
-    let onDhcpCancel = document.getElementById('dhcpSwitch');
-    onDhcpCancel.checked = !modalPayload.value.state;
     // Manually refresh the checkbox in DOM
     componentKey.value += 1;
   }
