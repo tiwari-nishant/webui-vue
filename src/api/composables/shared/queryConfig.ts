@@ -173,6 +173,11 @@ export const RedfishQueryPresets = {
     gcTime: 10 * 60 * 1000, // 10 minutes
   }),
 
+  inventory: createRedfishQueryConfig({
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 10 * 60 * 1000,
+  }),
+
   /**
    * For service root and metadata (rarely changes)
    * Very long cache times

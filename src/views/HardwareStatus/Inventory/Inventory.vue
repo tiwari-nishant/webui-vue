@@ -89,14 +89,14 @@
                 <table-fans
                   v-if="currentTab === 0"
                   ref="fans"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Power supplies table -->
                 <table-power-supplies
                   v-if="currentTab === 0"
                   ref="powerSupply"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Processors table -->
@@ -106,21 +106,21 @@
                 <table-assembly
                   v-if="currentTab === 0"
                   ref="assembly"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- PCIe slots table -->
                 <table-pcie-slots
                   v-if="currentTab === 0"
                   ref="pcieSlots"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Fabric Adapters -->
                 <table-fabric-adapters
                   v-if="currentTab === 0"
                   ref="fabricAdapters"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Mex Chassis -->
@@ -137,34 +137,34 @@
                 <table-fans
                   v-if="currentTab > 0"
                   ref="fans"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Power supplies table -->
                 <table-power-supplies
                   v-if="currentTab > 0"
                   ref="powerSupply"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Assembly table -->
                 <table-assembly
                   v-if="currentTab > 0"
                   ref="assembly"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
                 <!-- PCIe slots table -->
                 <table-pcie-slots
                   v-if="currentTab > 0"
                   ref="pcieSlots"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
 
                 <!-- Fabric Adapters -->
                 <table-fabric-adapters
                   v-if="currentTab > 0"
                   ref="fabricAdapters"
-                  :chassis="chassis[currentTab].uri"
+                  :chassis="chassis[currentTab]?.uri"
                 />
               </b-container>
             </b-tab>
@@ -193,19 +193,23 @@ import ServiceIndicator from './InventoryServiceIndicator.vue';
 import { default as IconJumpLink } from '@carbon/icons-vue/es/jump-link/16';
 import { chunk } from 'lodash';
 import { computed, watch, onBeforeMount, ref, reactive } from 'vue';
-import ChassisStore from '../../../store/modules/HardwareStatus/ChassisStore';
-import stores from '@/store';
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import eventBus from '@/eventBus';
 import { useI18n } from 'vue-i18n';
 import useJumpLinkComposable from '../../../components/Composables/useJumpLinkComposable';
 import { BLink } from 'bootstrap-vue-next';
+import { useInventory } from '@/api/composables/useInventory';
+import stores from '@/store';
 
 const { startLoader, endLoader } = useLoadingBar();
 const { t } = useI18n();
 const { scrollToOffsetInventory } = useJumpLinkComposable();
 
-const chassisStore = ChassisStore();
+const {
+  chassis,
+  refetch: fetchChassis,
+  isLoading: inventoryLoading,
+} = useInventory();
 const global = stores.GlobalStore();
 
 const isBusy = ref(false);
@@ -310,25 +314,20 @@ const quicklinkColumns = computed(() => {
 const quicklinkMexColumns = computed(() => {
   return chunk(mexLinks, 2);
 });
-const chassis = computed(() => {
-  return chassisStore.chassis;
-});
 const serverStatus = computed(() => global.serverStatus);
 const isPoweredOff = computed(() =>
   serverStatus.value === 'off' ? true : false,
 );
 
-watch(
-  () => currentTab,
-  () => {
-    getAllInfo('watched');
-  },
-);
+watch(currentTab, () => {
+  // pass the Ref directly — Vue unwraps it automatically
+  getAllInfo('watched');
+});
 
 function getAllInfo(val) {
   startLoader();
   isBusy.value = true;
-  chassisStore.fetchGetChassisInfo();
+  fetchChassis();
   const bmcManagerTablePromise = new Promise((resolve) => {
     eventBus.on('hardware-status-bmc-manager-complete', () => resolve());
   });
