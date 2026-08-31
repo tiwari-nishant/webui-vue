@@ -92,17 +92,17 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, nextTick } from 'vue';
-import stores from '../../../store';
+import { ref, watch, nextTick } from 'vue';
 import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
 import useToast from '@/components/Composables/useToastComposable';
 import i18n from '@/i18n';
 import eventBus from '@/eventBus';
+import { usePcieTopology } from '@/api/composables/usePcieTopology';
 
 const { dataFormatter } = useDataFormatterGlobal();
 const { successToast, errorToast } = useToast();
 
-const pcieTopologyStore = stores.PcieTopologyStore();
+const { getAllLedValues, updateLedValue } = usePcieTopology();
 
 const props = defineProps({
   selectedObj: {
@@ -139,42 +139,39 @@ const onModalHidden = () => {
 };
 
 const getAllLeds = async () => {
-  await pcieTopologyStore
-    .getAllLedValues(props.selectedObj)
-    .then((returnedObj) => {
-      pcieBridgeLed.value = returnedObj.pcieBridge;
-      localPortLed.value = [];
-      props.selectedObj.localPortLocation.map((selectedPort) => {
-        returnedObj.localPortLocation.map((returnedPort) => {
-          if (selectedPort.locationNumber === returnedPort.locationNumber) {
-            localPortLed.value.push(returnedPort);
-          }
-        });
+  await getAllLedValues(props.selectedObj).then((returnedObj) => {
+    pcieBridgeLed.value = returnedObj.pcieBridge;
+    localPortLed.value = [];
+    props.selectedObj.localPortLocation.map((selectedPort) => {
+      returnedObj.localPortLocation.map((returnedPort) => {
+        if (selectedPort.locationNumber === returnedPort.locationNumber) {
+          localPortLed.value.push(returnedPort);
+        }
       });
-      remotePortLed.value = [];
-      props.selectedObj.remotePortLocation.map((selectedPort) => {
-        returnedObj.remotePortLocation.map((returnedPort) => {
-          if (selectedPort.locationNumber === returnedPort.locationNumber) {
-            remotePortLed.value.push(returnedPort);
-          }
-        });
-      });
-      ioSlotsLed.value = [];
-      if (props.selectedObj.ioSlots.length > 0) {
-        props.selectedObj.ioSlots.map((selectedSlot) => {
-          returnedObj.ioSlots.map((returnedSlot) => {
-            if (selectedSlot.locationNumber === returnedSlot.locationNumber) {
-              ioSlotsLed.value.push(returnedSlot);
-            }
-          });
-        });
-      }
     });
+    remotePortLed.value = [];
+    props.selectedObj.remotePortLocation.map((selectedPort) => {
+      returnedObj.remotePortLocation.map((returnedPort) => {
+        if (selectedPort.locationNumber === returnedPort.locationNumber) {
+          remotePortLed.value.push(returnedPort);
+        }
+      });
+    });
+    ioSlotsLed.value = [];
+    if (props.selectedObj.ioSlots.length > 0) {
+      props.selectedObj.ioSlots.map((selectedSlot) => {
+        returnedObj.ioSlots.map((returnedSlot) => {
+          if (selectedSlot.locationNumber === returnedSlot.locationNumber) {
+            ioSlotsLed.value.push(returnedSlot);
+          }
+        });
+      });
+    }
+  });
 };
 
 const changeLedValue = async (value, type) => {
-  pcieTopologyStore
-    .updateLedValue({ value: value, type: type })
+  updateLedValue({ value: value, type: type })
     .then(() => {
       getAllLeds();
       if (value.led) {

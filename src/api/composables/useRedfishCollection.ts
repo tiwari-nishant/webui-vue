@@ -85,7 +85,7 @@ export function useRedfishCollection<T extends Resource>(
     },
     enabled,
     // Base defaults, then legacy staleTime override, then full queryConfig preset
-    ...createRedfishQueryConfig<T[]>({
+    ...createRedfishQueryConfig({
       staleTime: staleTimeMs,
     }),
     ...queryConfig,
@@ -112,7 +112,7 @@ export function useRedfishResource<T extends Resource>(
       return response.data;
     },
     enabled,
-    ...createRedfishQueryConfig<T>({ refetchInterval, staleTime }),
+    ...createRedfishQueryConfig({ refetchInterval, staleTime }),
     ...queryConfig,
   });
 }

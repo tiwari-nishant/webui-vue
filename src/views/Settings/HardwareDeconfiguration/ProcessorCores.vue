@@ -21,6 +21,7 @@
           </template>
         </table-toolbar>
         <b-table
+          id="table-processor-cores"
           ref="tableHardwareDeconfigurationRef"
           responsive="md"
           no-select-on-click
@@ -30,15 +31,13 @@
           show-empty
           sticky-header="75vh"
           :no-border-collapse="true"
-          :items="filteredCores"
+          :items="pagination.paginatedData.value"
           :fields="fields"
-          :per-page="
-            itemPerPage === 0 ? filteredCores.length || 1 : itemPerPage
-          "
-          :current-page="currentPageNo"
           :filter="searchFilterInput"
           @filtered="onFiltered"
-          @row-selected="onRowSelected($event, filteredCores.length)"
+          @row-selected="
+            onRowSelected($event, pagination.paginatedData.value.length)
+          "
         >
           <template #cell(functionalState)="{ value }">
             <div v-if="value == 'OK'">
@@ -93,15 +92,15 @@
       </BCol>
       <BCol sm="6">
         <b-pagination
-          v-model="currentPageNo"
+          v-model="currentPageRef"
           class="b-pagination"
-          :tabindex="currentPageNo - 1"
+          :tabindex="currentPageRef - 1"
           first-number
           last-number
           :per-page="
-            itemPerPage === 0 ? filteredCores.length || 1 : itemPerPage
+            pagination.pageSize.value || pagination.totalItems.value || 1
           "
-          :total-rows="getTotalRowCount(filteredRows)"
+          :total-rows="pagination.totalItems.value"
         />
       </BCol>
     </BRow>
@@ -121,23 +120,24 @@ import useTableSelectableComposable from '@/components/Composables/useTableSelec
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableFilterComposable from '@/components/Composables/useTableFilterComposable';
 import stores from '@/store';
+import { useHardwareDeconfiguration } from '@/api/composables/useHardwareDeconfiguration';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 
 const Toast = useToastComposable();
-const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
-  usePaginationComposable();
+const { perPage, itemsPerPageOptions } = usePaginationComposable();
 const { selectedRowsList, clearSelectedRows, onRowSelected } =
   useTableSelectableComposable();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const { getFilteredTableData } = useTableFilterComposable();
 
-const hardwareDeconfigurationStore = stores.HardwareDeconfigurationStore();
+const { cores, isCoresLoading, updateCoresSettingsState } =
+  useHardwareDeconfiguration();
 const global = stores.GlobalStore();
 
-const isBusy = ref(true);
+const isBusy = computed(() => isCoresLoading.value);
 const tableHardwareDeconfigurationRef = ref(null);
 const selectedRowsLists = ref(selectedRowsList);
 const activeFiltersRows = ref([]);
-const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
 const searchFilterInput = ref('');
 const searchTotalFilteredRows = ref(0);
@@ -223,23 +223,50 @@ onBeforeRouteLeave(() => {
 
 onBeforeMount(() => {
   startLoader();
-  hardwareDeconfigurationStore.getProcessors().finally(() => {
-    endLoader();
-    isBusy.value = false;
-  });
 });
 
-const allCores = computed(() => {
-  return hardwareDeconfigurationStore.coresGetter;
-});
+watch(
+  isCoresLoading,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+    }
+  },
+  { immediate: true },
+);
+
 const filteredRows = computed(() => {
   return searchFilterInput.value
     ? searchTotalFilteredRows.value
     : filteredCores.value.length;
 });
 const filteredCores = computed(() => {
-  return getFilteredTableData(allCores.value, activeFiltersRows.value);
+  return getFilteredTableData(cores.value, activeFiltersRows.value);
 });
+
+const pagination = usePaginatedData({
+  data: filteredCores,
+  pageSize: itemPerPage.value,
+  initialPage: 1,
+});
+
+const currentPageRef = ref(1);
+
+watch(currentPageRef, (val) => {
+  pagination.currentPage.value = val;
+});
+
+watch(pagination.currentPage, (val) => {
+  currentPageRef.value = val;
+});
+
+watch(itemPerPage, (val) => {
+  pagination.pageSize.value = val;
+  currentPageRef.value = 1;
+});
+
 const serverStatus = computed(() => {
   return global.serverStatusGetter;
 });
@@ -256,13 +283,9 @@ const onFilterChange = ({ activeFilters }) => {
 const onFiltered = (filteredItems) => {
   searchTotalFilteredRows.value = filteredItems.length;
 };
-const toggleSettingsSwitch = (row) => {
+const toggleSettingsSwitch = (row, val) => {
   startLoader();
-  hardwareDeconfigurationStore
-    .updateCoresSettingsState({
-      uri: row.item.uri,
-      settings: row.item.settings,
-    })
+  updateCoresSettingsState(row.item.uri, val)
     .catch(({ message }) => {
       row.item.settings = !row.item.settings;
       Toast.errorToast(message);

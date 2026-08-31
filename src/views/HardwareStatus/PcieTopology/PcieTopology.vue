@@ -67,11 +67,7 @@
           sort-by="id"
           :fields="fields"
           :filter="searchFilterInput"
-          :items="filteredEntries"
-          :per-page="
-            itemPerPage === 0 ? filteredEntries.length || 1 : itemPerPage
-          "
-          :current-page="currentPageNo"
+          :items="pagination.paginatedData.value"
           @filtered="onFiltered"
         >
           <template #cell(localPortLocation)="{ item }">
@@ -274,15 +270,13 @@
 
       <b-col sm="6">
         <b-pagination
-          v-model="currentPageNo"
+          v-model="currentPageRef"
           class="b-pagination"
-          :tabindex="currentPageNo - 1"
+          :tabindex="currentPageRef - 1"
           first-number
           last-number
-          :per-page="
-            itemPerPage === 0 ? filteredEntries.length || 1 : itemPerPage
-          "
-          :total-rows="getTotalRowCount(filteredRows)"
+          :per-page="pagination.pageSize.value"
+          :total-rows="pagination.totalItems.value"
         />
       </b-col>
     </b-row>
@@ -322,10 +316,11 @@ import eventBus from '@/eventBus';
 import useToast from '@/components/Composables/useToastComposable';
 import i18n from '@/i18n';
 import { BTable } from 'bootstrap-vue-next';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
+import { usePcieTopology } from '@/api/composables/usePcieTopology';
 
 const { expandRowLabel, toggleRow } = useTableRowExpandComposable();
-const { getTotalRowCount, itemsPerPageOptions, currentPage, perPage } =
-  usePaginationComposable();
+const { itemsPerPageOptions, perPage } = usePaginationComposable();
 const { searchFilterInput, onChangeSearch, onClearSearch } =
   useSearchFilterComposable();
 const { getFilteredTableData } = useTableFilter();
@@ -334,13 +329,17 @@ const { dataFormatter } = useDataFormatterGlobal();
 const { successToast, errorToast } = useToast();
 
 const globalStore = stores.GlobalStore();
-const pcieTopologyStore = stores.PcieTopologyStore();
+
+const {
+  entries: pcieEntries,
+  refreshTopology,
+  saveTopology,
+} = usePcieTopology();
 
 const isBusy = ref(true);
 const resetOption = ref(null);
 const resetLinkUri = ref('');
 const selectedObj = ref({});
-const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
 const fetched = ref(false);
 const fields = reactive([
@@ -451,20 +450,9 @@ const filteredRows = computed(() => {
     : filteredEntries.value.length;
 });
 
-const entries = computed({
-  get() {
-    return pcieTopologyStore.entriesGetter;
-  },
-  set(newValue) {
-    pcieTopologyStore.entries = newValue;
-  },
-});
 const filteredEntries = computed(() => {
-  if (!pcieTopologyStore.entriesGetter) return [];
-  let data = getFilteredTableData(
-    pcieTopologyStore.entriesGetter,
-    activeFiltersRows.value,
-  );
+  if (!pcieEntries.value?.length) return [];
+  let data = getFilteredTableData(pcieEntries.value, activeFiltersRows.value);
   if (searchFilterInput.value) {
     const search = searchFilterInput.value.toLowerCase();
     const allowedKeys = fields.map((item) => item.key);
@@ -481,6 +469,27 @@ const filteredEntries = computed(() => {
     });
   }
   return data;
+});
+
+const pagination = usePaginatedData({
+  data: filteredEntries,
+  pageSize: itemPerPage.value,
+  initialPage: 1,
+});
+
+const currentPageRef = ref(1);
+
+watch(currentPageRef, (val) => {
+  pagination.currentPage.value = val;
+});
+
+watch(pagination.currentPage, (val) => {
+  currentPageRef.value = val;
+});
+
+watch(itemPerPage, (val) => {
+  pagination.pageSize.value = val;
+  currentPageRef.value = 1;
 });
 const tableIsBusy = computed(() => {
   if (!globalStore.isInPhypStandby) return false;
@@ -518,17 +527,14 @@ function checkIfInPhypStandby(checkCounter = 0) {
   if (checkCounter > 50) return;
   if (isInPhypStandby.value) {
     startLoader();
-    pcieTopologyStore.refreshPage().then(() => {
-      pcieTopologyStore.getTopologyScreen().finally(() => {
-        isBusy.value = false;
-        fetched.value = true;
-        endLoader();
-      });
+    refreshTopology().finally(() => {
+      isBusy.value = false;
+      fetched.value = true;
+      endLoader();
     });
     return;
   } else {
     globalStore.getBootProgress();
-    entries.value = [];
     setTimeout(() => {
       checkIfInPhypStandby(checkCounter);
     }, 6000);
@@ -544,8 +550,7 @@ function openIdentifyLedsModal(value) {
   eventBus.emit('modal-leds');
 }
 function savePcieTopology() {
-  pcieTopologyStore
-    .savePcie()
+  saveTopology()
     .then(() =>
       successToast(
         i18n.global.t('pagePcieTopology.toast.successSavePcieTopology'),

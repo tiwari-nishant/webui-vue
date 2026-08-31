@@ -68,10 +68,10 @@ export const defaultRedfishRetryDelay = (attemptIndex: number): number => {
  * });
  * ```
  */
-export function createRedfishQueryConfig<T = unknown>(
+export function createRedfishQueryConfig(
   overrides: RedfishQueryConfig = {},
-): Partial<UseQueryOptions<T>> {
-  const config: Partial<UseQueryOptions<T>> = {
+): Partial<UseQueryOptions<any>> {
+  const config: Partial<UseQueryOptions<any>> = {
     staleTime: overrides.staleTime ?? 30 * 1000, // 30 seconds
     gcTime: overrides.gcTime ?? 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: overrides.refetchOnWindowFocus ?? false,
@@ -159,8 +159,8 @@ export const RedfishQueryPresets = {
    * status). Short stale time so the header stays fresh while the user navigates.
    */
   systemInfo: createRedfishQueryConfig({
-    staleTime: 30 * 1000,       // 30 seconds
-    gcTime: 2 * 60 * 1000,      // 2 minutes
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 30 * 1000, // poll every 30 seconds
   }),
 
@@ -168,12 +168,23 @@ export const RedfishQueryPresets = {
    * For configuration data (e.g., network settings, date/time)
    * Balanced between realtime and static
    */
-   config: createRedfishQueryConfig({
+  config: createRedfishQueryConfig({
     staleTime: 60 * 1000, // 1 minute
     gcTime: 10 * 60 * 1000, // 10 minutes
   }),
 
   inventory: createRedfishQueryConfig({
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 10 * 60 * 1000,
+  }),
+
+  hardwareDeconfiguration: createRedfishQueryConfig({
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 60 * 1000, // 1 minute
+  }),
+
+  pcieTopology: createRedfishQueryConfig({
     staleTime: 60 * 1000, // 1 minute
     gcTime: 10 * 60 * 1000,
   }),

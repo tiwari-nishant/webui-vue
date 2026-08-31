@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { useQuery, useQueryClient } from '@tanstack/vue-query';
+import { useQueryClient } from '@tanstack/vue-query';
 // @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
 // @ts-ignore - useToast is a JS module
@@ -168,33 +168,16 @@ export function useOverviewLicense() {
     isLoading,
     isError,
     error,
-  } = useQuery({
-    // Shared key — same as useCapacityOnDemand
-    queryKey: ['redfish', 'licenseService', 'licenses'],
-    queryFn: async (): Promise<Record<string, License>> => {
-      const response = await api.get('/redfish/v1/LicenseService/Licenses');
-      const members: Array<{ '@odata.id': string }> =
-        response.data?.Members || [];
-
-      const responses = await Promise.all(
-        members.map((member) => api.get<License>(member['@odata.id'])),
-      );
-
-      return responses.reduce(
-        (acc, { data }) => {
-          acc[data.Id] = data;
-          return acc;
-        },
-        {} as Record<string, License>,
-      );
-    },
+  } = useRedfishCollection<License>('/redfish/v1/LicenseService/Licenses', {
+    expand: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 5 * 60 * 1000,
-    refetchOnMount: true,
+    queryConfig: { refetchOnMount: true },
   });
 
   const licenseData = computed((): LicenseData => {
-    const uak = licensesData.value?.['UAK'];
+    const uak = (licensesData.value ?? []).find(
+      (license) => license.Id === 'UAK',
+    );
     return {
       expirationDate: uak?.ExpirationDate ? new Date(uak.ExpirationDate) : null,
     };
