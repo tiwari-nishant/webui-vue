@@ -19,75 +19,84 @@
       </b-col>
     </b-row>
 
-    <div v-if="pcieBridgeLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.bridgeOrHost') }}
+    <div v-if="isLedsLoading" class="d-flex justify-content-center my-4">
+      <BSpinner
+        label="Loading LED states"
+        data-test-id="pcie-leds-loading-spinner"
+      />
     </div>
-    <b-row v-if="pcieBridgeLed.length > 0">
-      <b-col cols="8">{{
-        dataFormatter(pcieBridgeLed[0].locationNumber)
-      }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          id="switch"
-          v-model="pcieBridgeLed[0].led"
-          data-test-id="pcie-toggle-pcieBridge"
-          switch
-          @change="changeLedValue(pcieBridgeLed[0], 'pcieBridge')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
 
-    <div v-if="localPortLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.localPort') }}
-    </div>
-    <b-row v-for="(value, i) in localPortLed" :key="'local-port-' + i">
-      <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          :id="'local-port-index-' + i"
-          v-model="value.led"
-          data-test-id="pcie-toggle-localPort"
-          switch
-          @change="changeLedValue(value, 'localPort')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+    <template v-else>
+      <div v-if="pcieBridgeLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.bridgeOrHost') }}
+      </div>
+      <b-row v-if="pcieBridgeLed.length > 0">
+        <b-col cols="8">{{
+          dataFormatter(pcieBridgeLed[0].locationNumber)
+        }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            id="switch"
+            v-model="pcieBridgeLed[0].led"
+            data-test-id="pcie-toggle-pcieBridge"
+            switch
+            @change="changeLedValue(pcieBridgeLed[0], 'pcieBridge')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
 
-    <div v-if="remotePortLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.remotePort') }}s
-    </div>
-    <b-row v-for="(value, i) in remotePortLed" :key="'remote-port-' + i">
-      <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          :id="'remote-port-index-' + i"
-          v-model="value.led"
-          data-test-id="pcie-toggle-remotePort"
-          switch
-          @change="changeLedValue(value, 'remotePort')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+      <div v-if="localPortLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.localPort') }}
+      </div>
+      <b-row v-for="(value, i) in localPortLed" :key="'local-port-' + i">
+        <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            :id="'local-port-index-' + i"
+            v-model="value.led"
+            data-test-id="pcie-toggle-localPort"
+            switch
+            @change="changeLedValue(value, 'localPort')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
 
-    <div v-if="ioSlotsLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.ioSlots') }}
-    </div>
-    <b-row v-for="(value, i) in ioSlotsLed" :key="'io-slot-i' + i">
-      <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          :id="'io-slot-index-' + i"
-          v-model="value.led"
-          data-test-id="pcie-toggle-ioSlots"
-          switch
-          @change="changeLedValue(value, 'ioSlots')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+      <div v-if="remotePortLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.remotePort') }}s
+      </div>
+      <b-row v-for="(value, i) in remotePortLed" :key="'remote-port-' + i">
+        <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            :id="'remote-port-index-' + i"
+            v-model="value.led"
+            data-test-id="pcie-toggle-remotePort"
+            switch
+            @change="changeLedValue(value, 'remotePort')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
+
+      <div v-if="ioSlotsLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.ioSlots') }}
+      </div>
+      <b-row v-for="(value, i) in ioSlotsLed" :key="'io-slot-i' + i">
+        <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            :id="'io-slot-index-' + i"
+            v-model="value.led"
+            data-test-id="pcie-toggle-ioSlots"
+            switch
+            @change="changeLedValue(value, 'ioSlots')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
+    </template>
   </b-modal>
 </template>
 
@@ -112,6 +121,7 @@ const props = defineProps({
 });
 
 const openLedModal = ref(false);
+const isLedsLoading = ref(false);
 const pcieBridgeLed = ref([]);
 const ioSlotsLed = ref([]);
 const localPortLed = ref([]);
@@ -139,7 +149,9 @@ const onModalHidden = () => {
 };
 
 const getAllLeds = async () => {
-  await getAllLedValues(props.selectedObj).then((returnedObj) => {
+  isLedsLoading.value = true;
+  try {
+    const returnedObj = await getAllLedValues(props.selectedObj);
     pcieBridgeLed.value = returnedObj.pcieBridge;
     localPortLed.value = [];
     props.selectedObj.localPortLocation.map((selectedPort) => {
@@ -167,7 +179,9 @@ const getAllLeds = async () => {
         });
       });
     }
-  });
+  } finally {
+    isLedsLoading.value = false;
+  }
 };
 
 const changeLedValue = async (value, type) => {
