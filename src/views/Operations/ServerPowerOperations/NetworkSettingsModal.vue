@@ -305,12 +305,10 @@
   </BModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch, onBeforeMount } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
-// @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
-// @ts-ignore - eventBus is a JS module
 import eventBus from '@/eventBus';
 import {
   required,
@@ -321,13 +319,9 @@ import {
   maxLength,
   requiredIf,
 } from '@vuelidate/validators';
-// @ts-ignore - useToastComposable is a JS module
 import useToast from '@/components/Composables/useToastComposable';
-// @ts-ignore - useVuelidateComposable is a JS module
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
-// @ts-ignore - NetworkSettingsObject is a JS module
 import { NETWORK_OBJECT } from '@/utilities/NetworkSettingsObject.js';
-// @ts-ignore - GlobalConstants is a JS module
 import { REGEX_MAPPINGS } from '@/utilities/GlobalConstants.js';
 import { useNetworkSettings } from '@/api/composables/useNetworkSettings';
 
@@ -360,25 +354,11 @@ eventBus.on('modal-network-settings', () => {
 
 const networkValuesArr = ref(['Disabled', 'NFS', 'iSCSI']);
 const maxFrameSizeArr = ref(['MTU1500', 'MTU9000']);
-const selectedNetwork = ref<any>(null);
-const selectedIpProtocol = ref<any>(null);
-const networkObject = ref<any>(null);
+const selectedNetwork = ref(null);
+const selectedIpProtocol = ref(null);
+const networkObject = ref(null);
 
-interface FormProperties {
-  pvm_ibmi_server_ipaddress: string;
-  pvm_ibmi_nfs_image_directory: string;
-  pvm_ibmi_local_ipaddress: string;
-  pvm_ibmi_subnet_mask: string;
-  pvm_ibmi_gateway_ipaddress: string;
-  pvm_ibmi_vlan_tag_id: string;
-  pvm_ibmi_iscsi_target_name: string;
-  pvm_ibmi_iscsi_initiator_name: string;
-  pvm_ibmi_iscsi_target_port: string;
-  chapName: string;
-  chapSecret: string;
-}
-
-const properties = ref<FormProperties>({
+const properties = ref({
   pvm_ibmi_server_ipaddress: '',
   pvm_ibmi_nfs_image_directory: '',
   pvm_ibmi_local_ipaddress: '',
