@@ -51,9 +51,10 @@ import useToast from '@/components/Composables/useToastComposable';
 import { ref, computed, nextTick } from 'vue';
 import i18n from '@/i18n';
 import eventBus from '@/eventBus';
+import { usePcieTopology } from '@/api/composables/usePcieTopology';
 
 const { successToast, errorToast } = useToast();
-const pcieTopologyStore = stores.PcieTopologyStore();
+const { resetLink } = usePcieTopology();
 const globalStore = stores.GlobalStore();
 const props = defineProps({
   resetType: {
@@ -94,7 +95,7 @@ const rules = computed(() => ({
 const v$ = useVuelidate(rules, { confirm });
 
 function handleConfirm() {
-  resetLink();
+  doResetLink();
   v$.value.$touch();
   if (v$.value.$invalid) return;
   nextTick(() => modal.value.hide());
@@ -107,9 +108,8 @@ function resetConfirm() {
     openResetLinkModal.value = false;
   });
 }
-function resetLink() {
-  pcieTopologyStore
-    .resetTheLink({ uri: props.resetUri })
+function doResetLink() {
+  resetLink({ uri: props.resetUri })
     .then(() => {
       successToast(
         i18n.global.t('pagePcieTopology.toast.successReset', {

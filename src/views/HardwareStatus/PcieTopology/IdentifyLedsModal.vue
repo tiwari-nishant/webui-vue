@@ -19,90 +19,99 @@
       </b-col>
     </b-row>
 
-    <div v-if="pcieBridgeLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.bridgeOrHost') }}
+    <div v-if="isLedsLoading" class="d-flex justify-content-center my-4">
+      <BSpinner
+        label="Loading LED states"
+        data-test-id="pcie-leds-loading-spinner"
+      />
     </div>
-    <b-row v-if="pcieBridgeLed.length > 0">
-      <b-col cols="8">{{
-        dataFormatter(pcieBridgeLed[0].locationNumber)
-      }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          id="switch"
-          v-model="pcieBridgeLed[0].led"
-          data-test-id="pcie-toggle-pcieBridge"
-          switch
-          @change="changeLedValue(pcieBridgeLed[0], 'pcieBridge')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
 
-    <div v-if="localPortLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.localPort') }}
-    </div>
-    <b-row v-for="(value, i) in localPortLed" :key="'local-port-' + i">
-      <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          :id="'local-port-index-' + i"
-          v-model="value.led"
-          data-test-id="pcie-toggle-localPort"
-          switch
-          @change="changeLedValue(value, 'localPort')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+    <template v-else>
+      <div v-if="pcieBridgeLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.bridgeOrHost') }}
+      </div>
+      <b-row v-if="pcieBridgeLed.length > 0">
+        <b-col cols="8">{{
+          dataFormatter(pcieBridgeLed[0].locationNumber)
+        }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            id="switch"
+            v-model="pcieBridgeLed[0].led"
+            data-test-id="pcie-toggle-pcieBridge"
+            switch
+            @change="changeLedValue(pcieBridgeLed[0], 'pcieBridge')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
 
-    <div v-if="remotePortLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.remotePort') }}s
-    </div>
-    <b-row v-for="(value, i) in remotePortLed" :key="'remote-port-' + i">
-      <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          :id="'remote-port-index-' + i"
-          v-model="value.led"
-          data-test-id="pcie-toggle-remotePort"
-          switch
-          @change="changeLedValue(value, 'remotePort')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+      <div v-if="localPortLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.localPort') }}
+      </div>
+      <b-row v-for="(value, i) in localPortLed" :key="'local-port-' + i">
+        <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            :id="'local-port-index-' + i"
+            v-model="value.led"
+            data-test-id="pcie-toggle-localPort"
+            switch
+            @change="changeLedValue(value, 'localPort')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
 
-    <div v-if="ioSlotsLed.length > 0" class="headerStyle mb-2 mt-1">
-      {{ i18n.global.t('pagePcieTopology.ioSlots') }}
-    </div>
-    <b-row v-for="(value, i) in ioSlotsLed" :key="'io-slot-i' + i">
-      <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
-      <b-col cols="4">
-        <b-form-checkbox
-          :id="'io-slot-index-' + i"
-          v-model="value.led"
-          data-test-id="pcie-toggle-ioSlots"
-          switch
-          @change="changeLedValue(value, 'ioSlots')"
-        >
-        </b-form-checkbox>
-      </b-col>
-    </b-row>
+      <div v-if="remotePortLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.remotePort') }}s
+      </div>
+      <b-row v-for="(value, i) in remotePortLed" :key="'remote-port-' + i">
+        <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            :id="'remote-port-index-' + i"
+            v-model="value.led"
+            data-test-id="pcie-toggle-remotePort"
+            switch
+            @change="changeLedValue(value, 'remotePort')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
+
+      <div v-if="ioSlotsLed.length > 0" class="headerStyle mb-2 mt-1">
+        {{ i18n.global.t('pagePcieTopology.ioSlots') }}
+      </div>
+      <b-row v-for="(value, i) in ioSlotsLed" :key="'io-slot-i' + i">
+        <b-col cols="8">{{ dataFormatter(value.locationNumber) }}</b-col>
+        <b-col cols="4">
+          <b-form-checkbox
+            :id="'io-slot-index-' + i"
+            v-model="value.led"
+            data-test-id="pcie-toggle-ioSlots"
+            switch
+            @change="changeLedValue(value, 'ioSlots')"
+          >
+          </b-form-checkbox>
+        </b-col>
+      </b-row>
+    </template>
   </b-modal>
 </template>
 
 <script setup>
-import { ref, watch, computed, nextTick } from 'vue';
-import stores from '../../../store';
+import { ref, watch, nextTick } from 'vue';
 import useDataFormatterGlobal from '../../../components/Composables/useDataFormatterGlobal';
 import useToast from '@/components/Composables/useToastComposable';
 import i18n from '@/i18n';
 import eventBus from '@/eventBus';
+import { usePcieTopology } from '@/api/composables/usePcieTopology';
 
 const { dataFormatter } = useDataFormatterGlobal();
 const { successToast, errorToast } = useToast();
 
-const pcieTopologyStore = stores.PcieTopologyStore();
+const { getAllLedValues, updateLedValue } = usePcieTopology();
 
 const props = defineProps({
   selectedObj: {
@@ -112,6 +121,7 @@ const props = defineProps({
 });
 
 const openLedModal = ref(false);
+const isLedsLoading = ref(false);
 const pcieBridgeLed = ref([]);
 const ioSlotsLed = ref([]);
 const localPortLed = ref([]);
@@ -139,42 +149,43 @@ const onModalHidden = () => {
 };
 
 const getAllLeds = async () => {
-  await pcieTopologyStore
-    .getAllLedValues(props.selectedObj)
-    .then((returnedObj) => {
-      pcieBridgeLed.value = returnedObj.pcieBridge;
-      localPortLed.value = [];
-      props.selectedObj.localPortLocation.map((selectedPort) => {
-        returnedObj.localPortLocation.map((returnedPort) => {
-          if (selectedPort.locationNumber === returnedPort.locationNumber) {
-            localPortLed.value.push(returnedPort);
-          }
-        });
+  isLedsLoading.value = true;
+  try {
+    const returnedObj = await getAllLedValues(props.selectedObj);
+    pcieBridgeLed.value = returnedObj.pcieBridge;
+    localPortLed.value = [];
+    props.selectedObj.localPortLocation.map((selectedPort) => {
+      returnedObj.localPortLocation.map((returnedPort) => {
+        if (selectedPort.locationNumber === returnedPort.locationNumber) {
+          localPortLed.value.push(returnedPort);
+        }
       });
-      remotePortLed.value = [];
-      props.selectedObj.remotePortLocation.map((selectedPort) => {
-        returnedObj.remotePortLocation.map((returnedPort) => {
-          if (selectedPort.locationNumber === returnedPort.locationNumber) {
-            remotePortLed.value.push(returnedPort);
-          }
-        });
-      });
-      ioSlotsLed.value = [];
-      if (props.selectedObj.ioSlots.length > 0) {
-        props.selectedObj.ioSlots.map((selectedSlot) => {
-          returnedObj.ioSlots.map((returnedSlot) => {
-            if (selectedSlot.locationNumber === returnedSlot.locationNumber) {
-              ioSlotsLed.value.push(returnedSlot);
-            }
-          });
-        });
-      }
     });
+    remotePortLed.value = [];
+    props.selectedObj.remotePortLocation.map((selectedPort) => {
+      returnedObj.remotePortLocation.map((returnedPort) => {
+        if (selectedPort.locationNumber === returnedPort.locationNumber) {
+          remotePortLed.value.push(returnedPort);
+        }
+      });
+    });
+    ioSlotsLed.value = [];
+    if (props.selectedObj.ioSlots.length > 0) {
+      props.selectedObj.ioSlots.map((selectedSlot) => {
+        returnedObj.ioSlots.map((returnedSlot) => {
+          if (selectedSlot.locationNumber === returnedSlot.locationNumber) {
+            ioSlotsLed.value.push(returnedSlot);
+          }
+        });
+      });
+    }
+  } finally {
+    isLedsLoading.value = false;
+  }
 };
 
 const changeLedValue = async (value, type) => {
-  pcieTopologyStore
-    .updateLedValue({ value: value, type: type })
+  updateLedValue({ value: value, type: type })
     .then(() => {
       getAllLeds();
       if (value.led) {

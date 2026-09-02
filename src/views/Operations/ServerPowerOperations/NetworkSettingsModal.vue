@@ -305,12 +305,10 @@
   </BModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch, onBeforeMount } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
-// @ts-ignore - i18n.js is a JavaScript module
 import i18n from '@/i18n';
-// @ts-ignore - eventBus is a JS module
 import eventBus from '@/eventBus';
 import {
   required,
@@ -321,13 +319,9 @@ import {
   maxLength,
   requiredIf,
 } from '@vuelidate/validators';
-// @ts-ignore - useToastComposable is a JS module
 import useToast from '@/components/Composables/useToastComposable';
-// @ts-ignore - useVuelidateComposable is a JS module
 import useVuelidateComposable from '@/components/Composables/useVuelidateComposable';
-// @ts-ignore - NetworkSettingsObject is a JS module
 import { NETWORK_OBJECT } from '@/utilities/NetworkSettingsObject.js';
-// @ts-ignore - GlobalConstants is a JS module
 import { REGEX_MAPPINGS } from '@/utilities/GlobalConstants.js';
 import { useNetworkSettings } from '@/api/composables/useNetworkSettings';
 
@@ -360,25 +354,11 @@ eventBus.on('modal-network-settings', () => {
 
 const networkValuesArr = ref(['Disabled', 'NFS', 'iSCSI']);
 const maxFrameSizeArr = ref(['MTU1500', 'MTU9000']);
-const selectedNetwork = ref<any>(null);
-const selectedIpProtocol = ref<any>(null);
-const networkObject = ref<any>(null);
+const selectedNetwork = ref(null);
+const selectedIpProtocol = ref(null);
+const networkObject = ref(null);
 
-interface FormProperties {
-  pvm_ibmi_server_ipaddress: string;
-  pvm_ibmi_nfs_image_directory: string;
-  pvm_ibmi_local_ipaddress: string;
-  pvm_ibmi_subnet_mask: string;
-  pvm_ibmi_gateway_ipaddress: string;
-  pvm_ibmi_vlan_tag_id: string;
-  pvm_ibmi_iscsi_target_name: string;
-  pvm_ibmi_iscsi_initiator_name: string;
-  pvm_ibmi_iscsi_target_port: string;
-  chapName: string;
-  chapSecret: string;
-}
-
-const properties = ref<FormProperties>({
+const properties = ref({
   pvm_ibmi_server_ipaddress: '',
   pvm_ibmi_nfs_image_directory: '',
   pvm_ibmi_local_ipaddress: '',
@@ -396,9 +376,13 @@ const properties = ref<FormProperties>({
 
 const attributesList = ref(null);
 
-watch(biosAttributes, (newVal) => {
-  if (newVal) attributesList.value = { ...newVal };
-}, { immediate: true });
+watch(
+  biosAttributes,
+  (newVal) => {
+    if (newVal) attributesList.value = { ...newVal };
+  },
+  { immediate: true },
+);
 
 onBeforeMount(() => {
   getCurrentValues();
@@ -432,10 +416,11 @@ watch(
       selectedIpProtocol.value = networkObject.value.iscsi.ipv4;
       if (selectedIpProtocol.value?.server?.length > 0) {
         const initiatorName = selectedIpProtocol.value.server.find(
-          (element: any) => element.property === 'initiatorName',
+          (element) => element.property === 'initiatorName',
         );
         if (initiatorName) {
-          initiatorName.value = attributesList.value['pvm_ibmi_iscsi_initiator_name'];
+          initiatorName.value =
+            attributesList.value['pvm_ibmi_iscsi_initiator_name'];
           properties.value.pvm_ibmi_iscsi_initiator_name =
             attributesList.value['pvm_ibmi_iscsi_initiator_name'] ?? '';
         }
@@ -446,9 +431,10 @@ watch(
     }
     if (selectedIpProtocol.value?.advanced?.length > 0) {
       const maxFrame = selectedIpProtocol.value.advanced.find(
-        (element: any) => element.property === 'maxFrameSize',
+        (element) => element.property === 'maxFrameSize',
       );
-      if (maxFrame) maxFrame.value = attributesList.value['pvm_ibmi_max_frame_size'];
+      if (maxFrame)
+        maxFrame.value = attributesList.value['pvm_ibmi_max_frame_size'];
     }
   },
   { deep: true },
@@ -471,21 +457,34 @@ const rules = computed(() => {
           pvm_ibmi_local_ipaddress: { required, ipAddress },
           pvm_ibmi_subnet_mask: { required, ipAddress },
           pvm_ibmi_gateway_ipaddress: { required, ipAddress },
-          pvm_ibmi_vlan_tag_id: { between: between(1, vlanTagIdUpperBound.value) },
+          pvm_ibmi_vlan_tag_id: {
+            between: between(1, vlanTagIdUpperBound.value),
+          },
         },
       };
     } else {
       return {
         properties: {
-          pvm_ibmi_server_ipaddress: { required, ipAddressV6: helpers.regex(REGEX_MAPPINGS.ipv6Address) },
+          pvm_ibmi_server_ipaddress: {
+            required,
+            ipAddressV6: helpers.regex(REGEX_MAPPINGS.ipv6Address),
+          },
           pvm_ibmi_nfs_image_directory: {
             required,
             imageDirectory: helpers.regex(REGEX_MAPPINGS.imageDirectory),
             maxLength: maxLength(nfsImageDirMaxLength.value),
           },
-          pvm_ibmi_local_ipaddress: { required, ipAddressV6: helpers.regex(REGEX_MAPPINGS.ipv6Address) },
-          pvm_ibmi_gateway_ipaddress: { required, ipAddressV6: helpers.regex(REGEX_MAPPINGS.ipv6Address) },
-          pvm_ibmi_vlan_tag_id: { between: between(1, vlanTagIdUpperBound.value) },
+          pvm_ibmi_local_ipaddress: {
+            required,
+            ipAddressV6: helpers.regex(REGEX_MAPPINGS.ipv6Address),
+          },
+          pvm_ibmi_gateway_ipaddress: {
+            required,
+            ipAddressV6: helpers.regex(REGEX_MAPPINGS.ipv6Address),
+          },
+          pvm_ibmi_vlan_tag_id: {
+            between: between(1, vlanTagIdUpperBound.value),
+          },
         },
       };
     }
@@ -496,16 +495,30 @@ const rules = computed(() => {
         pvm_ibmi_local_ipaddress: { required, ipAddress },
         pvm_ibmi_subnet_mask: { required, ipAddress },
         pvm_ibmi_gateway_ipaddress: { required, ipAddress },
-        pvm_ibmi_vlan_tag_id: { between: between(1, vlanTagIdUpperBound.value) },
-        pvm_ibmi_iscsi_target_name: { required, maxLength: maxLength(targetNameMaxLength.value) },
-        pvm_ibmi_iscsi_initiator_name: { required, maxLength: maxLength(initiatorNameMaxLength.value) },
-        pvm_ibmi_iscsi_target_port: { between: between(1, targetPortUpperBound.value) },
+        pvm_ibmi_vlan_tag_id: {
+          between: between(1, vlanTagIdUpperBound.value),
+        },
+        pvm_ibmi_iscsi_target_name: {
+          required,
+          maxLength: maxLength(targetNameMaxLength.value),
+        },
+        pvm_ibmi_iscsi_initiator_name: {
+          required,
+          maxLength: maxLength(initiatorNameMaxLength.value),
+        },
+        pvm_ibmi_iscsi_target_port: {
+          between: between(1, targetPortUpperBound.value),
+        },
         chapName: {
-          requiredIf: requiredIf(function (_: any, form: any) { return form.chapSecret; }),
+          requiredIf: requiredIf(function (_, form) {
+            return form.chapSecret;
+          }),
           maxLength: maxLength(32),
         },
         chapSecret: {
-          requiredIf: requiredIf(function (_: any, form: any) { return form.chapName; }),
+          requiredIf: requiredIf(function (_, form) {
+            return form.chapName;
+          }),
           minLength: minLength(12),
           maxLength: maxLength(32),
         },
@@ -519,17 +532,17 @@ const v$ = useVuelidate(rules, { properties });
 
 // ─── Methods ──────────────────────────────────────────────────────────────────
 
-function getCurrentValues(): void {
+function getCurrentValues() {
   refetchAll();
   networkObject.value = Object.assign({}, NETWORK_OBJECT);
 }
 
-function okFormSubmit(bvModalEvt: Event): void {
+function okFormSubmit(bvModalEvt) {
   bvModalEvt.preventDefault();
   handleSubmit();
 }
 
-function resetForm(): void {
+function resetForm() {
   properties.value = {
     pvm_ibmi_server_ipaddress: '',
     pvm_ibmi_nfs_image_directory: '',
@@ -547,21 +560,22 @@ function resetForm(): void {
   v$.value.$reset();
 }
 
-async function handleSubmit(): Promise<void> {
+async function handleSubmit() {
   v$.value.$touch();
   if (v$.value.$invalid) return;
 
-  const attrs = attributesList.value!;
+  const attrs = attributesList.value;
   const installType = attrs['pvm_ibmi_network_install_type'];
-  let form: Record<string, any> = {};
-  let chapData: { chapName: string; chapSecret: string } = { chapName: '', chapSecret: '' };
+  let form = {};
+  let chapData = { chapName: '', chapSecret: '' };
 
   if (installType === 'NFS') {
-    const base: Record<string, any> = {
+    const base = {
       pvm_ibmi_network_install_type: installType,
       pvm_ibmi_ipaddress_protocol: attrs['pvm_ibmi_ipaddress_protocol'],
       pvm_ibmi_server_ipaddress: properties.value.pvm_ibmi_server_ipaddress,
-      pvm_ibmi_nfs_image_directory: properties.value.pvm_ibmi_nfs_image_directory,
+      pvm_ibmi_nfs_image_directory:
+        properties.value.pvm_ibmi_nfs_image_directory,
       pvm_ibmi_local_ipaddress: properties.value.pvm_ibmi_local_ipaddress,
       pvm_ibmi_gateway_ipaddress: properties.value.pvm_ibmi_gateway_ipaddress,
       pvm_ibmi_max_frame_size: attrs['pvm_ibmi_max_frame_size'],
@@ -583,15 +597,21 @@ async function handleSubmit(): Promise<void> {
       pvm_ibmi_subnet_mask: properties.value.pvm_ibmi_subnet_mask,
       pvm_ibmi_gateway_ipaddress: properties.value.pvm_ibmi_gateway_ipaddress,
       pvm_ibmi_iscsi_target_name: properties.value.pvm_ibmi_iscsi_target_name,
-      pvm_ibmi_iscsi_initiator_name: properties.value.pvm_ibmi_iscsi_initiator_name,
+      pvm_ibmi_iscsi_initiator_name:
+        properties.value.pvm_ibmi_iscsi_initiator_name,
       pvm_ibmi_max_frame_size: attrs['pvm_ibmi_max_frame_size'],
     };
-    chapData = { chapName: properties.value.chapName, chapSecret: properties.value.chapSecret };
+    chapData = {
+      chapName: properties.value.chapName,
+      chapSecret: properties.value.chapSecret,
+    };
     if (properties.value.pvm_ibmi_vlan_tag_id !== '') {
       form.pvm_ibmi_vlan_tag_id = Number(properties.value.pvm_ibmi_vlan_tag_id);
     }
     if (properties.value.pvm_ibmi_iscsi_target_port !== '') {
-      form.pvm_ibmi_iscsi_target_port = Number(properties.value.pvm_ibmi_iscsi_target_port);
+      form.pvm_ibmi_iscsi_target_port = Number(
+        properties.value.pvm_ibmi_iscsi_target_port,
+      );
     }
   } else {
     form = { pvm_ibmi_network_install_type: installType };
@@ -601,7 +621,11 @@ async function handleSubmit(): Promise<void> {
     // Set IBM i partition boot mode to 'D_mode' first
     await setDMode();
     const msg = await saveBiosSettings(form);
-    if (installType === 'iSCSI' && chapData.chapName !== '' && chapData.chapSecret !== '') {
+    if (
+      installType === 'iSCSI' &&
+      chapData.chapName !== '' &&
+      chapData.chapSecret !== ''
+    ) {
       const msge = await updateChapData(chapData);
       modal.value = false;
       successToast(msge);
@@ -611,80 +635,122 @@ async function handleSubmit(): Promise<void> {
       successToast(msg);
       resetForm();
     }
-  } catch (error: any) {
+  } catch (error) {
     errorToast(error?.message ?? error);
   }
 }
 
-async function restoreDefault(): Promise<void> {
+async function restoreDefault() {
   try {
     const message = await restoreDefaultMutation();
     successToast(message);
-  } catch (error: any) {
+  } catch (error) {
     errorToast(error?.message ?? error);
   }
 }
 
-function isInvalid(attributeValue: any, validationValue: string): boolean {
+function isInvalid(attributeValue, validationValue) {
   return (
     Object.hasOwn(attributeValue, validationValue) &&
     attributeValue[validationValue]?.$invalid
   );
 }
 
-function generateErrorMsg(value: { attribute: string; property?: string }): string | undefined {
-  const validationAttribute = (v$.value.properties as any)?.[value.attribute];
+function generateErrorMsg(value) {
+  const validationAttribute = v$.value.properties?.[value.attribute];
   if (!validationAttribute) return undefined;
   const attribute = value.attribute;
 
   if (isInvalid(validationAttribute, 'required')) {
     return i18n.global.t('global.form.fieldRequired');
   } else if (isInvalid(validationAttribute, 'ipAddress')) {
-    return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidIpv4');
+    return i18n.global.t(
+      'pageServerPowerOperations.modal.networkSettings.validators.invalidIpv4',
+    );
   } else if (isInvalid(validationAttribute, 'ipAddressV6')) {
-    return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidIpv6');
+    return i18n.global.t(
+      'pageServerPowerOperations.modal.networkSettings.validators.invalidIpv6',
+    );
   } else if (isInvalid(validationAttribute, 'imageDirectory')) {
-    return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidImageDirectory');
+    return i18n.global.t(
+      'pageServerPowerOperations.modal.networkSettings.validators.invalidImageDirectory',
+    );
   } else if (isInvalid(validationAttribute, 'requiredIf')) {
     if (attribute === 'chapName') {
-      return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.chapNameRequired');
+      return i18n.global.t(
+        'pageServerPowerOperations.modal.networkSettings.validators.chapNameRequired',
+      );
     }
-    return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.chapSecretRequired');
-  } else if (isInvalid(validationAttribute, 'minLength') || isInvalid(validationAttribute, 'maxLength')) {
+    return i18n.global.t(
+      'pageServerPowerOperations.modal.networkSettings.validators.chapSecretRequired',
+    );
+  } else if (
+    isInvalid(validationAttribute, 'minLength') ||
+    isInvalid(validationAttribute, 'maxLength')
+  ) {
     if (attribute === 'chapName') {
-      return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength', {
-        field: i18n.global.t('pageServerPowerOperations.modal.networkSettings.serverSettings.chapName'),
-        max: 32,
-      });
+      return i18n.global.t(
+        'pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength',
+        {
+          field: i18n.global.t(
+            'pageServerPowerOperations.modal.networkSettings.serverSettings.chapName',
+          ),
+          max: 32,
+        },
+      );
     } else if (attribute === 'chapSecret') {
-      return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidChapSecretLength', { min: 12, max: 32 });
+      return i18n.global.t(
+        'pageServerPowerOperations.modal.networkSettings.validators.invalidChapSecretLength',
+        { min: 12, max: 32 },
+      );
     } else if (attribute === 'pvm_ibmi_iscsi_target_name') {
-      return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength', {
-        field: i18n.global.t('pageServerPowerOperations.modal.networkSettings.serverSettings.targetName'),
-        max: targetNameMaxLength.value,
-      });
+      return i18n.global.t(
+        'pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength',
+        {
+          field: i18n.global.t(
+            'pageServerPowerOperations.modal.networkSettings.serverSettings.targetName',
+          ),
+          max: targetNameMaxLength.value,
+        },
+      );
     } else if (attribute === 'pvm_ibmi_iscsi_initiator_name') {
-      return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength', {
-        field: i18n.global.t('pageServerPowerOperations.modal.networkSettings.serverSettings.initiatorName'),
-        max: initiatorNameMaxLength.value,
-      });
+      return i18n.global.t(
+        'pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength',
+        {
+          field: i18n.global.t(
+            'pageServerPowerOperations.modal.networkSettings.serverSettings.initiatorName',
+          ),
+          max: initiatorNameMaxLength.value,
+        },
+      );
     } else if (attribute === 'pvm_ibmi_nfs_image_directory') {
-      return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength', {
-        field: i18n.global.t('pageServerPowerOperations.modal.networkSettings.serverSettings.imageDirectoryPath'),
-        max: nfsImageDirMaxLength.value,
-      });
+      return i18n.global.t(
+        'pageServerPowerOperations.modal.networkSettings.validators.invalidFieldLength',
+        {
+          field: i18n.global.t(
+            'pageServerPowerOperations.modal.networkSettings.serverSettings.imageDirectoryPath',
+          ),
+          max: nfsImageDirMaxLength.value,
+        },
+      );
     }
   } else if (isInvalid(validationAttribute, 'between')) {
     if (attribute === 'pvm_ibmi_vlan_tag_id') {
-      return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidVlanTagId', {
-        min: 1,
-        max: vlanTagIdUpperBound.value,
-      });
+      return i18n.global.t(
+        'pageServerPowerOperations.modal.networkSettings.validators.invalidVlanTagId',
+        {
+          min: 1,
+          max: vlanTagIdUpperBound.value,
+        },
+      );
     }
-    return i18n.global.t('pageServerPowerOperations.modal.networkSettings.validators.invalidIsciTargetPort', {
-      min: 1,
-      max: targetPortUpperBound.value,
-    });
+    return i18n.global.t(
+      'pageServerPowerOperations.modal.networkSettings.validators.invalidIsciTargetPort',
+      {
+        min: 1,
+        max: targetPortUpperBound.value,
+      },
+    );
   }
   return undefined;
 }

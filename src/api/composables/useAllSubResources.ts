@@ -185,7 +185,7 @@ export function useAllSubResources<T extends Resource>(
       });
     },
     enabled: isSubQueryEnabled,
-    ...createRedfishQueryConfig<T[]>(),
+    ...createRedfishQueryConfig(),
     ...queryConfig,
   });
 

@@ -8,6 +8,7 @@
     <BRow>
       <BCol xl="12">
         <BTable
+          id="table-memory-dimms"
           ref="tableHardwareDeconfigurationRef"
           responsive="xl"
           no-select-on-click
@@ -17,12 +18,8 @@
           show-empty
           sticky-header="75vh"
           :no-border-collapse="true"
-          :items="filteredDimms"
+          :items="pagination.paginatedData.value"
           :fields="fields"
-          :per-page="
-            itemPerPage === 0 ? filteredDimms.length || 1 : itemPerPage
-          "
-          :current-page="currentPageNo"
           :filter="searchFilter"
           @filtered="onFiltered"
         >
@@ -79,15 +76,15 @@
       </BCol>
       <BCol sm="6">
         <b-pagination
-          v-model="currentPageNo"
+          v-model="currentPageRef"
           class="b-pagination"
-          :tabindex="currentPageNo - 1"
+          :tabindex="currentPageRef - 1"
           first-number
           last-number
           :per-page="
-            itemPerPage === 0 ? filteredDimms.length || 1 : itemPerPage
+            pagination.pageSize.value || pagination.totalItems.value || 1
           "
-          :total-rows="getTotalRowCount(filteredRows)"
+          :total-rows="pagination.totalItems.value"
         />
       </BCol>
     </BRow>
@@ -104,19 +101,20 @@ import usePaginationComposable from '@/components/Composables/usePaginationCompo
 import useLoadingBar from '@/components/Composables/useLoadingBarComposable';
 import useTableFilterComposable from '@/components/Composables/useTableFilterComposable';
 import stores from '@/store';
+import { useHardwareDeconfiguration } from '@/api/composables/useHardwareDeconfiguration';
+import { usePaginatedData } from '@/api/composables/shared/usePaginatedData';
 
 const Toast = useToastComposable();
-const { currentPage, perPage, itemsPerPageOptions, getTotalRowCount } =
-  usePaginationComposable();
+const { perPage, itemsPerPageOptions } = usePaginationComposable();
 const { hideLoader, startLoader, endLoader } = useLoadingBar();
 const { getFilteredTableData } = useTableFilterComposable();
 
-const hardwareDeconfigurationStore = stores.HardwareDeconfigurationStore();
+const { dimms, isDimmsLoading, updateSettingsState } =
+  useHardwareDeconfiguration();
 const global = stores.GlobalStore();
 
-const isBusy = ref(true);
+const isBusy = computed(() => isDimmsLoading.value);
 const activeFiltersRows = ref([]);
-const currentPageNo = ref(currentPage);
 const itemPerPage = ref(perPage);
 const searchFilter = ref('');
 const searchTotalFilteredRows = ref(0);
@@ -201,23 +199,50 @@ onBeforeRouteLeave(() => {
 
 onBeforeMount(() => {
   startLoader();
-  hardwareDeconfigurationStore.getDimms().finally(() => {
-    endLoader();
-    isBusy.value = false;
-  });
 });
 
-const allDimms = computed(() => {
-  return hardwareDeconfigurationStore.dimmsGetter;
-});
+watch(
+  isDimmsLoading,
+  (loading) => {
+    if (loading) {
+      startLoader();
+    } else {
+      endLoader();
+    }
+  },
+  { immediate: true },
+);
+
 const filteredRows = computed(() => {
   return searchFilter.value
     ? searchTotalFilteredRows.value
     : filteredDimms.value.length;
 });
 const filteredDimms = computed(() => {
-  return getFilteredTableData(allDimms.value, activeFiltersRows.value);
+  return getFilteredTableData(dimms.value, activeFiltersRows.value);
 });
+
+const pagination = usePaginatedData({
+  data: filteredDimms,
+  pageSize: itemPerPage.value,
+  initialPage: 1,
+});
+
+const currentPageRef = ref(1);
+
+watch(currentPageRef, (val) => {
+  pagination.currentPage.value = val;
+});
+
+watch(pagination.currentPage, (val) => {
+  currentPageRef.value = val;
+});
+
+watch(itemPerPage, (val) => {
+  pagination.pageSize.value = val;
+  currentPageRef.value = 1;
+});
+
 const serverStatus = computed(() => {
   return global.serverStatusGetter;
 });
@@ -234,13 +259,9 @@ const onFilterChange = ({ activeFilters }) => {
 const onFiltered = (filteredItems) => {
   searchTotalFilteredRows.value = filteredItems.length;
 };
-const toggleSettingsSwitch = (row) => {
+const toggleSettingsSwitch = (row, val) => {
   startLoader();
-  hardwareDeconfigurationStore
-    .updateSettingsState({
-      uri: row.item.uri,
-      settings: row.item.settings,
-    })
+  updateSettingsState(row.item.uri, val)
     .catch(({ message }) => {
       row.item.settings = !row.item.settings;
       Toast.errorToast(message);

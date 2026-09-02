@@ -54,6 +54,14 @@ vi.mock('@/api/composables/usePatchResource', () => ({
   usePatchResource: vi.fn(),
 }));
 
+// ── Mock @/store (ResourceMemoryStore / GlobalStore require active Pinia) ──────
+vi.mock('@/store', () => ({
+  default: {
+    ResourceMemoryStore: () => ({ hmcManaged: null }),
+    GlobalStore: () => ({ isSingleFileDebugMode: false }),
+  },
+}));
+
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import {
   useRedfishResource,
