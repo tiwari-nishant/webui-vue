@@ -134,7 +134,8 @@ const GLOBAL_STUBS = {
     inheritAttrs: false,
     props: ['variant', 'disabled'],
     emits: ['click'],
-    template: '<button :disabled="disabled || undefined" v-bind="$attrs"><slot /></button>',
+    template:
+      '<button :disabled="disabled || undefined" v-bind="$attrs"><slot /></button>',
   },
   PageTitle: { inheritAttrs: false, template: '<div />' },
   // Declare object-valued props so they are not forwarded as DOM attributes.
@@ -151,11 +152,23 @@ const GLOBAL_STUBS = {
     emits: ['table-row-action'],
     template: '<div />',
   },
-  Alert: { inheritAttrs: false, props: ['variant'], template: '<div><slot /></div>' },
+  Alert: {
+    inheritAttrs: false,
+    props: ['variant'],
+    template: '<div><slot /></div>',
+  },
   BTable: {
     inheritAttrs: false,
-    props: ['fields', 'items', 'responsive', 'selectable', 'showEmpty',
-            'noSelectOnClick', 'stickyHeader', 'hover'],
+    props: [
+      'fields',
+      'items',
+      'responsive',
+      'selectable',
+      'showEmpty',
+      'noSelectOnClick',
+      'stickyHeader',
+      'hover',
+    ],
     emits: ['row-selected'],
     template: '<div id="table-pcie-topology" />',
   },
@@ -164,7 +177,11 @@ const GLOBAL_STUBS = {
   IconAdd: { inheritAttrs: false, template: '<span />' },
   IconSettings: { inheritAttrs: false, template: '<span />' },
   IconChevron: { inheritAttrs: false, template: '<span />' },
-  BCollapse: { inheritAttrs: false, props: ['id'], template: '<div><slot /></div>' },
+  BCollapse: {
+    inheritAttrs: false,
+    props: ['id'],
+    template: '<div><slot /></div>',
+  },
 };
 
 /** Mounts UserManagement with mocked composable and store state. */

@@ -183,7 +183,8 @@ function mountMemoryDimms(hookOverrides = {}) {
         BRow: { template: '<div><slot /></div>' },
         BCol: { template: '<div><slot /></div>' },
         BFormCheckbox: {
-          template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+          template:
+            '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
           props: ['modelValue'],
         },
         BFormGroup: { template: '<div><slot /></div>' },
@@ -219,7 +220,8 @@ function mountProcessorCores(hookOverrides = {}) {
         BRow: { template: '<div><slot /></div>' },
         BCol: { template: '<div><slot /></div>' },
         BFormCheckbox: {
-          template: '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+          template:
+            '<input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
           props: ['modelValue'],
         },
         BFormGroup: { template: '<div><slot /></div>' },
@@ -324,7 +326,10 @@ describe('HardwareDeconfiguration', () => {
 
       const row = { item: MOCK_CORES[0] };
       await wrapper.vm.toggleSettingsSwitch(row, false);
-      expect(updateCoresSettingsState).toHaveBeenCalledWith(row.item.uri, false);
+      expect(updateCoresSettingsState).toHaveBeenCalledWith(
+        row.item.uri,
+        false,
+      );
     });
   });
 });
