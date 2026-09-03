@@ -4,13 +4,16 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import api from '@/store/api';
 // @ts-ignore
 import i18n from '@/i18n';
-import { useRedfishCollection } from './useAllSubResources';
+import { useRedfishResource } from './useRedfishCollection';
 import { RedfishQueryPresets } from './shared/queryConfig';
 import type { System } from '@/types/redfish';
 
-const COLLECTION_PATH = '/redfish/v1/Systems';
-const QUERY_KEY = ['redfish', 'collection', COLLECTION_PATH];
+// Fetch the known system resource directly — the /Systems collection endpoint
+// does not support $expand on all servers, causing a 400 Bad Request.
+const RESOURCE_PATH = '/redfish/v1/Systems/system';
+const QUERY_KEY = ['redfish', 'resource', RESOURCE_PATH];
 
+// Base system data interface (server data only)
 export interface SystemData {
   assetTag: string | undefined;
   name: string;
@@ -27,8 +30,15 @@ export interface SystemData {
   serialNumber: string | undefined;
   statusState: string | undefined;
   uri: string;
+}
+
+// UI state interface (client-side state only)
+export interface SystemUIState {
   toggleDetails: boolean;
 }
+
+// Combined interface for the component
+export interface ProcessedSystem extends SystemData, SystemUIState {}
 
 interface RawSystem extends System {
   AssetTag?: string;
@@ -62,27 +72,37 @@ function processSystem(item: RawSystem): SystemData {
     serialNumber: item.SerialNumber,
     statusState: item.Status?.State,
     uri: item['@odata.id'],
-    toggleDetails: false,
   };
 }
 
 /**
  * Composable for fetching System data with TanStack Query.
- * Uses the shared inventory preset and follows the useInventory pattern.
+ * Fetches /redfish/v1/Systems/system directly (single resource, no $expand).
+ * Follows the same pattern as useAuditLogs — a watch converts raw data to the
+ * processed shape while preserving UI state.
  */
 export function useSystem() {
   const queryClient = useQueryClient();
 
-  const { data: systemsRaw, isLoading, refetch } = useRedfishCollection<RawSystem>(
-    COLLECTION_PATH,
-    { queryConfig: RedfishQueryPresets.inventory },
+  const {
+    data: systemRaw,
+    isLoading,
+    refetch,
+  } = useRedfishResource<RawSystem>(RESOURCE_PATH, {
+    queryConfig: RedfishQueryPresets.inventory,
+  });
+
+  const systems = ref<ProcessedSystem[]>([]);
+
+  watch(
+    systemRaw,
+    (raw) => {
+      systems.value = raw
+        ? [{ ...processSystem(raw), toggleDetails: false }]
+        : [];
+    },
+    { immediate: true },
   );
-
-  const systems = ref<SystemData[]>([]);
-
-  watch(systemsRaw, (raw) => {
-    systems.value = raw ? raw.map(processSystem) : [];
-  }, { immediate: true });
 
   // Shared helper to patch system and invalidate
   const patchSystem = async (payload: Record<string, any>) => {
@@ -111,7 +131,9 @@ export function useSystem() {
         },
       });
       if (!ledState) {
-        return i18n.global.t('pageInventory.toast.successDisableSystemAttentionLed');
+        return i18n.global.t(
+          'pageInventory.toast.successDisableSystemAttentionLed',
+        );
       }
     },
     onError: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
@@ -139,17 +161,23 @@ export function useSystem() {
     }
   };
 
-  const changeSystemAttentionLedState = async (ledState: boolean): Promise<string | undefined> => {
+  const changeSystemAttentionLedState = async (
+    ledState: boolean,
+  ): Promise<string | undefined> => {
     try {
       return await changeSystemAttentionLedMutation.mutateAsync(ledState);
     } catch {
       if (!ledState) {
-        throw new Error(i18n.global.t('pageInventory.toast.errorDisableSystemAttentionLed'));
+        throw new Error(
+          i18n.global.t('pageInventory.toast.errorDisableSystemAttentionLed'),
+        );
       }
     }
   };
 
-  const changeLampTestState = async (lampTestState: boolean): Promise<string | undefined> => {
+  const changeLampTestState = async (
+    lampTestState: boolean,
+  ): Promise<string | undefined> => {
     try {
       return await changeLampTestMutation.mutateAsync(lampTestState);
     } catch {

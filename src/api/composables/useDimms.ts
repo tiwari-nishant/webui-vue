@@ -4,13 +4,14 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import api from '@/store/api';
 // @ts-ignore
 import i18n from '@/i18n';
-import { useRedfishCollection } from './useAllSubResources';
+import { useRedfishCollection } from './useRedfishCollection';
 import { RedfishQueryPresets } from './shared/queryConfig';
 import type { Resource } from '@/types/redfish';
 
 const COLLECTION_PATH = '/redfish/v1/Systems/system/Memory';
 const QUERY_KEY = ['redfish', 'collection', COLLECTION_PATH];
 
+// Base DIMM data interface (server data only)
 export interface DimmData {
   id: string;
   health: string | undefined;
@@ -25,8 +26,15 @@ export interface DimmData {
   identifyLed: boolean | undefined;
   uri: string;
   locationNumber: string | undefined;
+}
+
+// UI state interface (client-side state only)
+export interface DimmUIState {
   toggleDetails: boolean;
 }
+
+// Combined interface for the component
+export interface ProcessedDimm extends DimmData, DimmUIState {}
 
 interface RawMemory extends Resource {
   Status?: { Health?: string; State?: string };
@@ -41,7 +49,19 @@ interface RawMemory extends Resource {
 }
 
 function processMemory(item: RawMemory): DimmData {
-  const { Id, Status = {}, CapacityMiB, Enabled, Name, PartNumber, SerialNumber, SparePartNumber, Model, LocationIndicatorActive, Location } = item;
+  const {
+    Id,
+    Status = {},
+    CapacityMiB,
+    Enabled,
+    Name,
+    PartNumber,
+    SerialNumber,
+    SparePartNumber,
+    Model,
+    LocationIndicatorActive,
+    Location,
+  } = item;
   return {
     id: Id,
     health: Status.Health,
@@ -56,29 +76,80 @@ function processMemory(item: RawMemory): DimmData {
     identifyLed: LocationIndicatorActive,
     uri: item['@odata.id'],
     locationNumber: Location?.PartLocation?.ServiceLabel,
-    toggleDetails: false,
   };
+}
+
+function getDefaultUIState(): DimmUIState {
+  return { toggleDetails: false };
 }
 
 /**
  * Composable for fetching DIMM memory slots with TanStack Query.
- * Uses the shared inventory preset and follows the useInventory pattern.
+ * Follows the same pattern as useAuditLogs — useRedfishCollection handles
+ * OData $expand, batching and caching; a watch converts raw data to the
+ * processed shape while preserving UI state.
  */
 export function useDimms() {
   const queryClient = useQueryClient();
 
-  const { data: dimmsRaw, isLoading, refetch } = useRedfishCollection<RawMemory>(COLLECTION_PATH, {
+  const {
+    data: dimmsRaw,
+    isLoading,
+    refetch,
+  } = useRedfishCollection<RawMemory>(COLLECTION_PATH, {
     queryConfig: RedfishQueryPresets.inventory,
   });
 
-  const dimms = ref<DimmData[]>([]);
+  const dimms = ref<ProcessedDimm[]>([]);
+  const dataMap = new Map<string, DimmData>();
+  const uiStateMap = new Map<string, DimmUIState>();
 
-  watch(dimmsRaw, (raw) => {
-    dimms.value = raw ? raw.map(processMemory) : [];
-  }, { immediate: true });
+  watch(
+    dimmsRaw,
+    (rawItems) => {
+      if (!rawItems) {
+        dimms.value = [];
+        dataMap.clear();
+        uiStateMap.clear();
+        return;
+      }
+
+      const newDimms: ProcessedDimm[] = [];
+      const currentUris = new Set<string>();
+
+      for (const rawItem of rawItems) {
+        const processedData = processMemory(rawItem);
+        const uri = processedData.uri;
+        currentUris.add(uri);
+
+        dataMap.set(uri, processedData);
+        if (!uiStateMap.has(uri)) {
+          uiStateMap.set(uri, getDefaultUIState());
+        }
+
+        newDimms.push({ ...processedData, ...uiStateMap.get(uri)! });
+      }
+
+      for (const [uri] of dataMap.entries()) {
+        if (!currentUris.has(uri)) {
+          dataMap.delete(uri);
+          uiStateMap.delete(uri);
+        }
+      }
+
+      dimms.value = newDimms;
+    },
+    { immediate: true },
+  );
 
   const updateIdentifyLedMutation = useMutation({
-    mutationFn: async ({ uri, identifyLed }: { uri: string; identifyLed: boolean }) => {
+    mutationFn: async ({
+      uri,
+      identifyLed,
+    }: {
+      uri: string;
+      identifyLed: boolean;
+    }) => {
       await api.patch(uri, { LocationIndicatorActive: identifyLed });
       return identifyLed
         ? i18n.global.t('pageInventory.toast.successEnableIdentifyLed')
@@ -92,7 +163,10 @@ export function useDimms() {
     },
   });
 
-  const updateIdentifyLed = async (uri: string, identifyLed: boolean): Promise<string> => {
+  const updateIdentifyLed = async (
+    uri: string,
+    identifyLed: boolean,
+  ): Promise<string> => {
     try {
       return await updateIdentifyLedMutation.mutateAsync({ uri, identifyLed });
     } catch {
