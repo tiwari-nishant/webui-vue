@@ -87,40 +87,57 @@ function onClick() {
 
 function handleOK() {
   openModal.value = false;
-  rebootBmc()
-    .then(() => {
-      infoToast(i18n.global.t('pageRebootBmc.toast.successRebootStart'));
-      startLoader();
+  rebootBmc().then(() => {
+    infoToast(i18n.global.t('pageRebootBmc.toast.successRebootStart'));
+    startLoader();
 
-      // Start checking BMC status after reboot
-      const timer = (checkCounter = 0) => {
-        checkCounter++;
-        // This counter goes up by 1 every time this function runs
-        // If the function successfully goes to last toast, it won't run anymore
-        // if this function runs more than 10 times, it won't run anymore
-        if (checkCounter > 10) {
-          endLoader();
-          return errorToast(
-            i18n.global.t('pageRebootBmc.toast.errorRebootStart'),
-          );
-        }
-        globalStore.getBootProgress().then(() => {
-          if (bootProgress.value) {
-            infoToast(
-              i18n.global.t('pageRebootBmc.toast.successRebootCompleted'),
-            );
-            endLoader();
-          } else {
-            setTimeout(() => {
-              timer(checkCounter);
-            }, 60000); // 1 minute
-          }
+    // Phase 1: Wait for the BMC to go offline (requests start failing).
+    // The reboot command was just issued but the BMC is still alive for a
+    // few seconds, so getSystemInfo() would succeed as a false positive
+    // if polled immediately. Poll until a request *fails* first.
+    const waitForOffline = (attempts = 0) => {
+      if (attempts > 10) {
+        // BMC never went offline — surface an error and stop.
+        endLoader();
+        return errorToast(
+          i18n.global.t('pageRebootBmc.toast.errorRebootStart'),
+        );
+      }
+      globalStore
+        .getSystemInfo()
+        .then(() => {
+          // Still online — check again after 10 s.
+          setTimeout(() => waitForOffline(attempts + 1), 10000);
+        })
+        .catch(() => {
+          // BMC is now offline — start polling for recovery.
+          waitForOnline();
         });
-      };
-      timer();
-    })
-    .catch(() =>
-      errorToast(i18n.global.t('pageRebootBmc.toast.errorRebootStart')),
-    );
+    };
+
+    // Phase 2: Poll until getSystemInfo() succeeds (BMC is back online).
+    const waitForOnline = (attempts = 0) => {
+      if (attempts > 10) {
+        endLoader();
+        return errorToast(
+          i18n.global.t('pageRebootBmc.toast.errorRebootStart'),
+        );
+      }
+      globalStore
+        .getSystemInfo()
+        .then(() => {
+          infoToast(
+            i18n.global.t('pageRebootBmc.toast.successRebootCompleted'),
+          );
+          endLoader();
+        })
+        .catch(() => {
+          // Still offline — retry after 1 minute.
+          setTimeout(() => waitForOnline(attempts + 1), 60000);
+        });
+    };
+
+    waitForOffline();
+  });
 }
 </script>
