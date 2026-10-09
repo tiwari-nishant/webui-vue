@@ -96,7 +96,7 @@ function handleOK() {
     // few seconds, so getSystemInfo() would succeed as a false positive
     // if polled immediately. Poll until a request *fails* first.
     const waitForOffline = (attempts = 0) => {
-      if (attempts > 10) {
+      if (attempts > 60) {
         // BMC never went offline — surface an error and stop.
         endLoader();
         return errorToast(
@@ -106,8 +106,8 @@ function handleOK() {
       globalStore
         .getSystemInfo()
         .then(() => {
-          // Still online — check again after 10 s.
-          setTimeout(() => waitForOffline(attempts + 1), 10000);
+          // Still online — check again after 1s.
+          setTimeout(() => waitForOffline(attempts + 1), 1000);
         })
         .catch(() => {
           // BMC is now offline — start polling for recovery.
