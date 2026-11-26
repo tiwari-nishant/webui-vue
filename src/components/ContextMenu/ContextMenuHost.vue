@@ -60,8 +60,9 @@ const getLink = (target) => {
 };
 const isWebLink = (a) => a.protocol === 'http:' || a.protocol === 'https:';
 
-// Browsers do not let a page open a private/incognito window, so there is
-// no "Open link in private window" item.
+// Browsers do not let a page open a private/incognito window, and Firefox in
+// macOS full-screen turns a popup request into a tab, so there are no
+// "Open link in private window" or "Open link in new window" items.
 const getLinkItems = () => {
   const a = linkEl.value;
   if (!a) return [];
@@ -73,10 +74,6 @@ const getLinkItems = () => {
           {
             key: 'openLinkNewTab',
             label: t('global.contextMenu.openLinkNewTab'),
-          },
-          {
-            key: 'openLinkNewWindow',
-            label: t('global.contextMenu.openLinkNewWindow'),
           },
         ]
       : []),
@@ -202,14 +199,6 @@ const onLinkAction = (key) => {
       break;
     case 'openLinkNewTab':
       window.open(href, '_blank', 'noopener,noreferrer');
-      break;
-    case 'openLinkNewWindow':
-      // Window features make the browser open a separate window, not a tab
-      window.open(
-        href,
-        '_blank',
-        `noopener,noreferrer,popup=yes,width=${window.outerWidth},height=${window.outerHeight}`,
-      );
       break;
     case 'copyLink':
       copyText(href);
