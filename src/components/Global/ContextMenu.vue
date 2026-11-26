@@ -8,8 +8,8 @@
         data-html2canvas-ignore="true"
         role="menu"
         :style="{ top: `${top}px`, left: `${left}px` }"
-        @keydown.esc="close"
-        @mouseleave="openSubmenu = null"
+        @keydown="onMenuKeydown"
+        @mouseleave="onMenuLeave"
       >
         <template v-for="item in items" :key="item.key">
           <li
@@ -35,7 +35,7 @@
               'context-menu__item--submenu': item.children,
             }"
             role="menuitem"
-            :tabindex="item.disabled ? -1 : 0"
+            tabindex="-1"
             :aria-haspopup="item.children ? 'menu' : null"
             :aria-expanded="
               item.children ? String(openSubmenu === item.key) : null
@@ -60,7 +60,7 @@
               class="context-menu__icon"
               aria-hidden="true"
             />
-            <span>{{ item.label }}</span>
+            <span class="context-menu__label">{{ item.label }}</span>
             <span
               v-if="item.children"
               class="context-menu__chevron"
@@ -73,6 +73,7 @@
               class="context-menu__submenu"
               role="menu"
               :style="submenuStyle"
+              @mouseenter="clearSubmenuTimer"
             >
               <li
                 v-for="child in item.children"
@@ -80,7 +81,8 @@
                 class="context-menu__item"
                 :class="{ 'context-menu__item--disabled': child.disabled }"
                 role="menuitem"
-                :tabindex="child.disabled ? -1 : 0"
+                tabindex="-1"
+                @mouseenter="onChildEnter(child, $event)"
                 @click.stop="!child.disabled && onItemClick(child, $event)"
                 @keydown.enter.prevent="
                   !child.disabled && onItemClick(child, $event)
@@ -90,7 +92,7 @@
                 "
                 @keydown.left.prevent="closeSubmenuFrom($event.currentTarget)"
               >
-                <span>{{ child.label }}</span>
+                <span class="context-menu__label">{{ child.label }}</span>
               </li>
             </ul>
           </li>
@@ -112,6 +114,12 @@
 </template>
 
 <script>
+// Delay before a hover switches or closes a submenu, so a diagonal mouse move
+// toward an open submenu does not close it.
+const SUBMENU_DELAY = 300;
+// Pause in typing after which the typeahead buffer resets.
+const TYPEAHEAD_RESET = 500;
+
 export default {
   name: 'ContextMenu',
   props: {
@@ -146,24 +154,43 @@ export default {
       };
     },
   },
+  created() {
+    // Non-reactive bookkeeping
+    this.returnFocusEl = null;
+    this.submenuTimer = null;
+    this.typeahead = { buffer: '', timer: null };
+  },
   mounted() {
     document.addEventListener('click', this.onDocumentClick);
     // Use 'mousedown' instead of 'contextmenu' to close on outside right-clicks
     // without racing with the open() call triggered by the parent.
     document.addEventListener('mousedown', this.onDocumentMousedown);
     document.addEventListener('scroll', this.close, true);
+    // Document level so Esc works even when focus is not inside the menu
+    document.addEventListener('keydown', this.onDocumentKeydown);
   },
   beforeUnmount() {
     document.removeEventListener('click', this.onDocumentClick);
     document.removeEventListener('mousedown', this.onDocumentMousedown);
     document.removeEventListener('scroll', this.close, true);
+    document.removeEventListener('keydown', this.onDocumentKeydown);
+    this.clearSubmenuTimer();
+    clearTimeout(this.typeahead.timer);
   },
   methods: {
-    open(event) {
+    // `position` ({ x, y } in client coordinates) overrides the event's
+    // coordinates, used when the menu is opened from the keyboard.
+    open(event, position) {
       event.preventDefault();
       // Stop the event from reaching the document mousedown listener we set up,
       // so opening does not immediately trigger a close.
       event.stopPropagation();
+      // Remember where focus was so it can be restored on close. Keep the
+      // earlier element when re-opening while focus is inside the menu.
+      if (!this.$refs.menuEl?.contains(document.activeElement)) {
+        this.returnFocusEl = document.activeElement;
+      }
+      this.clearSubmenuTimer();
       this.openSubmenu = null;
       this.visible = true;
 
@@ -175,32 +202,45 @@ export default {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const { width, height } = menu.getBoundingClientRect();
+        const clientX = position?.x ?? event.clientX;
+        const clientY = position?.y ?? event.clientY;
 
-        let x = event.clientX + window.scrollX;
-        let y = event.clientY + window.scrollY;
+        let x = clientX + window.scrollX;
+        let y = clientY + window.scrollY;
 
         // Clamp so the menu never overflows the viewport
-        if (event.clientX + width + MARGIN > vw) {
-          x = event.clientX + window.scrollX - width;
+        if (clientX + width + MARGIN > vw) {
+          x = clientX + window.scrollX - width;
         }
-        if (event.clientY + height + MARGIN > vh) {
-          y = event.clientY + window.scrollY - height;
+        if (clientY + height + MARGIN > vh) {
+          y = clientY + window.scrollY - height;
         }
 
         this.left = Math.max(MARGIN, x);
         this.top = Math.max(MARGIN, y);
 
-        // Focus the first focusable item once the menu is at its final
+        // Focus the first enabled item once the menu is at its final
         // position, and never let the focus change scroll the page. Focusing
         // while the menu is still at top: 0 scrolls the page to the top.
         this.$nextTick(() => {
-          menu.querySelector('[tabindex="0"]')?.focus({ preventScroll: true });
+          this.getEnabledItems(menu)[0]?.focus({ preventScroll: true });
         });
       });
     },
     close() {
+      // Also used as the document scroll handler, so ignore it while hidden
+      if (!this.visible) return;
+      const hadFocus = this.$refs.menuEl?.contains(document.activeElement);
+      this.clearSubmenuTimer();
       this.visible = false;
       this.openSubmenu = null;
+      // Give focus back to where it was before the menu opened, so keyboard
+      // users do not lose their place when the focused item is removed.
+      const el = this.returnFocusEl;
+      this.returnFocusEl = null;
+      if (hadFocus && el && el !== document.body && el.isConnected) {
+        el.focus({ preventScroll: true });
+      }
     },
     onItemClick(item, event) {
       // An item with children only toggles its submenu
@@ -212,16 +252,133 @@ export default {
       this.$emit('action', item.key);
     },
     onItemEnter(item, event) {
-      if (item.children && !item.disabled) {
-        this.openSubmenuFor(item, event.currentTarget);
+      const el = event.currentTarget;
+      // Hover and keyboard focus share one highlight
+      if (!item.disabled) el.focus({ preventScroll: true });
+      const target = item.children && !item.disabled ? item : null;
+      this.clearSubmenuTimer();
+      if (this.openSubmenu === (target?.key ?? null)) return;
+      if (this.openSubmenu === null) {
+        this.openSubmenuFor(target, el);
+        return;
+      }
+      // Another submenu is open: wait before switching or closing it
+      this.submenuTimer = setTimeout(() => {
+        if (target) {
+          this.openSubmenuFor(target, el);
+        } else {
+          this.openSubmenu = null;
+        }
+      }, SUBMENU_DELAY);
+    },
+    onChildEnter(child, event) {
+      this.clearSubmenuTimer();
+      if (!child.disabled) event.currentTarget.focus({ preventScroll: true });
+    },
+    onMenuLeave() {
+      this.clearSubmenuTimer();
+      const active = document.activeElement;
+      if (active?.closest?.('.context-menu__submenu')) {
+        // Do not leave focus inside a submenu that is about to be removed
+        this.closeSubmenuFrom(active);
       } else {
         this.openSubmenu = null;
+      }
+    },
+    clearSubmenuTimer() {
+      clearTimeout(this.submenuTimer);
+      this.submenuTimer = null;
+    },
+    // Enabled, focusable items that are direct children of a menu list
+    getEnabledItems(listEl) {
+      return Array.from(listEl.children).filter((el) =>
+        el.matches('[role="menuitem"]:not(.context-menu__item--disabled)'),
+      );
+    },
+    // Arrow keys, Home/End, Tab and typeahead. Enter, Space, Right and Left
+    // are handled on the items themselves.
+    onMenuKeydown(event) {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      const list = event.target.closest?.('[role="menu"]');
+      if (!list) return;
+
+      if (event.key === 'Tab') {
+        // The menu is a single tab stop: Tab closes it and focus returns
+        event.preventDefault();
+        this.close();
+        return;
+      }
+
+      const items = this.getEnabledItems(list);
+      if (!items.length) return;
+      const index = items.indexOf(document.activeElement);
+      let next;
+
+      switch (event.key) {
+        case 'ArrowDown':
+          next = items[(index + 1) % items.length];
+          break;
+        case 'ArrowUp':
+          next = items[(index - 1 + items.length) % items.length];
+          break;
+        case 'Home':
+          next = items[0];
+          break;
+        case 'End':
+          next = items[items.length - 1];
+          break;
+        default:
+          // Printable character: jump to the next item starting with it
+          if (event.key.length === 1 && event.key !== ' ') {
+            next = this.findByTypeahead(items, index, event.key);
+            if (next) event.preventDefault();
+            next?.focus({ preventScroll: true });
+          }
+          return;
+      }
+      event.preventDefault();
+      next.focus({ preventScroll: true });
+    },
+    findByTypeahead(items, index, char) {
+      const state = this.typeahead;
+      clearTimeout(state.timer);
+      state.buffer += char.toLowerCase();
+      state.timer = setTimeout(() => {
+        state.buffer = '';
+      }, TYPEAHEAD_RESET);
+
+      const label = (el) =>
+        el
+          .querySelector('.context-menu__label')
+          ?.textContent.trim()
+          .toLowerCase() ?? '';
+      // A single character starts after the current item so repeating it
+      // cycles through matches; a longer buffer may match the current item.
+      const start = state.buffer.length === 1 ? index + 1 : Math.max(index, 0);
+      for (let i = 0; i < items.length; i++) {
+        const el = items[(start + i) % items.length];
+        if (label(el).startsWith(state.buffer)) return el;
+      }
+      return undefined;
+    },
+    onDocumentKeydown(event) {
+      if (!this.visible || event.key !== 'Escape') return;
+      const active = document.activeElement;
+      // Esc in a submenu closes only the submenu
+      if (active?.closest?.('.context-menu__submenu')) {
+        this.closeSubmenuFrom(active);
+      } else {
+        this.close();
       }
     },
     // Opens the submenu of `item` (rendered inside `itemEl`) and keeps it
     // inside the viewport: flipped to the left when there is no room on the
     // right, shifted up when it would run past the bottom edge.
     openSubmenuFor(item, itemEl, focusFirst = false) {
+      if (!item) {
+        this.openSubmenu = null;
+        return;
+      }
       if (this.openSubmenu === item.key && !focusFirst) return;
       const MARGIN = 8;
       this.openSubmenu = item.key;
@@ -235,15 +392,14 @@ export default {
         const overflowBottom = rect.bottom + MARGIN - window.innerHeight;
         this.submenuShift = overflowBottom > 0 ? -overflowBottom : 0;
         if (focusFirst) {
-          submenu
-            .querySelector('[tabindex="0"]')
-            ?.focus({ preventScroll: true });
+          this.getEnabledItems(submenu)[0]?.focus({ preventScroll: true });
         }
       });
     },
     // Left arrow inside a submenu: close it and return focus to its parent
     closeSubmenuFrom(childEl) {
       const parentEl = childEl.closest('.context-menu__submenu')?.parentElement;
+      this.clearSubmenuTimer();
       this.openSubmenu = null;
       parentEl?.focus({ preventScroll: true });
     },
@@ -309,6 +465,11 @@ export default {
     &:hover,
     &:focus-visible {
       background: #e8e8e8;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #0f62fe;
+      outline-offset: -2px;
     }
 
     &--disabled {

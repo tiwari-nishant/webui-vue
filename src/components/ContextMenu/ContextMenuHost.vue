@@ -48,14 +48,76 @@ const zone = ref('page');
 const openCount = ref(0);
 const screenshotModalOpen = ref(false);
 const screenshotDataUrl = ref(null);
+// Text selected when the menu was opened. Copy is offered only if not empty.
+const selectedText = ref('');
+// Link under the cursor when the menu was opened, if any.
+const linkEl = ref(null);
+
+// Closest real link under the target. javascript: links are not offered.
+const getLink = (target) => {
+  const a = target.closest?.('a[href]');
+  return a && a.protocol !== 'javascript:' ? a : null;
+};
+const isWebLink = (a) => a.protocol === 'http:' || a.protocol === 'https:';
+
+// Browsers do not let a page open a private/incognito window, so there is
+// no "Open link in private window" item.
+const getLinkItems = () => {
+  const a = linkEl.value;
+  if (!a) return [];
+  const web = isWebLink(a);
+  return [
+    ...(web
+      ? [
+          { key: 'openLink', label: t('global.contextMenu.openLink') },
+          {
+            key: 'openLinkNewTab',
+            label: t('global.contextMenu.openLinkNewTab'),
+          },
+          {
+            key: 'openLinkNewWindow',
+            label: t('global.contextMenu.openLinkNewWindow'),
+          },
+        ]
+      : []),
+    { key: 'copyLink', label: t('global.contextMenu.copyLinkAddress') },
+    { divider: true, key: 'div-link' },
+  ];
+};
+
+// Text selected on the page, including inside inputs and textareas, which
+// window.getSelection() does not report. Password fields are never copied.
+const getSelectedText = () => {
+  const el = document.activeElement;
+  if (el?.matches?.('input, textarea') && el.type !== 'password') {
+    try {
+      const { selectionStart: start, selectionEnd: end } = el;
+      if (start !== null && start !== end) return el.value.slice(start, end);
+    } catch {
+      // Input types such as number or email do not expose a selection range
+    }
+  }
+  return window.getSelection()?.toString() ?? '';
+};
 
 // openCount forces a recompute on every open, so non-reactive state such as
 // window.history.length is read fresh.
 const items = computed(() => {
   openCount.value;
-  return zone.value === 'header'
-    ? getHeaderItems()
-    : mergeWithPageItems(getCommonItems());
+  const list =
+    zone.value === 'header'
+      ? getHeaderItems()
+      : mergeWithPageItems(getCommonItems());
+  return [
+    ...getLinkItems(),
+    ...(selectedText.value
+      ? [
+          { key: 'copy', label: t('global.contextMenu.copy') },
+          { divider: true, key: 'div-copy' },
+        ]
+      : []),
+    ...list,
+  ];
 });
 
 const onContextMenu = (event) => {
@@ -64,9 +126,21 @@ const onContextMenu = (event) => {
   // A route can opt out with `meta: { customContextMenu: false }` (see
   // router/routes.js) to keep the native browser menu in the page area.
   if (zone.value === 'page' && route.meta?.customContextMenu === false) return;
+  selectedText.value = getSelectedText();
+  linkEl.value = getLink(event.target);
   openCount.value++;
   event.preventDefault();
-  contextMenuRef.value?.open(event);
+  contextMenuRef.value?.open(event, getKeyboardPosition(event));
+};
+
+// Shift+F10 / the Context Menu key fire `contextmenu` too, but some browsers
+// report 0,0 for them. Anchor the menu to the focused element instead.
+const getKeyboardPosition = (event) => {
+  if (event.clientX !== 0 || event.clientY !== 0) return undefined;
+  const el = document.activeElement;
+  if (!el || el === document.body) return undefined;
+  const rect = el.getBoundingClientRect();
+  return { x: rect.left + 8, y: rect.bottom };
 };
 
 onMounted(() => document.addEventListener('contextmenu', onContextMenu));
@@ -74,7 +148,38 @@ onBeforeUnmount(() =>
   document.removeEventListener('contextmenu', onContextMenu),
 );
 
+// Clipboard API needs a secure context (https); fall back to execCommand.
+const copyText = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return;
+  } catch {
+    // Not available or denied: use the legacy path below
+  }
+  const previous = document.activeElement;
+  const area = document.createElement('textarea');
+  area.value = text;
+  area.setAttribute('readonly', '');
+  area.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(area);
+  area.select();
+  try {
+    document.execCommand('copy');
+  } finally {
+    area.remove();
+    previous?.focus?.({ preventScroll: true });
+  }
+};
+
 const onAction = async (key) => {
+  if (key === 'copy') {
+    await copyText(selectedText.value);
+    return;
+  }
+  if (key.startsWith('openLink') || key === 'copyLink') {
+    onLinkAction(key);
+    return;
+  }
   if (key === 'screenshot' && !getPageHandler(key)) {
     await captureScreenshot();
     return;
@@ -84,6 +189,32 @@ const onAction = async (key) => {
       ? (headerActions[key] ?? commonActions[key])
       : (getPageHandler(key) ?? commonActions[key]);
   await handler?.();
+};
+
+const onLinkAction = (key) => {
+  const a = linkEl.value;
+  if (!a) return;
+  const href = a.href;
+  switch (key) {
+    case 'openLink':
+      // Click the anchor itself so router-links navigate without a reload
+      a.click();
+      break;
+    case 'openLinkNewTab':
+      window.open(href, '_blank', 'noopener,noreferrer');
+      break;
+    case 'openLinkNewWindow':
+      // Window features make the browser open a separate window, not a tab
+      window.open(
+        href,
+        '_blank',
+        `noopener,noreferrer,popup=yes,width=${window.outerWidth},height=${window.outerHeight}`,
+      );
+      break;
+    case 'copyLink':
+      copyText(href);
+      break;
+  }
 };
 
 const captureScreenshot = async () => {

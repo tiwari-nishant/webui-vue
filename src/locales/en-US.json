@@ -39,6 +39,11 @@
             "useCursorKeysToNavigateCalendarDates": "Use cursor keys to navigate calendar dates"
         },
         "contextMenu": {
+            "copy": "Copy",
+            "openLink": "Open link",
+            "openLinkNewTab": "Open link in new tab",
+            "openLinkNewWindow": "Open link in new window",
+            "copyLinkAddress": "Copy link address",
             "selectAll": "Select all",
             "screenshot": "Full page screenshot",
             "back": "Back",
